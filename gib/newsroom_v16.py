@@ -56,7 +56,11 @@ def canonical_issue(raw, edition, now, weights=None, prior=None, max_items=12):
             fresh_official=a.get('official') and bool(urls-earlier)
             if not fresh_official: continue
         candidates.append(a)
-    chosen=diversified(candidates,max_items,max_per_section=4)
+    # Verify source eligibility BEFORE the 12-story cap.
+    # Earlier six of twelve selected candidates were dropped afterwards
+    # because URLs were non-HTTPS/missing, wasting slots.
+    eligible=[a for a in candidates if article_sources(a) and _date(a.get('published_at'))]
+    chosen=diversified(eligible,max_items,max_per_section=4)
     rows=[]
     updates=[]
     for a in chosen:
