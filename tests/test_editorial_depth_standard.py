@@ -17,10 +17,24 @@ NOW=dt.datetime(2026,10,23,2,tzinfo=dt.timezone.utc)
 
 class DepthTests(unittest.TestCase):
     def setUp(self):
+        fixture_titles=[
+            "Global recession economic growth outlook",
+            "Federal reserve policy rate decision",
+            "Taiwan advanced semiconductor supply issue",
+            "China cross border tariff trade announcement",
+            "Energy oil production supply update",
+            "Japan bank yen monetary decision",
+            "International port shipping disruption",
+            "Artificial intelligence chip sector investment",
+            "European inflation jobs report",
+            "Manufacturing steel industry recovery",
+            "US Treasury bond yield information",
+            "Global logistics freight transport conditions",
+        ]
         raw=[]
-        for i in range(12):
+        for i,headline in enumerate(fixture_titles):
             raw.append({
-                "title":f"Illustrative global issue {i} discusses industrial policy",
+                "title":headline,
                 "url":f"https://publisher{i}.example/article/{i}",
                 "publisher":f"publisher{i}",
                 "snippet":"An unverified news index summary about an announcement.",
