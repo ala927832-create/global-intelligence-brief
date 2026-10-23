@@ -10,6 +10,7 @@ from gib.newsroom_v16 import canonical_issue,audit_issue,save_issue,load_issue
 from gib.gemini_editor_v16 import research_and_revise
 from gib.contract import locked_contract
 from gib.evidence_review import review_official_excerpts, check_claim_lineage
+from gib.editorial_depth import audit_editorial_depth
 from gib.qa_tracker import build_record, persist_record
 from gib.publish_v16 import export
 
@@ -48,6 +49,7 @@ def run(args):
     # canonical issue, so the offline book can be reproduced and audited.
     # They remain UNVERIFIED until explicit source-level editorial approval.
     issue['editorial_drafts']=edits
+    issue['editorial_depth_audit']=audit_editorial_depth(issue,edits)
     issue['editorial_status']='REVIEW_REQUIRED'
     audit=audit_issue(issue,require_full=True)
     # QA previews are generated despite release hold and prominently labeled.
@@ -57,7 +59,10 @@ def run(args):
     quality_record=build_record(issue,issue.get('gemini_editorial'),None,None,live_source=not bool(args.fixture),fixture=bool(args.fixture))
     record_file=persist_record(quality_record,issues/'records')
     result={'issue_json':str(doc),'epub':output,'qa_record':str(record_file),'release_approved':False,
-            'release_hold_reasons':audit['reasons'],'collector_errors':errors,
+            'release_hold_reasons':audit['reasons']+
+            issue['editorial_depth_audit']['release_blockers'],
+            'editorial_depth_audit':issue['editorial_depth_audit'],
+            'collector_errors':errors,
             'gemini_connected_and_called':bool(issue.get('gemini_editorial',{}).get('status')=='REVISED_DRAFT_PENDING_REVIEW')}
     (issues/(issue['issue_id']+'-QA.json')).write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps(result,ensure_ascii=False,indent=2))
