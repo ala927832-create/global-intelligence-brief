@@ -150,7 +150,10 @@ Deep Research 必須增加新的證據、反例、口徑、情境和觀察條件
         first=_call(spec+'\n證據：'+json.dumps(evidence,ensure_ascii=False),model)
         edits,warns=audit_model_output(first,issue)
         if not edits:return {'status':'NO_ACCEPTABLE_DRAFT','edits':[], 'warnings':warns}
-        second=_call(spec+'\n總編輯複核：先檢查一輪稿件的連貫性、證據限制與有無重複論述。刪除無來源事實，清楚串起背景→機制→不同觀點→後續觀察，保留 event_id 和 source_ids，優先使繁體中文正文適合連續閱讀。嚴禁補造任何事件、日期、數字及外部來源。\n證據：'+json.dumps(evidence,ensure_ascii=False)+'\n一輪稿件：'+json.dumps({'items':edits},ensure_ascii=False),model)
+        second=_call(spec+'\n總編輯複核：先檢查一輪稿件的連貫性、證據限制與有無重複論述。刪除無來源事實，清楚串起背景→機制→不同觀點→後續觀察，保留 event_id 和 source_ids，優先使繁體中文正文適合連續閱讀。嚴禁補造任何事件、日期、數字及外部來源。\n證據：'+json.dumps(evidence,ensure_ascii=False)+'\n一輪稿件：'+json.dumps(
+            {'items':[e for e in edits if any(e.get('sections',{}).values())],
+             'briefs':[e for e in edits if not any(e.get('sections',{}).values())]},
+            ensure_ascii=False),model)
         revised,warns2=audit_model_output(second,issue)
         if not revised:
             return {'status':'SECOND_PASS_FAILED','edits':[], 'warnings':warns+warns2}
