@@ -30,7 +30,7 @@ def source_anchor(source):
 
 def reading_index(items, isdeep, draft_ids=()):
     rows=['<nav class="offline-reading-index" id="reading-index" aria-label="本書離線導覽">',
-          '<h2>本書閱讀路線｜離線可用</h2>',
+          '<h2 id="reading-index">本書閱讀路線｜離線可用</h2>',
           '<p>先從全球快訊了解全貌，再點選本書的深入解析。'
           '延伸研究與來源摘要均已包含在本 EPUB，只有查閱外部網站才需要網路。</p>',
           '<ol class="reading-path">']
@@ -94,7 +94,7 @@ def issue_body(issue, edits=None, level='essential'):
         e=edit_by_id.get(x['event_id']) or {}
         title=e.get('headline_zh') or x['title_original']
         lead=e.get('brief_zh') or x.get('headline_summary') or '原始摘要不足'
-        result.append(f'<h3>{h(title)}</h3><p class="article-deck">{h(lead)}</p>')
+        result.append(f'<h3 id="brief-{anchor_id(x)}">{h(title)}</h3><p class="article-deck">{h(lead)}</p>')
         if e.get('headline_zh') and title!=x['title_original']:
             result.append(f'<p class="source-note">原始標題：{h(x["title_original"])}　·　中文由 AI 編輯，尚待核實</p>')
         target=f'#analysis-{anchor_id(x)}' if i<=5 else '#sources'
@@ -106,7 +106,7 @@ def issue_body(issue, edits=None, level='essential'):
     for i,x in enumerate(items[:5],1):
         edit=edit_by_id.get(x['event_id']);s=edit.get('sections',{}) if edit else {}
         title=(edit or {}).get('headline_zh') or x['title_original']
-        result.append(f'<article class="focus-piece" id="analysis-{anchor_id(x)}"><p class="eyebrow">ANALYSIS {i:02d} · {h(x["topic_label"])}</p><h3>{h(title)}</h3>')
+        result.append(f'<article class="focus-piece" id="analysis-{anchor_id(x)}"><p class="eyebrow">ANALYSIS {i:02d} · {h(x["topic_label"])}</p><h3 id="analysis-{anchor_id(x)}">{h(title)}</h3>')
         if (edit or {}).get('brief_zh'):
             result.append('<p class="lead">'+h(edit['brief_zh'])+'</p>')
         for key,title in [('background','事件背景'),('why_it_matters','為何值得了解'),('transmission','可能影響機制')]:
@@ -148,7 +148,7 @@ def issue_body(issue, edits=None, level='essential'):
             for i,(x,e) in enumerate(draft_items,1):
                 headline=e.get('headline_zh') or x['title_original']
                 result.append(f'<article class="dossier" id="research-{anchor_id(x)}">'
-                    f'<p class="eyebrow">RESEARCH WORKING DRAFT {i:02d} · 待驗證</p><h3>{h(headline)}</h3>')
+                    f'<p class="eyebrow">RESEARCH WORKING DRAFT {i:02d} · 待驗證</p><h3 id="research-{anchor_id(x)}">{h(headline)}</h3>')
                 if e.get('brief_zh'):
                     result.append('<p class="lead">'+h(e['brief_zh'])+'</p>')
                 sections=e.get('sections',{})
