@@ -32,6 +32,18 @@ class TestPipeline(unittest.TestCase):
         self.assertEqual(len(got),2)
         self.assertEqual(len(got[0]['publishers']),2)
         self.assertNotIn('utm_source',got[0]['url'])
+    def test_same_oil_event_headline_variants_cluster(self):
+        raw=[
+            {'title':'Oil Prices Rise as Supply Concerns Linger amid Middle East Attacks',
+             'url':'https://one.example/a','published_at':NOW.isoformat(),
+             'publisher':'First Outlet','snippet':'Unverified title only'},
+            {'title':'Oil prices rise as supply concerns linger amid Houthi attacks on Saudi Arabia',
+             'url':'https://two.example/b','published_at':NOW.isoformat(),
+             'publisher':'Second Outlet','snippet':'Unverified title only'}]
+        got=cluster(raw,NOW)
+        self.assertEqual(len(got),1)
+        self.assertEqual(len(got[0]['related_urls']),2)
+
     def test_evening_non_replay(self):
         articles=rank(cluster(example_articles(),NOW),{})
         seen=next_seen([],articles,NOW)
