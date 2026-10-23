@@ -199,6 +199,11 @@ def issue_body(issue, edits=None, level='essential'):
     result.append('</ol><p class="method">來源文章、新聞索引、Gemini 編輯解釋分開標示。來源網址存在不代表所有主張已被核實。'
         +' 只摘要與引用連結，不重製有版權的新聞全文。</p></section>')
     text='\n'.join(result)
+    # Pandoc's HTML reader can discard id attributes on HTML5 <nav>/<article>
+    # even while EPUBCheck succeeds. Native <div id> preserves EPUB fragments.
+    # Convert only structural wrappers; never change the frozen six headings.
+    text=re.sub(r'<article\\b','<div',text).replace('</article>','</div>')
+    text=re.sub(r'<nav\\b','<div',text).replace('</nav>','</div>')
     # Protect the frozen editorial contract in the output as well.
     for name in (x['name'] for x in contract['sections']):
         if text.count('｜'+h(name)) != 1:raise RuntimeError('Frozen section structure violated: '+name)
