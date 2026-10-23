@@ -44,6 +44,10 @@ def run(args):
             edits=ai.get('edits',[])
             issue['gemini_editorial']={'status':ai['status'],'warnings':ai.get('warnings',[]),
                                        'draft_count':len(edits)}
+    # Keep both editorial passages and their linked source identifiers in the
+    # canonical issue, so the offline book can be reproduced and audited.
+    # They remain UNVERIFIED until explicit source-level editorial approval.
+    issue['editorial_drafts']=edits
     issue['editorial_status']='REVIEW_REQUIRED'
     audit=audit_issue(issue,require_full=True)
     # QA previews are generated despite release hold and prominently labeled.
