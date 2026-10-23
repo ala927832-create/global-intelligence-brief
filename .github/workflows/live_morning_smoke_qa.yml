@@ -6,6 +6,8 @@ on:
       - '.github/workflows/live_morning_smoke_qa.yml'
       - 'tests/test_editorial_rebuild.py'
       - 'gib/collect.py'
+      - 'gib/newsroom_v16.py'
+      - 'gib/editorial.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -36,6 +38,14 @@ jobs:
         run: |
           output=$(python -c 'import json,pathlib;print(pathlib.Path(json.load(open("qa_run.json"))["issue_json"]).parent)')
           bash scripts/run_epubcheck_qa.sh "$output"
+      - name: Show QA news headlines and release blockers
+        if: always()
+        run: |
+          if [ -s qa_run.json ]; then
+            python scripts/qa_actions_summary.py
+          else
+            echo '## QA stopped before issue.json generation' >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Preserve QA artifacts even if sources or EPUB fail
         if: always()
         uses: actions/upload-artifact@v4
