@@ -31,3 +31,5 @@ jobs:
           fi
           echo "模型：$MODEL" >> "$GITHUB_STEP_SUMMARY"
           echo '這個檢查沒有任何 Gemini 模型呼叫、計費、LINE 或發布動作。' >> "$GITHUB_STEP_SUMMARY"
+          if [ "$GEMINI_KEY_PRESENT" = "true" ]; then echo 'GEMINI_KEY_PRESENT=true'; else echo 'GEMINI_KEY_PRESENT=false'; fi
+          if [ "$FREE_TIER_CONFIRMED" = "1" ]; then echo 'FREE_TIER_CONFIRMED=true'; else echo 'FREE_TIER_CONFIRMED=false'; fi
