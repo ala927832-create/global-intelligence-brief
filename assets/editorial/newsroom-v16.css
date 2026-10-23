@@ -43,3 +43,17 @@ p{margin:.35em 0 .65em;orphans:2;widows:2;}a{color:#1C5967;text-decoration:under
 .section-number{font-size:.76em!important;color:#285967;border-bottom:1px solid #B8C3C0;padding-bottom:.25em;}
 .method{font-size:.83em;color:#5A666A;}
 .focus-piece h3{font-size:1.22em;}
+
+/* One-download offline reading: large hit areas, in-book anchors, reflow-safe. */
+.offline-reading-index{margin:1.05em 0 1.12em;padding:.8em .86em;border-top:.18em solid #234A63;border-bottom:1px solid #B9CBCB;background:#EEF2EE;}
+.offline-reading-index h2{font-size:1.1em;color:#183750;margin:.12em 0 .42em;}
+.offline-reading-index p{font-size:.85em;color:#40535C;line-height:1.54;}
+.reading-path{list-style:none;padding:0;margin:.5em 0;}
+.reading-path li{margin:0;padding:.47em .16em;border-bottom:1px solid #C7D4CF;line-height:1.45;break-inside:avoid;}
+.index-number{font-size:.78em;color:#A27420;font-weight:700;margin-right:.38em;}
+.jump-deep,.in-book-link a{font-family:"Noto Sans CJK TC",sans-serif;font-size:.85em;color:#1D6267;font-weight:700;}
+.jump-deep{margin-left:.42em;}
+.in-book-link{margin:.5em 0 .2em;padding:.34em .48em;border-left:.22em solid #29777A;background:#E9F1EC;}
+.offline-mode,.small-note{font-size:.82em;color:#627078;}
+.sources li:target,.focus-piece:target,.brief:target,.dossier:target{outline:1px solid #2C6F73;outline-offset:.12em;}
+@media (prefers-color-scheme: dark){.offline-reading-index,.in-book-link{color:#163445;}}
