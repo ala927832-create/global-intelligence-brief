@@ -35,6 +35,18 @@ jobs:
         run: |
           pip install -r requirements.txt
           sudo apt-get update -qq && sudo apt-get install -y pandoc fonts-noto-cjk
+      - name: Confirm Gemini project free-tier before any generation
+        if: inputs.use_gemini_free
+        run: |
+          if [ "$GEMINI_FREE_TIER_CONFIRMED" != "1" ]; then
+            echo "::error::Gemini generation is OFF. Confirm AI Studio project is free-tier, then set GitHub Actions Variable GEMINI_FREE_TIER_CONFIRMED=1."
+            exit 2
+          fi
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "::error::GEMINI_API_KEY secret is missing; never paste it into logs."
+            exit 3
+          fi
+          echo 'Gemini generation allowed by explicit project confirmation. QA only; no publication.'
       - name: Frozen contract / unit tests
         run: python -m unittest discover -s tests -q
       - name: Historical source fixture (not live)
