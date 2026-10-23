@@ -44,6 +44,25 @@ def fetch_official_page(url,session=None):
     return {'url':url,'text':value,'sha256':hashlib.sha256(r.content).hexdigest(),
             'retrieved_at':dt.datetime.now(dt.timezone.utc).isoformat()}
 
+def bounded_official_context(source_text, snippet, max_chars=900):
+    """Locate a relevant small official excerpt, never assert it proves the claim."""
+    text=normalize_text(source_text)
+    words=[w.lower() for w in re.findall(r'[A-Za-z]{5,}',normalize_text(snippet))]
+    words=list(dict.fromkeys(words))[:18]
+    if not words:
+        return ''
+    lower=text.casefold()
+    for word in sorted(words,key=len,reverse=True):
+        at=lower.find(word)
+        if at<0:continue
+        start=max(0,at-140)
+        candidate=text[start:start+max_chars]
+        matches=sum(word2 in candidate.casefold() for word2 in words)
+        if matches>=min(2,len(words)):
+            return candidate
+    return ''
+
+
 def review_official_excerpts(issue,fetcher=fetch_official_page,max_documents=8):
     checked=0; report=[]; cache={}
     for article in issue.get('articles',[]):
@@ -73,7 +92,26 @@ def review_official_excerpts(issue,fetcher=fetch_official_page,max_documents=8):
                                retrieved_at=page['retrieved_at'],
                                source_sha256=page['sha256'])
                     report.append({'claim_id':c['claim_id'],'status':'EXCERPT_MATCH'})
-                else:report.append({'claim_id':c['claim_id'],'status':'UNVERIFIED_NO_EXACT_MATCH'})
+                else:
+                    # Useful primary-source background may exist even if the
+                    # RSS snippet is not verbatim on the official page. Preserve
+                    # it as *context only*, not as VERIFIED or a quote match.
+                    context=bounded_official_context(page['text'],
+                        excerpt+' '+article.get('title_original',''))
+                    if context:
+                        c.update(official_context_excerpt=context,
+                                 source_sha256=page['sha256'],
+                                 retrieved_at=page['retrieved_at'],
+                                 source_location='retrieved official background; claim not matched',
+                                 verification='OFFICIAL_CONTEXT_UNVERIFIED')
+                        src.update(retrieval_status='OFFICIAL_BACKGROUND_ONLY',
+                                   retrieved_at=page['retrieved_at'],
+                                   source_sha256=page['sha256'])
+                        report.append({'claim_id':c['claim_id'],
+                                       'status':'OFFICIAL_CONTEXT_UNVERIFIED'})
+                    else:
+                        report.append({'claim_id':c['claim_id'],
+                                       'status':'UNVERIFIED_NO_EXACT_MATCH'})
             except (requests.RequestException,ValueError) as ex:
                 report.append({'claim_id':c['claim_id'],'status':'SOURCE_FETCH_FAILED','reason':type(ex).__name__})
     issue.setdefault('source_health',{})['primary_source_review']={'fetched_count':checked,'claims':report}
