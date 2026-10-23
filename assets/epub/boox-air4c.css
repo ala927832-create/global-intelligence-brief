@@ -1,0 +1,47 @@
+/* Layout 01 · Global Intelligence Brief · BOOX Note Air4 C
+   Reflowable EPUB 3; 3:4 editorial cover; muted e-paper color palette.
+   Does not rely on fixed sidebars, columns, font sizes or images for meaning. */
+@charset "UTF-8";
+@page { margin: 0.62em 0.74em; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  color: #26333B; background-color: #FCFAF4;
+  font-family: "Noto Serif CJK TC", "Source Han Serif TC", "Songti TC", serif;
+  font-size: 1em; line-height: 1.76; margin: 0; padding: 0;
+  text-align: left; widows: 2; orphans: 2;
+  word-wrap: break-word; overflow-wrap: break-word;
+}
+h1, h2, h3, h4 {
+  font-family: "Noto Sans CJK TC", "Source Han Sans TC", "PingFang TC", sans-serif;
+  color: #203D58; font-weight: 700; line-height: 1.38;
+  break-after: avoid; page-break-after: avoid; text-align: left;
+}
+h1 { font-size: 1.65em; margin: 0.84em 0 0.5em; padding-bottom: .34em;
+  border-bottom: 0.16em solid #264D6D; }
+h2 { font-size: 1.33em; margin: 1.55em 0 .8em;
+  padding: .38em .0em .35em .52em; border-left: .26em solid #315D76;
+  border-bottom: 1px solid #AAB7B8; break-before: page; page-break-before: always; }
+h3 { font-size: 1.15em; margin: 1.34em 0 .6em;
+  padding: .23em 0 .21em .55em; border-left: .22em solid #457D79; }
+h4 { font-size: 1.05em; margin: 1.2em 0 .46em; color: #725724; }
+p { margin: .5em 0 .88em; }
+p + p { margin-top: .36em; }
+strong, b { color: #193346; font-weight: 700; }
+em { color: #30556A; }
+a, a:visited { color: #254E70; text-decoration: underline; }
+blockquote { margin: 1.1em .1em 1.1em; padding: .55em .8em;
+  border-left: .3em solid #427A76; background: #E8F0EC; color: #263E42; }
+blockquote p { margin: .34em 0; }
+ul, ol { padding-left: 1.42em; margin: .58em 0 1.0em; }
+li { margin: .24em 0; }
+li p { margin: .17em 0; }
+hr { border: 0; border-top: 1px solid #98A9AC; margin: 1.24em 0; }
+small, figcaption { font-size: .9em; color: #3D5259; }
+code, pre { font-family: monospace; font-size: .9em; white-space: pre-wrap; }
+img, figure { max-width: 100%; height: auto; }
+table { border-collapse: collapse; width: 100%; margin: 1em 0; font-size: .93em; }
+th, td { text-align: left; vertical-align: top; padding: .48em .36em;
+  border-bottom: 1px solid #B5C0C0; word-break: break-word; }
+th { color: #203D58; border-top: 2px solid #315D76; font-weight: 700;
+  background-color: #F0F3F0; }
+/* For monochrome rendering, every accent also has label, border or weight. */

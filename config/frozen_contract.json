@@ -1,0 +1,28 @@
+{
+  "contract_version": "2026-10-23-approved-v1",
+  "product": "Global Intelligence Brief",
+  "independent_repository": "global-intelligence-brief",
+  "change_policy": "OWNER_CONFIRMATION_REQUIRED_BEFORE_CHANGING_ANY_FIELD",
+  "pipeline": [
+    "Python＋新聞來源：發現重要新聞、取得來源、建立逐事件證據包",
+    "Gemini 第一輪：背景、影響機制、歷史比較、替代觀點、未來觀察",
+    "Python：逐項主張與來源驗證；數字、日期、引文、資料期間、未經證實的推論",
+    "Gemini 第二輪：刪除重複、補強邏輯、調整閱讀節奏、修正驗證問題",
+    "專業 XHTML／EPUB 3：共用已審定底稿，輸出速讀與深讀版"
+  ],
+  "sections": [
+    {"number": "01", "name": "Executive Brief", "description": "三件最重要的事情、整體國際局勢，以及今天與上一期相比真正改變的資訊。"},
+    {"number": "02", "name": "The World in Brief", "description": "8–12 則全球精選消息，每則說明發生了什麼及其重要性，次要新聞不占據大篇幅。"},
+    {"number": "03", "name": "Essential Analysis", "description": "3–5 項重要事件的背景、傳導機制、相關證據與觀察方向。"},
+    {"number": "04", "name": "Deep Research", "description": "僅深版展開 2–3 個專題：歷史比較、原始數據、替代觀點及推翻條件。"},
+    {"number": "05", "name": "What Changed & What to Watch", "description": "追蹤新證據、判斷變化、未來一週關鍵事件與必要的 Zinc Research Watch。"},
+    {"number": "06", "name": "Sources & Evidence", "description": "每則重要研究的來源、發布日期、數據期間與仍未核實事項。"}
+  ],
+  "format": {"primary_language":"zh-TW","palette":"Layout 01","epub":"EPUB 3 reflowable","reader":"BOOX Note Air4 C", "cover_ratio":"3:4"},
+  "versions": [{"name":"Essential", "minutes":"10-15"},{"name":"Deep Research", "minutes":"30-45"}],
+  "schedule": {"timezone":"Asia/Taipei","global_morning":"07:30","zinc_daily":"10:30","zinc_alert":"17:30","global_evening":"17:30"},
+  "sources": ["FreeNewsApi.io","GDELT","official RSS","independently cited public research"],
+  "release_gates": ["10_REAL_TRADING_DAYS", "EPUBCHECK_PASS", "BOOX_NEOREADER_REAL_DEVICE_PASS", "REAL_NEWS_EVIDENCE_VERIFIED", "GEMINI_TWO_PASSES_CONFIRMED", "NO_UNAPPROVED_COSTS"],
+  "zinc_policy":"READ_ONLY_PUBLIC_VERIFIED_CROSS_MARKET_SIGNALS_ONLY; ORIGINAL_REPO_UNCHANGED",
+  "publishing":"OFF_UNTIL_QUALITY_AND_OWNER_APPROVAL"
+}

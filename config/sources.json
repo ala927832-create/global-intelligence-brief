@@ -1,0 +1,43 @@
+{
+  "official_rss": [
+    {
+      "name": "Federal Reserve",
+      "url": "https://www.federalreserve.gov/feeds/press_monetary.xml"
+    },
+    {
+      "name": "US BLS",
+      "url": "https://www.bls.gov/feed/bls_latest.rss"
+    },
+    {
+      "name": "Bank of Japan",
+      "url": "https://www.boj.or.jp/en/rss/whatsnew.xml"
+    }
+  ],
+  "freenews_titles": [
+    "inflation",
+    "central bank",
+    "tariff",
+    "energy",
+    "semiconductor",
+    "interest rates",
+    "China economy"
+  ],
+  "gdelt_queries": [
+    "(\"global economy\" OR \"central bank\")",
+    "(\"trade policy\" OR \"supply chain\")",
+    "(\"energy supply\" OR \"geopolitical risk\")"
+  ],
+  "section_weights": {
+    "macro": 20,
+    "central_banks": 20,
+    "geopolitics": 15,
+    "asia": 15,
+    "technology": 10,
+    "energy": 10,
+    "corporates": 5,
+    "unexpected": 5
+  },
+  "top_n": 12,
+  "min_quality": 1,
+  "freenews_details_daily_cap": 32
+}
