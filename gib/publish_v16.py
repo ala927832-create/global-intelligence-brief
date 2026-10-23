@@ -1,0 +1,154 @@
+"""Frozen 6-section editorial publishing: one issue.json to two reflowable EPUB3 books.
+
+The exporter produces QA-labeled artefacts, not approved news. It never infers
+quality from file generation, word count or the mere existence of source URLs.
+"""
+from __future__ import annotations
+import html, json, re, shutil, subprocess, tempfile
+from pathlib import Path
+from zipfile import ZipFile
+from .contract import locked_contract
+from .epub import make_cover, validate_epub
+
+ROOT=Path(__file__).resolve().parents[1]
+CSS=ROOT/'assets'/'editorial'/'newsroom-v16.css'
+
+def h(v):return html.escape(str(v or ''),quote=True)
+def paras(v):return ''.join(f'<p>{h(s)}</p>' for s in re.split(r'\n\s*\n',str(v or '')) if s.strip())
+def heading(num,name,title):
+    return f'<p class="section-number">{num}｜{h(name)}</p><h2>{h(title)}</h2>'
+
+def issue_body(issue, edits=None, level='essential'):
+    contract=locked_contract()
+    if level not in ('essential','deep'):raise ValueError('unsupported reading level')
+    edit_by_id={e['event_id']:e for e in (edits or [])}
+    items=issue.get('articles',[])
+    isdeep=(level=='deep')
+    period='晨報' if issue['edition']=='morning' else '晚報'
+    qa=issue.get('editorial_status')!='EDITOR_APPROVED'
+    result=['''<header class="issue-header" id="cover">
+     <p class="overline">GLOBAL INTELLIGENCE BRIEF · LAYOUT 01</p>
+     <div class="brand">Global<br/>Intelligence Brief</div>
+     <p class="brand-sub">全球財經'''+period+(' · 30–45 分鐘深讀' if isdeep else ' · 10–15 分鐘速讀')+'''</p>
+     <div class="issue-meta">'''+h(issue['report_date'])+' · Asia/Taipei · '+h(issue['as_of_utc'])+'''</div>
+     <div class="topic-nav"><span>國際政經</span><span>全球經濟</span><span>科技產業</span><span>市場觀察</span></div>
+     </header>''']
+    if qa:
+        result.append('<p class="quality-label"><strong>QA／非正式刊物：</strong>資料與研究尚未通過發行審核；'+
+         '新聞索引並非已查證事實，未完成實機／EPUBCheck／10 交易日驗收。</p>')
+    # 01. Executive Brief
+    result.append('<section class="opening" id="executive">'+heading('01','Executive Brief','本期三個最值得追蹤的主題'))
+    result.append('<p class="intro">本期挑選重要的世界動態，呈現來源、背景及不確定性。'+
+      ('晚報以晨報之後出現的實質新消息及新的官方證據為重點。' if issue['edition']=='evening' else
+       '晨報著重夜間全球變化與今天已知的關鍵議程。')+'</p>')
+    for i,x in enumerate(items[:3],1):
+        result.append(f'<div class="executive-point"><span class="point-no">{i:02d}</span><strong>{h(x["title_original"])}</strong>'+
+            f'<p>{h(x.get("headline_summary") or "尚待來源核實")}</p></div>')
+    if len(items)<3: result.append('<p class="quality-label">未能取得三項有充分來源的焦點，不以虛構內容補足。</p>')
+    if issue['edition']=='evening':
+        result.append('<p class="source-note">本期增量比對：'+('已與早報證據快照比較。' if issue.get('source_health',{}).get('has_morning_comparison') else '未提供晨報快照，不能宣稱當日新聞增量。')+'</p>')
+    result.append('</section>')
+    # 02. The World in Brief
+    result.append('<section class="world-section" id="world">'+heading('02','The World in Brief','全球精選新聞與來源'))
+    if not items:result.append('<p>尚無符合有效來源及日期條件的消息。</p>')
+    for i,x in enumerate(items,1):
+        source=x['sources'][0]
+        result.append(f'<article class="brief"><p class="brief-index">{i:02d} · {h(x["topic_label"])} · {h(x.get("article_published_at") or "日期不詳")}</p>')
+        result.append(f'<h3>{h(x["title_original"])}</h3><p class="article-deck">{h(x.get("headline_summary") or "原始摘要不足")}</p>')
+        result.append(f'<p class="source-note">來源資訊（未等同獨立查證）：<a href="{h(source["url"])}">{h(source["publisher"])}</a></p></article>')
+    result.append('</section>')
+    # 03. Essential Analysis
+    result.append('<section class="focus" id="analysis">'+heading('03','Essential Analysis','重要事件｜背景、意義與傳導機制'))
+    for i,x in enumerate(items[:5],1):
+        edit=edit_by_id.get(x['event_id']);s=edit.get('sections',{}) if edit else {}
+        result.append(f'<article class="focus-piece"><p class="eyebrow">ANALYSIS {i:02d} · {h(x["topic_label"])}</p><h3>{h(x["title_original"])}</h3>')
+        for key,title in [('background','事件背景'),('why_it_matters','為何值得了解'),('transmission','可能影響機制')]:
+            if s.get(key):result.append(f'<div class="context"><h4>{title}</h4>{paras(s[key])}</div>')
+        if s.get('alternative'):result.append('<div class="evidence"><strong>替代解釋</strong>'+paras(s['alternative'])+'</div>')
+        if s.get('limitations'):result.append('<div class="evidence"><strong>證據限制</strong>'+paras(s['limitations'])+'</div>')
+        if not edit:result.append('<div class="evidence"><strong>缺少完整研究證據</strong><p>僅有來源索引摘要，不應據此推定市場因果或撰寫長篇研究。</p></div>')
+        result.append(f'<p class="source-note">引用：<a href="{h(x["sources"][0]["url"])}">來源文章</a></p></article>')
+    if len(items)<3:result.append('<p class="quality-label">重點事件不足 3 項，不符合正式速讀內容門檻。</p>')
+    result.append('</section>')
+    # 04. Deep Research. Frozen chapter remains in both editions; substantive deep content only in deep edition.
+    result.append('<section class="longread" id="deep-research">'+heading('04','Deep Research','專題研究｜歷史、數據、替代觀點與推翻條件'))
+    if not isdeep:
+        result.append('<p>此章節的完整研究僅在同一期 Deep Research EPUB 展開。速讀版不以重複文字或未經驗證推論填充篇幅。</p>')
+    elif issue.get('deep_research'):
+        for i,topic in enumerate(issue['deep_research'],1):
+            result.append(f'<article class="dossier"><p class="eyebrow">RESEARCH {i:02d}</p><h3>{h(topic["title"])}</h3>')
+            for sec in topic.get('sections',[]):
+                result.append(f'<div class="dossier-section"><h4>{h(sec["heading"])}</h4>{paras(sec.get("body",""))}')
+                fig=sec.get('figure') or {}
+                if fig.get('file'):
+                    path=ROOT/'assets'/'editorial'/fig['file']
+                    if path.is_file():result.append(f'<figure class="research-figure"><img src="{h(path.as_uri())}" alt="{h(fig.get("title") or "數據圖")} "/><figcaption>{h(fig.get("caption") or "")}</figcaption></figure>')
+                result.append('</div>')
+            result.append('</article>')
+    else:
+        result.append('<p class="quality-label">本期尚無 2–3 項具備原始證據、歷史資料與反方材料的深入研究，不能標示為完成的 30–45 分鐘深度刊物。</p>')
+    result.append('</section>')
+    # 05. What Changed & What to Watch
+    result.append('<section class="follow" id="watch">'+heading('05','What Changed & What to Watch','新證據、判斷變化與未來一週'))
+    if issue['edition']=='evening' and not issue.get('source_health',{}).get('has_morning_comparison'):
+        result.append('<p class="quality-label">未完成今日早報快照比對，不能宣稱任何事件為新進展。</p>')
+    updates=issue.get('event_updates',[])
+    for change in updates:result.append(f'<div class="watch"><h4>{h(change.get("event_title","新證據"))}</h4>{paras(change.get("summary",""))}</div>')
+    n=0
+    for x in items[:5]:
+        s=(edit_by_id.get(x['event_id']) or {}).get('sections',{})
+        if s.get('watch'):
+            result.append(f'<div class="watch"><h4>{h(x["title_original"])}</h4>{paras(s["watch"])}</div>');n+=1
+    for ev in issue.get('upcoming_events',[]):
+        result.append(f'<div class="watch"><h4>{h(ev.get("date"))}｜{h(ev.get("title"))}</h4>{paras(ev.get("watch"))}</div>');n+=1
+    if not n and not updates:result.append('<p>目前沒有經驗證的新增追蹤條件，等待官方公告及後續資料。</p>')
+    if issue.get('zinc_watch'):
+        result.append('<h3>Zinc Research Watch｜唯讀跨市場觀察</h3>')
+        for row in issue['zinc_watch'][:2]:
+            result.append(f'<div class="evidence"><strong>{h(row.get("asset"))}</strong>　{h(row.get("market_date"))}<p>{h(row.get("observation"))}</p></div>')
+        result.append('<p class="source-note">Zinc 的技術研究不等於已驗證新聞；不包含私人庫存、採購或交易資料。</p>')
+    result.append('</section>')
+    # 06. Sources & Evidence
+    result.append('<section class="sources" id="sources">'+heading('06','Sources & Evidence','原始來源、資料時間、證據與限制')+'<ol>')
+    seen=set()
+    for x in items:
+        for s in x['sources']:
+            if s['source_id'] in seen:continue
+            seen.add(s['source_id'])
+            result.append(f'<li>{h(s.get("article_published_at") or "原始日期未核實")} · <a href="{h(s["url"])}">{h(s["publisher"])}</a> · ID {h(s["source_id"])}<br/>{h(x["title_original"])}</li>')
+        for claim in x.get('evidence',[]):
+            result.append(f'<li><b>主張 {h(claim.get("claim_id"))}</b> · {h(claim.get("verification"))} · {h(claim.get("source_location"))}<br/>{h(claim.get("text"))}</li>')
+    result.append('</ol><p class="method">來源文章、新聞索引、Gemini 編輯解釋分開標示。來源網址存在不代表所有主張已被核實。'
+        +' 只摘要與引用連結，不重製有版權的新聞全文。</p></section>')
+    text='\n'.join(result)
+    # Protect the frozen editorial contract in the output as well.
+    for name in (x['name'] for x in contract['sections']):
+        if text.count('｜'+h(name)) != 1:raise RuntimeError('Frozen section structure violated: '+name)
+    return text
+
+def as_xhtml(issue,edits=None,level='essential',css_file=None):
+    title=f'Global Intelligence Brief {issue["report_date"]} {issue["edition"]} {level}'
+    css=f'<link rel="stylesheet" href="{h(css_file)}"/>' if css_file else ''
+    return f'<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="zh-Hant"><head><meta charset="utf-8"/><title>{h(title)}</title>{css}</head><body>{issue_body(issue,edits,level)}</body></html>'
+
+def export(issue,edits=None,out=None,qa_only=True):
+    if not qa_only:raise PermissionError('Publishing remains locked pending 10 real trading days, EPUBCheck, BOOX device approval and owner release authorization')
+    folder=Path(out or ROOT/'qa_outputs'/issue['issue_id']);folder.mkdir(parents=True,exist_ok=True)
+    if not shutil.which('pandoc'):raise RuntimeError('Pandoc required')
+    results={}
+    for level in ('essential','deep'):
+        stem=f'{issue["edition"]}-{level}'
+        xhtml=folder/(stem+'.xhtml');xhtml.write_text(as_xhtml(issue,edits,level),encoding='utf-8')
+        epub=folder/(stem+'.epub')
+        with tempfile.TemporaryDirectory() as tmp:
+            cover=Path(tmp)/'cover.png';make_cover(cover,issue['edition'],level,issue['report_date'])
+            args=['pandoc',str(xhtml),'-f','html','-t','epub3','--standalone','--toc','--toc-depth=2',
+                '--css',str(CSS),'--epub-cover-image',str(cover),'--metadata=lang:zh-TW',
+                '--metadata=title:Global Intelligence Brief '+issue['report_date']+' '+stem,
+                '--metadata=author:Global Intelligence Brief','-o',str(epub)]
+            subprocess.run(args,capture_output=True,text=True,check=True,timeout=100)
+        validate_epub(epub)
+        with ZipFile(epub) as z:
+            if not any(n.endswith('.xhtml') for n in z.namelist()):raise ValueError('EPUB missing XHTML')
+        results[level]={'xhtml':str(xhtml),'epub':str(epub),'bytes':epub.stat().st_size}
+    return results
