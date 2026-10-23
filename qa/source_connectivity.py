@@ -88,11 +88,20 @@ def rss(name, url):
 
 
 def gemini():
-    if os.getenv("GEMINI_FREE_TIER_CONFIRMED") != "1":
-        return record("Gemini", "NOT_CALLED_FREE_TIER_NOT_CONFIRMED")
     key = os.getenv("GEMINI_API_KEY", "").strip()
     if not key:
         return record("Gemini", "MISSING_SECRET")
+    # Listing available models validates API authentication without generating
+    # tokens or incurring model-inference usage.
+    auth_code, model_list = request_json(
+        "https://generativelanguage.googleapis.com/v1beta/models?pageSize=10",
+        headers={"x-goog-api-key": key}, timeout=25
+    )
+    if auth_code != 200 or not isinstance(model_list, dict):
+        return record("Gemini", "AUTHENTICATION_OR_NETWORK_ERROR", code=auth_code)
+    if os.getenv("GEMINI_FREE_TIER_CONFIRMED") != "1":
+        return record("Gemini", "KEY_AUTHENTICATED_GENERATION_SKIPPED_FREE_TIER_UNCONFIRMED",
+                      available_model_count=len(model_list.get("models", [])))
     model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite").strip()
     if not model.replace("-", "").replace(".", "").isalnum():
         return record("Gemini", "INVALID_MODEL")
