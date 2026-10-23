@@ -205,7 +205,19 @@ def issue_body(issue, edits=None, level='essential'):
                           f'<p class="source-note">本書已收錄摘要與研究；<a href="{h(s["url"])}">'
                           '原始網站來源（需要網路）</a>僅供日後進一步核實。</p></li>')
         for claim in x.get('evidence',[]):
-            result.append(f'<li><b>主張 {h(claim.get("claim_id"))}</b> · {h(claim.get("verification"))} · {h(claim.get("source_location"))}<br/>{h(claim.get("text"))}</li>')
+            result.append(f'<li><b>主張 {h(claim.get("claim_id"))}</b> · {h(claim.get("verification"))}'
+                          f' · {h(claim.get("source_location"))}<br/>{h(claim.get("text"))}')
+            # Include a *bounded* relevant official evidence window for offline
+            # inspection, never the publisher article or entire official report.
+            context=str(claim.get('official_context_excerpt') or '').strip()
+            if context:
+                result.append('<div class="evidence">'
+                    '<strong>已收錄的官方文件定位片段（不等於事實核准）</strong>'
+                    +'<p>'+h(context[:260])+'</p>'
+                    +'<p class="source-note">文件讀取：'+h(claim.get('retrieved_at'))
+                    +' · SHA-256：'+h(str(claim.get('source_sha256') or '')[:14])
+                    +'</p></div>')
+            result.append('</li>')
     result.append('</ol><p class="method">來源文章、新聞索引、Gemini 編輯解釋分開標示。來源網址存在不代表所有主張已被核實。'
         +' 只摘要與引用連結，不重製有版權的新聞全文。</p></section>')
     text='\n'.join(result)
