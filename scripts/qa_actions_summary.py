@@ -3,6 +3,7 @@ from __future__ import annotations
 import html
 import json
 import os
+import re
 from pathlib import Path
 
 
@@ -14,6 +15,21 @@ def main():
     obj = json.loads(Path(os.getenv("QA_RUN_PATH", "qa_run.json")).read_text(encoding="utf-8"))
     issue = json.loads(Path(obj["issue_json"]).read_text(encoding="utf-8"))
     health = issue.get("source_health", {})
+    drafts = issue.get("editorial_drafts", [])
+    draft_text = " ".join(
+        " ".join(str(x) for x in draft.get("sections", {}).values())
+        for draft in drafts
+    )
+    draft_hanzi = len(re.findall(r"[\u3400-\u9fff]", draft_text))
+    book_hanzi = {}
+    for level in ("essential", "deep"):
+        filename = obj.get("epub", {}).get(level, {}).get("xhtml")
+        try:
+            html_text = Path(filename).read_text(encoding="utf-8") if filename else ""
+            book_hanzi[level] = len(re.findall(r"[\u3400-\u9fff]",
+                re.sub(r"<[^>]*>", "", html_text)))
+        except OSError:
+            book_hanzi[level] = 0
     rows = [
         "# Global Intelligence Brief — 新聞試刊 QA",
         "",
@@ -26,6 +42,8 @@ def main():
         f"| 合併去重後 | {health.get('unique_count', 0)} |",
         f"| 入選新聞 | {len(issue.get('articles', []))} / 目標 8–12 |",
         f"| 完整深度研究專題 | {len(issue.get('deep_research', []))} / 目標 2–3 |",
+        f"| AI 延伸研究草稿（不等於已審定專題） | {len(drafts)} 篇，約 {draft_hanzi} 漢字 |",
+        f"| Essential／Deep 實際內頁漢字數 | {book_hanzi['essential']}／{book_hanzi['deep']} |",
         f"| 晨晚報增量比較 | {'有' if health.get('has_morning_comparison') else '缺少晨報快照'} |",
         f"| Gemini 第一／二輪編輯 | {'已呼叫，待審查' if obj.get('gemini_connected_and_called') else '未呼叫'} |",
         "",
