@@ -61,9 +61,17 @@ def review_official_excerpts(issue,fetcher=fetch_official_page,max_documents=8):
                 excerpt=normalize_text(c.get('support_excerpt',''))
                 # Index snippets are often too short or not verbatim; never infer a match.
                 if len(excerpt)>=45 and excerpt.casefold() in page['text'].casefold():
+                    # Source-bounded context retained with original provenance.
+                    # This proves a text match, NOT that a causal claim is true.
+                    pos=page['text'].casefold().find(excerpt.casefold())
+                    context=page['text'][max(0,pos-260):min(len(page['text']),pos+len(excerpt)+480)]
                     c.update(verification='SOURCE_EXCERPT_MATCH_NOT_FACT_VERIFIED',
                        source_location='exact snippet in retrieved official web text',
-                       source_sha256=page['sha256'],retrieved_at=page['retrieved_at'])
+                       source_sha256=page['sha256'],retrieved_at=page['retrieved_at'],
+                       official_context_excerpt=context[:900])
+                    src.update(retrieval_status='OFFICIAL_EXCERPT_MATCH',
+                               retrieved_at=page['retrieved_at'],
+                               source_sha256=page['sha256'])
                     report.append({'claim_id':c['claim_id'],'status':'EXCERPT_MATCH'})
                 else:report.append({'claim_id':c['claim_id'],'status':'UNVERIFIED_NO_EXACT_MATCH'})
             except (requests.RequestException,ValueError) as ex:
