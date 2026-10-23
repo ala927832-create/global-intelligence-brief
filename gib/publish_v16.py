@@ -29,7 +29,7 @@ def source_anchor(source):
     return "src-"+re.sub(r"[^a-zA-Z0-9_-]","",raw)[:74]
 
 def reading_index(items, isdeep, draft_ids=()):
-    rows=['<nav class="offline-reading-index" id="reading-index" aria-label="本書離線導覽">',
+    rows=['<nav class="offline-reading-index" aria-label="本書離線導覽">',
           '<h2 id="reading-index">本書閱讀路線｜離線可用</h2>',
           '<p>先從全球快訊了解全貌，再點選本書的深入解析。'
           '延伸研究與來源摘要均已包含在本 EPUB，只有查閱外部網站才需要網路。</p>',
@@ -90,7 +90,7 @@ def issue_body(issue, edits=None, level='essential'):
     if not items:result.append('<p>尚無符合有效來源及日期條件的消息。</p>')
     for i,x in enumerate(items,1):
         source=x['sources'][0]
-        result.append(f'<article class="brief" id="brief-{anchor_id(x)}"><p class="brief-index">{i:02d} · {h(x["topic_label"])} · {h(x.get("article_published_at") or "日期不詳")}</p>')
+        result.append(f'<article class="brief"><p class="brief-index">{i:02d} · {h(x["topic_label"])} · {h(x.get("article_published_at") or "日期不詳")}</p>')
         e=edit_by_id.get(x['event_id']) or {}
         title=e.get('headline_zh') or x['title_original']
         lead=e.get('brief_zh') or x.get('headline_summary') or '原始摘要不足'
@@ -106,7 +106,7 @@ def issue_body(issue, edits=None, level='essential'):
     for i,x in enumerate(items[:5],1):
         edit=edit_by_id.get(x['event_id']);s=edit.get('sections',{}) if edit else {}
         title=(edit or {}).get('headline_zh') or x['title_original']
-        result.append(f'<article class="focus-piece" id="analysis-{anchor_id(x)}"><p class="eyebrow">ANALYSIS {i:02d} · {h(x["topic_label"])}</p><h3 id="analysis-{anchor_id(x)}">{h(title)}</h3>')
+        result.append(f'<article class="focus-piece"><p class="eyebrow">ANALYSIS {i:02d} · {h(x["topic_label"])}</p><h3 id="analysis-{anchor_id(x)}">{h(title)}</h3>')
         if (edit or {}).get('brief_zh'):
             result.append('<p class="lead">'+h(edit['brief_zh'])+'</p>')
         for key,title in [('background','事件背景'),('why_it_matters','為何值得了解'),('transmission','可能影響機制')]:
@@ -147,7 +147,7 @@ def issue_body(issue, edits=None, level='essential'):
                           '不得冒稱已完成的 30–45 分鐘正式深度研究。</p>')
             for i,(x,e) in enumerate(draft_items,1):
                 headline=e.get('headline_zh') or x['title_original']
-                result.append(f'<article class="dossier" id="research-{anchor_id(x)}">'
+                result.append(f'<article class="dossier">'
                     f'<p class="eyebrow">RESEARCH WORKING DRAFT {i:02d} · 待驗證</p><h3 id="research-{anchor_id(x)}">{h(headline)}</h3>')
                 if e.get('brief_zh'):
                     result.append('<p class="lead">'+h(e['brief_zh'])+'</p>')
