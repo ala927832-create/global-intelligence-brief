@@ -29,7 +29,10 @@ def source_anchor(source):
     return "src-"+re.sub(r"[^a-zA-Z0-9_-]","",raw)[:74]
 
 def reading_index(items, isdeep, draft_ids=()):
-    rows=['<nav class="offline-reading-index" aria-label="本書離線導覽">',
+    # Pandoc's HTML5 reader strips IDs on <nav> and <article>. Its EPUB3
+    # converter preserves IDs on semantic classed <div> elements instead.
+    # Keep all navigation resources embedded; no runtime network required.
+    rows=['<div class="offline-reading-index" aria-label="本書離線導覽">',
           '<h2 id="reading-index">本書閱讀路線｜離線可用</h2>',
           '<p>先從全球快訊了解全貌，再點選本書的深入解析。'
           '延伸研究與來源摘要均已包含在本 EPUB，只有查閱外部網站才需要網路。</p>',
@@ -45,7 +48,7 @@ def reading_index(items, isdeep, draft_ids=()):
           +jump+'</li>')
     rows.extend(['</ol>', '<p class="offline-mode">完整研究：'
         +('<a href="#deep-research">跳至深度研究</a>' if isdeep else '請使用同一期的 Deep Research 離線合輯')
-        +'　·　<a href="#sources">來源與證據清單</a></p></nav>'])
+        +'　·　<a href="#sources">來源與證據清單</a></p></div>'])
     return ''.join(rows)
 
 def issue_body(issue, edits=None, level='essential'):
@@ -90,7 +93,7 @@ def issue_body(issue, edits=None, level='essential'):
     if not items:result.append('<p>尚無符合有效來源及日期條件的消息。</p>')
     for i,x in enumerate(items,1):
         source=x['sources'][0]
-        result.append(f'<article class="brief"><p class="brief-index">{i:02d} · {h(x["topic_label"])} · {h(x.get("article_published_at") or "日期不詳")}</p>')
+        result.append(f'<div class="brief"><p class="brief-index">{i:02d} · {h(x["topic_label"])} · {h(x.get("article_published_at") or "日期不詳")}</p>')
         e=edit_by_id.get(x['event_id']) or {}
         title=e.get('headline_zh') or x['title_original']
         lead=e.get('brief_zh') or x.get('headline_summary') or '原始摘要不足'
@@ -99,14 +102,14 @@ def issue_body(issue, edits=None, level='essential'):
             result.append(f'<p class="source-note">原始標題：{h(x["title_original"])}　·　中文由 AI 編輯，尚待核實</p>')
         target=f'#analysis-{anchor_id(x)}' if i<=5 else '#sources'
         result.append(f'<p class="in-book-link"><a href="{target}">→ 本書深入閱讀／核查來源</a>'
-                      f'　·　<a href="#{source_anchor(source)}">來源索引</a></p></article>')
+                      f'　·　<a href="#{source_anchor(source)}">來源索引</a></p></div>')
     result.append('</section>')
     # 03. Essential Analysis
     result.append('<section class="focus" id="analysis">'+heading('03','Essential Analysis','重要事件｜背景、意義與傳導機制'))
     for i,x in enumerate(items[:5],1):
         edit=edit_by_id.get(x['event_id']);s=edit.get('sections',{}) if edit else {}
         title=(edit or {}).get('headline_zh') or x['title_original']
-        result.append(f'<article class="focus-piece"><p class="eyebrow">ANALYSIS {i:02d} · {h(x["topic_label"])}</p><h3 id="analysis-{anchor_id(x)}">{h(title)}</h3>')
+        result.append(f'<div class="focus-piece"><p class="eyebrow">ANALYSIS {i:02d} · {h(x["topic_label"])}</p><h3 id="analysis-{anchor_id(x)}">{h(title)}</h3>')
         if (edit or {}).get('brief_zh'):
             result.append('<p class="lead">'+h(edit['brief_zh'])+'</p>')
         for key,title in [('background','事件背景'),('why_it_matters','為何值得了解'),('transmission','可能影響機制')]:
@@ -118,7 +121,7 @@ def issue_body(issue, edits=None, level='essential'):
         follow=(f'　·　<a href="#research-{anchor_id(x)}">閱讀本書深入研究</a>'
                 if isdeep and x['event_id'] in draft_ids else '')
         result.append(f'<p class="source-note"><a href="#{source_anchor(first)}">本書證據與引用說明</a>'
-                      +follow+'　·　<a href="#reading-index">返回索引</a></p></article>')
+                      +follow+'　·　<a href="#reading-index">返回索引</a></p></div>')
     if len(items)<3:result.append('<p class="quality-label">重點事件不足 3 項，不符合正式速讀內容門檻。</p>')
     result.append('</section>')
     # 04. Deep Research. Frozen chapter remains in both editions; substantive deep content only in deep edition.
@@ -127,7 +130,7 @@ def issue_body(issue, edits=None, level='essential'):
         result.append('<p>此章節的完整研究僅在同一期 Deep Research EPUB 展開。速讀版不以重複文字或未經驗證推論填充篇幅。</p>')
     elif issue.get('deep_research'):
         for i,topic in enumerate(issue['deep_research'],1):
-            result.append(f'<article class="dossier"><p class="eyebrow">RESEARCH {i:02d}</p><h3>{h(topic["title"])}</h3>')
+            result.append(f'<div class="dossier"><p class="eyebrow">RESEARCH {i:02d}</p><h3>{h(topic["title"])}</h3>')
             for sec in topic.get('sections',[]):
                 result.append(f'<div class="dossier-section"><h4>{h(sec["heading"])}</h4>{paras(sec.get("body",""))}')
                 fig=sec.get('figure') or {}
@@ -135,7 +138,7 @@ def issue_body(issue, edits=None, level='essential'):
                     path=ROOT/'assets'/'editorial'/fig['file']
                     if path.is_file():result.append(f'<figure class="research-figure"><img src="{h(path.as_uri())}" alt="{h(fig.get("title") or "數據圖")} "/><figcaption>{h(fig.get("caption") or "")}</figcaption></figure>')
                 result.append('</div>')
-            result.append('</article>')
+            result.append('</div>')
     else:
         # Helpful offline long-form draft navigation, with strict attribution:
         # AI editorial text is interpretation, never primary-source verification.
@@ -147,7 +150,7 @@ def issue_body(issue, edits=None, level='essential'):
                           '不得冒稱已完成的 30–45 分鐘正式深度研究。</p>')
             for i,(x,e) in enumerate(draft_items,1):
                 headline=e.get('headline_zh') or x['title_original']
-                result.append(f'<article class="dossier">'
+                result.append(f'<div class="dossier">'
                     f'<p class="eyebrow">RESEARCH WORKING DRAFT {i:02d} · 待驗證</p><h3 id="research-{anchor_id(x)}">{h(headline)}</h3>')
                 if e.get('brief_zh'):
                     result.append('<p class="lead">'+h(e['brief_zh'])+'</p>')
@@ -166,7 +169,7 @@ def issue_body(issue, edits=None, level='essential'):
                     if sections.get(key):
                         result.append(f'<div class="dossier-section"><h4>{label}</h4>{paras(sections[key])}</div>')
                 result.append(f'<p class="source-note"><a href="#{source_anchor(x["sources"][0])}">'
-                              '回看本書來源與證據</a>　·　<a href="#reading-index">返回索引</a></p></article>')
+                              '回看本書來源與證據</a>　·　<a href="#reading-index">返回索引</a></p></div>')
         else:
             result.append('<p class="quality-label">本期尚無 2–3 項具備原始證據、歷史資料與反方材料的深入研究，不能標示為完成的 30–45 分鐘深度刊物。</p>')
     result.append('</section>')
@@ -209,8 +212,8 @@ def issue_body(issue, edits=None, level='essential'):
     # Pandoc's HTML reader can discard id attributes on HTML5 <nav>/<article>
     # even while EPUBCheck succeeds. Native <div id> preserves EPUB fragments.
     # Convert only structural wrappers; never change the frozen six headings.
-    text=re.sub(r'<article\b','<div',text).replace('</article>','</div>')
-    text=re.sub(r'<nav\b','<div',text).replace('</nav>','</div>')
+    text=re.sub(r'<article\b','<div',text).replace('</div>','</div>')
+    text=re.sub(r'<nav\b','<div',text).replace('</div>','</div>')
     # Protect the frozen editorial contract in the output as well.
     for name in (x['name'] for x in contract['sections']):
         if text.count('｜'+h(name)) != 1:raise RuntimeError('Frozen section structure violated: '+name)
