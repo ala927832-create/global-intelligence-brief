@@ -64,6 +64,8 @@ def gdelt():
     status, payload = request_json(
         "https://api.gdeltproject.org/api/v2/doc/doc?" + params, timeout=35
     )
+    if status == 429:
+        return record("GDELT", "RATE_LIMITED_429_WAIT_AND_RETRY_LATER", code=status)
     if status != 200:
         return record("GDELT", "HTTP_OR_NETWORK_ERROR", code=status)
     if not isinstance(payload, dict):
@@ -82,6 +84,8 @@ def rss(name, url):
         )
         return record(name, "CONNECTED", count=articles)
     except urllib.error.HTTPError as exc:
+        if exc.code == 403:
+            return record(name, "SOURCE_DENIED_ACCESS_403", code=403)
         return record(name, "HTTP_OR_NETWORK_ERROR", code=exc.code)
     except (urllib.error.URLError, ET.ParseError, ValueError, TimeoutError) as exc:
         return record(name, "NETWORK_OR_XML_ERROR", category=type(exc).__name__)
