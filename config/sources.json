@@ -11,6 +11,18 @@
     {
       "name": "Bank of Japan",
       "url": "https://www.boj.or.jp/en/rss/whatsnew.xml"
+    },
+    {
+      "name": "U.S. Energy Information Administration releases",
+      "url": "https://www.eia.gov/rss/press_rss.xml"
+    },
+    {
+      "name": "U.S. Energy Information Administration analysis",
+      "url": "https://www.eia.gov/rss/todayinenergy.xml"
+    },
+    {
+      "name": "U.S. Bureau of Economic Analysis",
+      "url": "https://apps.bea.gov/rss/rss.xml"
     }
   ],
   "freenews_titles": [
