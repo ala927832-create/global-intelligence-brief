@@ -7,7 +7,7 @@ from zipfile import ZipFile
 from lxml import etree
 from gib.newsroom_v16 import canonical_issue,audit_issue
 from gib.gemini_editor_v16 import audit_model_output,research_and_revise
-from gib.publish_v16 import export
+from gib.publish_v16 import export,as_xhtml
 
 NOW=dt.datetime(2026,10,23,3,0,tzinfo=dt.timezone.utc)
 def item(n,title,provider='news'):
@@ -78,6 +78,37 @@ class TestNewsroom(unittest.TestCase):
         issue=canonical_issue(bad+self.raw,'morning',NOW)
         self.assertGreaterEqual(len(issue['articles']),8)
         self.assertTrue(all(a['sources'][0]['url'].startswith('https://') for a in issue['articles']))
+
+    def test_one_download_offline_navigation_and_qa_alias(self):
+        # The Deep book includes all brief headlines, analyses and source
+        # summaries; it does NOT promise offline access to external publishers.
+        a=self.issue['articles'][0]
+        key=a['event_id']
+        x=as_xhtml(self.issue,[],level='deep')
+        self.assertIn('id="reading-index"',x)
+        self.assertIn('href="#analysis-'+key+'"',x)
+        self.assertIn('id="analysis-'+key+'"',x)
+        self.assertIn('id="brief-'+key+'"',x)
+        self.assertIn('href="#sources"',x)
+        with tempfile.TemporaryDirectory() as t:
+            exported=export(self.issue,[],t)
+            self.assertEqual(exported['offline_complete']['epub'],exported['deep']['epub'])
+            with ZipFile(exported['offline_complete']['epub']) as z:
+                chapters=' '.join(z.read(p).decode('utf-8') for p in z.namelist() if p.endswith('.xhtml'))
+                self.assertIn('本書閱讀路線',chapters)
+                self.assertIn('本書深入閱讀',chapters)
+
+    def test_deep_draft_is_internal_and_not_approved(self):
+        event=self.issue['articles'][0]
+        edit={'event_id':event['event_id'],'source_ids':[event['sources'][0]['source_id']],
+              'sections':{'background':'全球經濟報導需要比較官方公布的期間與口徑；僅憑標題不足以識別原因。'*4,
+                          'transmission':'理解通膨如何可能影響利率與實體經濟時，必須同時追蹤不同指標和替代解釋。'*4,
+                          'limitations':'目前新聞索引無法單獨證實這些因果關係。'*4}}
+        deep=as_xhtml(self.issue,[edit],level='deep')
+        self.assertIn('RESEARCH WORKING DRAFT',deep)
+        self.assertIn('id="research-'+event['event_id']+'"',deep)
+        self.assertIn('待驗證',deep)
+        self.assertFalse(audit_issue(self.issue,True)['passed'])
 
     def test_published_dates_preserved(self):
         self.assertTrue(all(a.get('article_published_at') for a in self.issue['articles']))
