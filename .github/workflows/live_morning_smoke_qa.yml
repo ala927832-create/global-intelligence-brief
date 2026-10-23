@@ -2,7 +2,9 @@ name: GIB one-time live morning source + EPUB QA (no publication)
 on:
   push:
     branches: [main]
-    paths: ['.github/workflows/live_morning_smoke_qa.yml']
+    paths:
+      - '.github/workflows/live_morning_smoke_qa.yml'
+      - 'tests/test_editorial_rebuild.py'
   workflow_dispatch:
 permissions:
   contents: read
