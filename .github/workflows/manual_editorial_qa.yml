@@ -5,11 +5,13 @@ on:
       source_mode:
         type: choice
         required: true
-        options: [historical_fixture, live_sources]
+        options: [live_sources, historical_fixture]
+        default: live_sources
       edition:
         type: choice
         required: true
         options: [morning, evening]
+        default: morning
       use_gemini_free:
         type: boolean
         required: true
@@ -48,6 +50,14 @@ jobs:
         run: |
           out=$(python -c 'import json,pathlib;d=json.load(open("qa_run.json"));print(pathlib.Path(d["issue_json"]).parent)')
           bash scripts/run_epubcheck_qa.sh "$out"
+      - name: Show candidate headlines, release blockers and reading instructions
+        if: always()
+        run: |
+          if [ -s qa_run.json ]; then
+            python scripts/qa_actions_summary.py
+          else
+            echo '## QA 未完成\n沒有產生研究底稿，請查看本次執行的錯誤步驟。' >> "$GITHUB_STEP_SUMMARY"
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
