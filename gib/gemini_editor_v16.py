@@ -39,6 +39,16 @@ def _prepare(issue):
                         'date':s.get('article_published_at'),'retrieval_status':s.get('retrieval_status')}
                        for s in a['sources']],
        'news_index_summary':a.get('headline_summary','')[:450],
+       'research_requirements':next((
+           {'missing_evidence':d.get('missing_evidence',[]),
+            'source_documents':[{
+                'id':x.get('source_id'),'kind':x.get('kind'),
+                'retrieval_status':x.get('retrieval_status'),
+                'published_at':x.get('published_at')}
+                for x in d.get('sources',[])],
+            'manually_attested_claims':d.get('manually_attested_claims',0)}
+           for d in issue.get('research_dossiers',[])
+           if d.get('event_id')==a['event_id']), {}),
        'evidence':[{'text':e['text'],'source_id':e['source_id'],
                     'verification':e['verification'],
                     'source_location':e.get('source_location'),
@@ -133,6 +143,9 @@ JSON格式 {"items":[{"event_id":"..","source_ids":[".."],"headline_zh":"繁體�
 items 僅對證據較完整的前3個核心事件深入撰寫；briefs 對 briefing_index 剩餘新聞給出中文短訊，絕不補造數據。
 優先針對提供的三則核心事件深入研讀，不要把有限篇幅平均攤成十二則簡短摘要。
 官方文件的文字匹配只能證實來源片段存在，不能視為已核實所有因果主張。
+特別檢查 research_requirements.missing_evidence。原始證據少於研究要求時，
+不能把一般性金融常識寫成已核實的新聞事實；應明列待查來源、數據口徑與可能推翻結論的觀察。
+研究應以少數有充分證據的核心事件寫得深，不採用無根據的重複段落填字數。
 採用繁體中文專業晨報編輯寫法：先提供精確、連貫的事件來龍去脈，再用段落交代為何重要、影響如何傳遞、
 歷史比較的可比性與限制、可能的相反解釋，以及可驗證的下一個觀察指標。每個欄位只在有證據支持時撰寫，
 不要重複英文標題或把短摘要拆成許多卡片；需要明確區分來源陳述、研究推論與仍缺少的原始資料。
