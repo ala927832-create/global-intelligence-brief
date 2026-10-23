@@ -115,8 +115,8 @@ def audit_model_output(data, issue):
              original.get('article_published_at','')]
             +[e.get('text','')+' '+e.get('official_context_excerpt','')
               for e in original.get('evidence',[])])
-        allowed_nums=set(re.findall(r'\\d+(?:\\.\\d+)?',original_words))
-        introduced=set(re.findall(r'\\d+(?:\\.\\d+)?',
+        allowed_nums=set(re.findall(r'\d+(?:\.\d+)?',original_words))
+        introduced=set(re.findall(r'\d+(?:\.\d+)?',
                       ' '.join(lead.values())))-allowed_nums
         if introduced:
             warnings.append('AI added unsupported short-brief numeric token')
