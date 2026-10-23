@@ -202,8 +202,8 @@ def issue_body(issue, edits=None, level='essential'):
     # Pandoc's HTML reader can discard id attributes on HTML5 <nav>/<article>
     # even while EPUBCheck succeeds. Native <div id> preserves EPUB fragments.
     # Convert only structural wrappers; never change the frozen six headings.
-    text=re.sub(r'<article\\b','<div',text).replace('</article>','</div>')
-    text=re.sub(r'<nav\\b','<div',text).replace('</nav>','</div>')
+    text=re.sub(r'<article\b','<div',text).replace('</article>','</div>')
+    text=re.sub(r'<nav\b','<div',text).replace('</nav>','</div>')
     # Protect the frozen editorial contract in the output as well.
     for name in (x['name'] for x in contract['sections']):
         if text.count('｜'+h(name)) != 1:raise RuntimeError('Frozen section structure violated: '+name)
