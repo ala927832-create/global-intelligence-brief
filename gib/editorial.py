@@ -93,8 +93,8 @@ def rank(items,weights):
              'global','international','tariff','national election',
              'central government','major outage','supply chain'))
         narrow_signals=sum(bool(re.search(x,t)) for x in
-            (r'\\b(?:today|daily) gold (?:price|rate)',r'\\blocal gold price',
-             r'\\bhoroscope',r'\\bstock pick'))
+            (r'\b(?:today|daily) gold (?:price|rate)',r'\blocal gold price',
+             r'\bhoroscope',r'\bstock pick'))
         speculative=sum(bool(x in t) for x in
             ('opinion:', 'op-ed', 'commentary:', 'rumor:', 'unconfirmed:',
              'price prediction'))
