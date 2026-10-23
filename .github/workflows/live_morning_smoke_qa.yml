@@ -7,6 +7,10 @@ on:
       - 'tests/test_editorial_rebuild.py'
       - 'gib/collect.py'
       - 'gib/newsroom_v16.py'
+      - 'config/sources.json'
+      - 'gib/research_dossier.py'
+      - 'gib/evidence_review.py'
+      - 'run_newsroom_v16.py'
       - 'gib/editorial.py'
   workflow_dispatch:
 permissions:
