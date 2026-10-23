@@ -152,10 +152,17 @@ def issue_body(issue, edits=None, level='essential'):
                 if e.get('brief_zh'):
                     result.append('<p class="lead">'+h(e['brief_zh'])+'</p>')
                 sections=e.get('sections',{})
-                for key,label in [('background','事件背景'),('why_it_matters','重要性'),
-                                  ('transmission','可能的傳導機制'),('history','歷史脈絡'),
-                                  ('alternative','替代解釋與反例'),('watch','未來觀察'),
-                                  ('limitations','資料限制與尚未驗證')]:
+                # The book already includes background, importance and
+                # transmission in Essential Analysis. Do not paste the same
+                # paragraphs again; true deep reading must ADD evidence.
+                result.append('<p class="source-note">本篇銜接前面的事件解析，以下只列出'
+                              '新增的歷史對照、反面解釋、可驗證觀察及研究限制；'
+                              '若無額外證據，內容將保持較短，並明確標示未完成。</p>')
+                distinct_sections=[('history','歷史脈絡與可比性'),
+                                   ('alternative','替代解釋與反方論證'),
+                                   ('watch','未來應查證的證據'),
+                                   ('limitations','資料限制與反證條件')]
+                for key,label in distinct_sections:
                     if sections.get(key):
                         result.append(f'<div class="dossier-section"><h4>{label}</h4>{paras(sections[key])}</div>')
                 result.append(f'<p class="source-note"><a href="#{source_anchor(x["sources"][0])}">'
