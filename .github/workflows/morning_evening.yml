@@ -1,0 +1,14 @@
+name: GIB - reserved production schedule (intentionally disabled)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  notice:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'Reserved only. Publication requires ten verified trading days, EPUBCheck, BOOX NeoReader and owner approval.'
+# DO NOT ADD A schedule: trigger or LINE credentials without owner confirmation.
+# Reserved future 07:30 Asia/Taipei: Global morning
+# Reserved future 17:30 Asia/Taipei: Global evening
+# Zinc 10:30 and conditional 17:30 are managed in a DIFFERENT repository.

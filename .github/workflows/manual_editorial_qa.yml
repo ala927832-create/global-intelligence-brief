@@ -1,0 +1,59 @@
+name: GIB - manual editorial and EPUBCheck QA (no publication)
+on:
+  workflow_dispatch:
+    inputs:
+      source_mode:
+        type: choice
+        required: true
+        options: [historical_fixture, live_sources]
+      edition:
+        type: choice
+        required: true
+        options: [morning, evening]
+      use_gemini_free:
+        type: boolean
+        required: true
+        default: false
+permissions: {contents: read}
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      FREENEWS_API_KEY: ${{ secrets.FREENEWS_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GEMINI_MODEL: ${{ vars.GEMINI_MODEL || 'gemini-2.5-flash-lite' }}
+      GEMINI_FREE_TIER_CONFIRMED: ${{ vars.GEMINI_FREE_TIER_CONFIRMED || '0' }}
+      ENABLE_GEMINI: ${{ inputs.use_gemini_free && '1' || '0' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12', cache: pip}
+      - name: Install free tools
+        run: |
+          pip install -r requirements.txt
+          sudo apt-get update -qq && sudo apt-get install -y pandoc fonts-noto-cjk
+      - name: Frozen contract / unit tests
+        run: python -m unittest discover -s tests -q
+      - name: Historical source fixture (not live)
+        if: inputs.source_mode == 'historical_fixture'
+        run: python run_newsroom_v16.py --edition morning --fixture samples/historical_articles_v16.json --as-of 2026-10-15T09:00:00Z | tee qa_run.json
+      - name: Actual free news sources (no publication)
+        if: inputs.source_mode == 'live_sources'
+        run: |
+          args=(--edition '${{ inputs.edition }}' --verify-official)
+          if [ '${{ inputs.use_gemini_free }}' = 'true' ]; then args+=(--gemini); fi
+          python run_newsroom_v16.py "${args[@]}" | tee qa_run.json
+      - name: W3C EPUBCheck (real validation, not structural mock)
+        run: |
+          out=$(python -c 'import json,pathlib;d=json.load(open("qa_run.json"));print(pathlib.Path(d["issue_json"]).parent)')
+          bash scripts/run_epubcheck_qa.sh "$out"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gib-editorial-qa-${{ github.run_number }}
+          path: |
+            qa_outputs/
+            qa_run.json
+          retention-days: 14
+# No live release, LINE, Pages, or paid model fallback.

@@ -1,0 +1,45 @@
+@charset "UTF-8";
+/* Editorial layout informed by the publishing principles (not assets) of WSJ and The Economist.
+   EPUB3 reflow-first, no hard sidebars or fixed pagination. */
+@page { margin: .62em .72em; }
+body { background: #FAF8F2; color:#24333D; font:1em/1.56 "Noto Serif CJK TC","Source Han Serif TC","PingFang TC",serif; margin:0 auto;max-width:42em; }
+h1,h2,h3,h4,.overline,.section-number,.source-note,.eyebrow,.brief-index,.issue-meta,.brand-sub,.quality-label {font-family:"Noto Sans CJK TC","PingFang TC",sans-serif;}
+h1,h2,h3 {color:#142D46;line-height:1.26;break-after:avoid;page-break-after:avoid;}
+h1{font-size:1.68em;letter-spacing:-.012em;margin:.2em 0 .55em;}
+h2{font-size:1.38em;margin:.25em 0 .65em;}
+h3{font-size:1.16em;margin:.14em 0 .44em;}
+h4{font-size:1.03em;color:#245768;margin:.15em 0 .3em;}
+p{margin:.35em 0 .65em;orphans:2;widows:2;}a{color:#1C5967;text-decoration:underline;overflow-wrap:anywhere;}
+.issue-header{border-top:3px solid #152F47;padding:.7em 0 1.2em;border-bottom:1px solid #A1B1AE;}
+.overline,.section-number,.eyebrow {font-size:.7em;font-weight:700;letter-spacing:.08em;color:#285C6E;}
+.brand{font-size:2.05em;line-height:1.04;color:#16324D;font-weight:800;font-family:Georgia,"Noto Serif CJK TC",serif;margin:.25em 0;}
+.brand-sub{color:#183C55;font-weight:700;font-size:.9em;margin:.28em 0;}
+.issue-meta{font-size:.7em;color:#5C6A6F;border-bottom:1px solid #BDC9C8;padding-bottom:.72em;}
+.topic-nav{display:table;width:100%;table-layout:fixed;border-spacing:.12em;margin-top:.9em;}
+.topic-nav span{display:table-cell;vertical-align:middle;background:#DEE9E9;text-align:center;color:#1D4257;padding:.62em .12em;font-size:.7em;font-weight:bold;}
+.topic-nav span:nth-child(2){background:#E7EFEA;}.topic-nav span:nth-child(3){background:#F3EBD8;}.topic-nav span:nth-child(4){background:#E7ECE3;}
+.opening{padding:.7em 0 .45em}.intro{color:#354C59;font-size:1.07em;line-height:1.54;}
+.quality-label{padding:.62em .72em;border-left:.25em solid #A4792A;background:#F4EDDC;color:#4D4E46;font-size:.83em;}
+.world-section,.focus,.longread,.follow,.sources,.zinc{border-top:2px solid #1E3953;margin-top:1.2em;padding-top:.75em;}
+.brief{padding:.58em 0 .80em;border-bottom:1px solid #C4CCCA;break-inside:avoid-page;}
+.brief-index{margin:0 0 .14em;font-size:.72em;color:#245D67;font-weight:700;}
+.brief-index span{color:#7B601F;}.brief h3{font-size:1.08em;margin:.16em 0 .38em;}
+.article-deck{margin:.22em 0 .32em;color:#374D55;}.source-note{font-size:.76em;color:#617077;line-height:1.38;}
+.focus-piece,.dossier{padding:.8em 0 1.1em;border-bottom:1px solid #A9BAB9;}
+.lead{font-size:1.06em;line-height:1.5;color:#365B64;}
+.context,.dossier-section{margin:.65em 0 1.05em}.context h4{border-bottom:1px solid #BBCDCA;padding-bottom:.24em;}
+.evidence{display:block;margin:.65em 0;padding:.58em .75em;border-left:.27em solid #317477;background:#E7F0ED;color:#254A4D;}
+.watch{display:block;margin:.65em 0;padding:.58em .75em;border-left:.27em solid #A47722;background:#F6EFDF;color:#614D2A;}
+.sources ol{font-size:.83em;line-height:1.4;padding-left:1.2em}.sources li{margin:0 0 .5em;}
+
+.research-figure{margin:.78em 0 .95em;text-align:center;break-inside:avoid-page;}
+.research-figure img{display:block;max-width:100%;height:auto;}
+.research-figure figcaption{font-size:.77em;line-height:1.42;text-align:left;color:#4F616A;margin:.4em 0;}
+/* Frozen Layout 01 semantic improvements, color roles survive grayscale. */
+.executive-point{margin:.65em 0;padding:.55em .7em;border-bottom:1px solid #C9D2D0;background:#F1F3EF;}
+.executive-point .point-no{color:#2C6F73;font-size:1.25em;font-weight:700;margin-right:.55em;}
+.executive-point strong{font-size:1.1em;color:#1B344C;}
+.executive-point p{margin:.3em 0 .25em;}
+.section-number{font-size:.76em!important;color:#285967;border-bottom:1px solid #B8C3C0;padding-bottom:.25em;}
+.method{font-size:.83em;color:#5A666A;}
+.focus-piece h3{font-size:1.22em;}

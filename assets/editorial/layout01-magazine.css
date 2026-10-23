@@ -1,0 +1,45 @@
+@charset "UTF-8";
+/* Layout 01: BOOX-oriented, reflow-first. Source of truth for site and EPUB.
+   Colors are muted, but content labels are never color-only. */
+@page { margin: 0.62em 0.70em; }
+html { -webkit-text-size-adjust: 100%; }
+body { background:#FAF8F1; color:#26343B; font-family:"Noto Serif CJK TC","Source Han Serif TC","PingFang TC",serif; font-size:1em; line-height:1.54; text-align:left; widows:2; orphans:2; padding:0; margin:0 auto; max-width:42em; }
+p { margin:0.42em 0 0.69em; } li { margin:0.16em 0 0.38em; } ul,ol {padding-left:1.35em;margin:0.42em 0 0.75em;} strong,b { color:#183347; }
+a { color:#245971; text-decoration:underline; overflow-wrap:anywhere; }
+h1,h2,h3,h4,.eyebrow,.chapter-tag,.brand-name,.meta-row,.tagline,.calendar-date {font-family:"Noto Sans CJK TC","Source Han Sans TC","PingFang TC",sans-serif;}
+h1 {font-size:1.75em;line-height:1.25;margin:0.25em 0 0.35em;color:#1B344C;}
+h2 {font-size:1.45em;line-height:1.35;color:#1B344C;margin:0.35em 0 0.60em;}
+h3 {font-size:1.22em;line-height:1.35;color:#1B344C;margin:0.15em 0 0.58em;}
+h4 {font-size:1.05em;line-height:1.34;color:#1B344C;margin:0.15em 0 0.4em;}
+h1,h2,h3,h4 {break-after:avoid;page-break-after:avoid;}
+small {font-size:.69em;letter-spacing:.025em;font-weight:600;}
+.issue-opening {margin:0;padding:0 0 .48em;}
+.meta-row {display:block;border-top:2px solid #1B344C;border-bottom:1px solid #ACB9BA;padding:.32em 0;font-size:.67em;letter-spacing:.07em;color:#536571;}
+.meta-row span+span {float:right;} .brand-heading {border-bottom:1px solid #99ACAE;padding:.85em 0 .45em;display:block;}
+.globe {color:#1B344C;font-size:2.4em;line-height:1;float:left;padding-right:.25em;} .brand-name {font-size:1.52em;font-weight:800;line-height:1.08;color:#1B344C;margin:0;}
+.brand-zh {font-size:.85em;font-weight:600;color:#1B344C;margin:.2em 0;}.tagline {font-size:.64em;letter-spacing:.16em;font-weight:700;color:#41616D;margin:.6em 0 1.05em;}
+.topic-strip {display:table;width:100%;table-layout:fixed;border-spacing:.19em .1em;border-bottom:1px solid #9EB2B3;padding-bottom:.65em;}
+.topic-strip div {display:table-cell;text-align:center;font-size:.72em;padding:.6em .2em;background:#E3EBED;color:#1B344C;font-weight:600;}
+.topic-strip div:nth-child(2){background:#E6EEEB;}.topic-strip div:nth-child(3){background:#F2EAD7;}.topic-strip div:nth-child(4){background:#E7EDE5;}.topic-strip b{display:block;font-size:1.2em;}
+.lede {padding:.75em 0 .55em;} .eyebrow,.chapter-tag {color:#315E6E;letter-spacing:.10em;font-size:.72em;font-weight:700;margin:.4em 0 .55em;}
+.deck {font-size:1.08em;color:#394B53;line-height:1.45;} .keybox {background:#E8F0EB;border-left:.28em solid #2C6F73;padding:.72em .92em;margin:.65em 0 .9em;break-inside:avoid-page;}
+.keybox h2,.keybox h4 {color:#265D61;margin:0 0 .5em;} .insight-list {margin-bottom:.1em;}.insight-list li{padding:.12em 0;}
+.disclaimer {font-size:.82em;color:#56666A;border-top:1px solid #AFBDBB;padding-top:.5em;}
+.chapter {margin-top:1.45em;padding-top:.8em;border-top:2px solid #1B344C;}
+.story,.research {margin:1.15em 0 1.50em;padding-bottom:.48em;border-bottom:1px solid #B5C3C1;}
+.summaryline {font-size:1.09em;font-weight:600;color:#254A5B;line-height:1.46;margin:.48em 0 .65em;}
+.evidence-slab {background:#EFF2EF;border-top:2px solid #587F86;padding:.65em .82em;margin:.72em 0 .8em;}
+.evidence-slab ul {margin-bottom:.1em;}.watchbox {background:#F6EFE0;border-left:.26em solid #A27420;padding:.60em .78em;margin:.85em 0 .72em;}
+.watchbox h4 {color:#80611E;}.watchbox ol{margin-bottom:.1em;}
+.evidence-meta {font-size:.76em;color:#465E66;margin:.45em 0 1.1em;}
+.research-section {margin:1.00em 0 1.26em;}.research-section h4{color:#1E5063;padding-bottom:.22em;border-bottom:1px solid #B6C8C6;}
+.evidence-figure {text-align:center;padding:.2em;margin:.85em 0;break-inside:avoid-page;}
+.evidence-figure img {max-width:100%;height:auto;display:block;margin:0 auto;}
+.evidence-figure figcaption {font-size:.76em;line-height:1.4;color:#4B5B62;text-align:left;margin-top:.55em;}
+.calendar-event {display:table;width:100%;border-bottom:1px solid #B8C6C1;padding:.58em 0;}
+.calendar-date {display:table-cell;width:6.2em;color:#1B344C;font-weight:700;vertical-align:top;}
+.calendar-event>div:nth-child(2) {display:table-cell;vertical-align:top;}.calendar-event p{margin:.16em 0 .22em;}
+.source-list {font-size:.82em;line-height:1.45;}.source-list li{margin-bottom:.48em;}.method {font-size:.83em;color:#46575B;}
+.research-signal {background:#E7EEED;border-left:.25em solid #2C6F73;padding:.55em;}
+/* No mandatory new page for h2 and no float-dependent semantic content. */
+@media screen and (max-width:650px){body{padding:.3em .48em;}.meta-row span+span{float:none;display:block;}.topic-strip{border-spacing:.07em;}.topic-strip div{font-size:.63em;padding:.45em .06em;}.globe{font-size:1.85em;}}

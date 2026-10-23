@@ -1,0 +1,82 @@
+name: GIB - ten trading day LIVE QA only (publishing disabled)
+on:
+  workflow_dispatch:
+    inputs:
+      edition:
+        type: choice
+        required: true
+        options: [morning, evening]
+  schedule:
+    - cron: '30 7 * * 1-5'
+      timezone: 'Asia/Taipei'
+    - cron: '30 17 * * 1-5'
+      timezone: 'Asia/Taipei'
+permissions:
+  contents: write  # limited by git-add below to QA records and morning comparison only
+concurrency:
+  group: gib-live-qa
+  cancel-in-progress: false
+jobs:
+  qa-only:
+    if: vars.QA_ARMED == '1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: true}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12', cache: 'pip'}
+      - name: Install tools
+        run: |
+          pip install -r requirements.txt
+          sudo apt-get update -qq && sudo apt-get install -y pandoc fonts-noto-cjk
+      - name: Enforce frozen contract and regression suite
+        run: python -m unittest discover -s tests -q
+      - name: Prepare edition
+        id: period
+        env:
+          DISPATCH_EDITION: ${{ inputs.edition }}
+          SCHEDULE_CRON: ${{ github.event.schedule }}
+        run: |
+          if [ -n "$DISPATCH_EDITION" ]; then period="$DISPATCH_EDITION";
+          elif [ "$SCHEDULE_CRON" = '30 7 * * 1-5' ]; then period='morning';
+          else period='evening'; fi
+          echo "period=$period" >> "$GITHUB_OUTPUT"
+      - name: Fetch and draft live news, never send LINE or Pages
+        env:
+          FREENEWS_API_KEY: ${{ secrets.FREENEWS_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ENABLE_GEMINI: '1'
+          GEMINI_FREE_TIER_CONFIRMED: ${{ vars.GEMINI_FREE_TIER_CONFIRMED || '0' }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL || 'gemini-2.5-flash-lite' }}
+        run: |
+          date_tpe=$(TZ=Asia/Taipei date +%F)
+          args=(--edition "${{ steps.period.outputs.period }}" --gemini --verify-official)
+          if [ "${{ steps.period.outputs.period }}" = 'evening' ]; then
+            path="qa_data/morning_snapshots/${date_tpe}.json"
+            if [ -f "$path" ]; then args+=(--morning-issue "$path"); fi
+          fi
+          python run_newsroom_v16.py "${args[@]}" | tee live_qa_result.json
+          issue=$(python -c 'import json;print(json.load(open("live_qa_result.json"))["issue_json"])')
+          # Genuine EPUBCheck; any failure blocks successful daily-quality credit.
+          bash scripts/run_epubcheck_qa.sh "$(dirname "$issue")"
+          python scripts/qa_commit_export.py --issue "$issue" --output qa_data --epubcheck-pass
+      - name: Save QA-only records (no full article text, no secrets)
+        if: success()
+        run: |
+          git config user.name 'gib-qa-bot'
+          git config user.email 'gib-qa-bot@users.noreply.github.com'
+          git add qa_data/records qa_data/morning_snapshots
+          if ! git diff --cached --quiet; then
+            git commit -m 'qa: record live source research status (not publication)'
+            git push
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gib-live-qa-${{ github.run_number }}
+          path: |
+            qa_outputs/**
+            live_qa_result.json
+          retention-days: 14
+# Never schedule formal reports, publish to Pages, push LINE or accept bills here.
