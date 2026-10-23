@@ -46,6 +46,18 @@ jobs:
           args=(--edition '${{ inputs.edition }}' --verify-official)
           if [ '${{ inputs.use_gemini_free }}' = 'true' ]; then args+=(--gemini); fi
           python run_newsroom_v16.py "${args[@]}" | tee qa_run.json
+      - name: Verify both EPUBs are entirely readable offline
+        run: |
+          python - <<'PY'
+          import json
+          from scripts.check_offline_package import inspect
+          record=json.load(open("qa_run.json",encoding="utf-8"))
+          checked=[inspect(record["epub"][kind]["epub"]) for kind in ("essential","deep")]
+          for row in checked:
+              print(row)
+          if any(x["issues"] for x in checked):
+              raise SystemExit("OFFLINE_LINK_OR_RESOURCE_VALIDATION_FAILED")
+          PY
       - name: W3C EPUBCheck (real validation, not structural mock)
         run: |
           out=$(python -c 'import json,pathlib;d=json.load(open("qa_run.json"));print(pathlib.Path(d["issue_json"]).parent)')
