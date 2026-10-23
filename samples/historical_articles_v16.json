@@ -1,0 +1,32 @@
+{
+  "note": "OCT 13–14 HISTORICAL QA ONLY. Not current news, intentionally fails publication thresholds.",
+  "articles": [
+    {
+      "title": "IMF：全球成長展望呈現韌性，但復甦落差與通膨壓力不能忽略",
+      "url": "https://www.imf.org/en/Publications/WEO/Issues/2026/10/13/world-economic-outlook-october-2026",
+      "published_at": "2026-10-13T12:00:00+00:00",
+      "publisher": "IMF",
+      "snippet": "IMF 2026 年 10 月全球經濟展望預估，全球經濟成長在 2026 年為 3.1%、2027 年為 3.4%；整體通膨則分別為 4.7% 與 4.1%。重要訊息並非單一數字，而是不同國家受能源與科技投資影響的程度不同。",
+      "official": true,
+      "provider": "historical_curated_sample"
+    },
+    {
+      "title": "美國 9 月 CPI：月增 0.6%、年增 3.7%，能源推升整體物價",
+      "url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+      "published_at": "2026-10-14T12:00:00+00:00",
+      "publisher": "U.S. Bureau of Labor Statistics",
+      "snippet": "BLS 發布的 2026 年 9 月 CPI 顯示整體指數月增 0.6%、年增 3.7%，汽油價格月增 9.1%；物價壓力與下一次聯準會政策評估之間的連結值得密切研究。",
+      "official": true,
+      "provider": "historical_curated_sample"
+    },
+    {
+      "title": "IMF 全球金融穩定報告：市場有韌性，不代表系統性風險消失",
+      "url": "https://www.imf.org/en/Publications/GFSR/Issues/2026/10/13/global-financial-stability-report-october-2026",
+      "published_at": "2026-10-13T12:00:00+00:00",
+      "publisher": "IMF",
+      "snippet": "IMF 的 2026 年 10 月 GFSR 指出，雖然市場表現相對穩健，AI 相關估值、主權債券殖利率震盪與網路事件仍可能放大金融壓力；非銀行金融中介的槓桿與流動性也需要觀察。",
+      "official": true,
+      "provider": "historical_curated_sample"
+    }
+  ]
+}
