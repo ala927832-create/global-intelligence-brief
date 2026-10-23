@@ -13,7 +13,7 @@ import requests
 APPROVED_HOSTS={
     'www.federalreserve.gov','www.bls.gov','www.boj.or.jp','www.ecb.europa.eu',
     'www.imf.org','www.eia.gov','www.worldbank.org','www.bea.gov',
-    'www.census.gov', 'www.treasury.gov'
+    'www.census.gov', 'www.treasury.gov', 'apps.bea.gov'
 }
 MAX_BYTES=800_000
 class VisibleText(HTMLParser):
