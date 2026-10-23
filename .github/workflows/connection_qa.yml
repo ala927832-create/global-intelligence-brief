@@ -1,0 +1,38 @@
+name: GIB connection QA (diagnostic only)
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'qa/source_connectivity.py'
+      - '.github/workflows/connection_qa.yml'
+permissions:
+  contents: read
+concurrency:
+  group: gib-connection-qa
+  cancel-in-progress: false
+jobs:
+  connectivity:
+    name: FreeNews, GDELT, official RSS, optional Gemini
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      FREENEWS_API_KEY: ${{ secrets.FREENEWS_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GEMINI_FREE_TIER_CONFIRMED: ${{ vars.GEMINI_FREE_TIER_CONFIRMED || '0' }}
+      GEMINI_MODEL: ${{ vars.GEMINI_MODEL || 'gemini-2.5-flash-lite' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check live free sources and credentials
+        run: python qa/source_connectivity.py
+      - name: Upload safe diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gib-connection-report-${{ github.run_number }}
+          path: qa_out/connection.json
+          retention-days: 14
+# No production schedule, no LINE, no Pages, no paid fallback.
