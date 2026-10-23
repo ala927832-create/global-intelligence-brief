@@ -76,11 +76,41 @@ def cluster(articles,now,cutoff_hours=48):
     return out
 
 def rank(items,weights):
+    """Transparent newsworthiness heuristic; never treat title ranking as fact check.
+
+    Global policy / material cross-border impact and independently attributable
+    official releases outrank incidental spot prices and opinion-only pieces.
+    Keep transparency in the issue evidence rather than silently deleting
+    disfavoured outlets or viewpoints.
+    """
     for a in items:
         t=a['title'].lower()
-        important=sum(t.count(x) for x in ('rate','policy','decision','inflation','unexpected','sanction','shutdown','trade','supply','fomc'))
-        a['score']=((weights.get(a['section'],5)/5)+min(important,3)*2
-            +(4 if a['official'] else 0)+min(2,len(a['publishers'])-1)*1.5)
+        important=sum(t.count(x) for x in
+            ('rate','policy','decision','inflation','unexpected','sanction',
+             'shutdown','trade','supply','fomc'))
+        global_signals=sum(bool(x in t) for x in
+            ('federal reserve','central bank','imf','world bank','g7','g20',
+             'global','international','tariff','national election',
+             'central government','major outage','supply chain'))
+        narrow_signals=sum(bool(re.search(x,t)) for x in
+            (r'\\b(?:today|daily) gold (?:price|rate)',r'\\blocal gold price',
+             r'\\bhoroscope',r'\\bstock pick'))
+        speculative=sum(bool(x in t) for x in
+            ('opinion:', 'op-ed', 'commentary:', 'rumor:', 'unconfirmed:',
+             'price prediction'))
+        a['editorial_rank_signals']={
+            'global_relevance':global_signals,
+            'narrow_listing':narrow_signals,
+            'commentary_or_speculation':speculative,
+            'official_source':bool(a.get('official')),
+        }
+        a['score']=round((weights.get(a['section'],5)/5)
+            +min(important,3)*2
+            +(4 if a.get('official') else 0)
+            +min(2,len(a['publishers'])-1)*1.5
+            +min(global_signals,3)*2.5
+            -narrow_signals*5
+            -speculative*3,2)
     return sorted(items,key=lambda a:(-a['score'],a.get('published_at') or ''))
 
 def sig(title):
