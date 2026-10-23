@@ -7,6 +7,7 @@ from pathlib import Path
 from gib.newsroom_v16 import canonical_issue
 from gib.research_dossier import make_dossiers, write_review_workbook, progress
 from gib.gemini_editor_v16 import _prepare
+from gib.publish_v16 import as_xhtml
 
 NOW=dt.datetime(2026,10,23,10,tzinfo=dt.timezone.utc)
 
@@ -51,6 +52,15 @@ class ResearchDossierTests(unittest.TestCase):
             self.assertEqual(outputs["events"],3)
         self.assertFalse(progress(self.issue)["auto_publish_permitted"])
         self.assertEqual(progress(self.issue)["manually_reviewed_events"],0)
+
+    def test_evidence_is_inside_offline_book(self):
+        claim=self.issue["articles"][0]["evidence"][0]
+        claim["official_context_excerpt"]="Example official source note about economic conditions"
+        claim["retrieved_at"]=NOW.isoformat()
+        claim["source_sha256"]="a"*64
+        page=as_xhtml(self.issue, [], level="deep")
+        self.assertIn("Example official source note",page)
+        self.assertIn("SHA-256",page)
 
     def test_research_gap_is_part_of_gemini_bound_input(self):
         self.issue["research_dossiers"]=make_dossiers(self.issue)
