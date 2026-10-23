@@ -1,0 +1,6 @@
+.env
+*.key
+__pycache__/
+.pytest_cache/
+# Keep a single version of each public EPUB in docs/archive; reports copies are CI artifacts.
+reports/**/*.epub

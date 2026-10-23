@@ -1,24 +1,11 @@
-# Global Intelligence Brief
+# Global Intelligence Brief V1.6 — Editorial Newsroom Integration QA
 
-**Status:** Initial repository setup and credential/source diagnostics. **No public release, LINE messages or market-trade actions.**
+Separate from **Zinc Intelligence**, retaining existing Zinc 10:30/17:30 workflows completely untouched. Morning 07:30, evening 17:30 planned only after source and BOOX QA.
 
-This project is independent of Zinc Intelligence. The approved specification is frozen pending owner authorization:
+**Read first:** [EDITORIAL_V16_IMPLEMENTATION.md](EDITORIAL_V16_IMPLEMENTATION.md).
 
-1. Python news collection (FreeNewsApi.io + GDELT + official RSS), event evidence.
-2. Gemini research and explanation (first pass).
-3. Python claim/evidence validation.
-4. Gemini revision/editorial quality (second pass).
-5. Professional XHTML / EPUB 3: Essential and Deep Research.
+Key modules: source collectors `gib/collect.py`, canonical evidence `gib/newsroom_v16.py`, optional Gemini 2-round editor `gib/gemini_editor_v16.py`, direct XHTML/EPUB publisher `gib/publish_v16.py`, CLI `run_newsroom_v16.py`.
 
-Six report sections (fixed order): Executive Brief; The World in Brief; Essential Analysis; Deep Research; What Changed & What to Watch; Sources & Evidence.
+Production remains **OFF**. The current fixture is deliberately too small and old to qualify. No private Zinc values are included. No API keys inside repo. Gemini not yet connected to user's account. Zero paid fallback.
 
-Editorial defaults: Traditional Chinese; Layout 01; BOOX Note Air4 C; 3:4 cover; Essential 10–15 minutes / Deep 30–45 minutes. Schedule after sign-off: Global 07:30 / 17:30 Taiwan; existing Zinc 10:30 / conditional 17:30 remains unchanged.
-
-## Credential and live-source diagnostic
-
-GitHub Actions → **GIB connection QA** checks FreeNewsApi.io, GDELT and official Fed/BLS/BoJ RSS. Gemini performs a minimal API test **only after** the repository variable `GEMINI_FREE_TIER_CONFIRMED=1` is set. Never paste secrets into tickets, logs, files or chat.
-
-Secrets: `GEMINI_API_KEY`, `FREENEWS_API_KEY`. Variable: `GEMINI_FREE_TIER_CONFIRMED=1` only when the selected Gemini project/model actually has a free quota and no unwanted billing.
-
-**This diagnostic is not** the 10-trading-day acceptance run or the full V1.7 newsroom. The locked full newsroom package is not yet committed. Publication remains intentionally disabled until live verification, EPUBCheck, BOOX device verification, and explicit owner approval.
-
+Use the manual workflow `.github/workflows/newsroom_v16_qa.yml` to inspect source health and evidence; do not enable live schedule/LINE by copying older workflow configurations.
