@@ -93,6 +93,11 @@ class TestNewsroom(unittest.TestCase):
         with tempfile.TemporaryDirectory() as t:
             exported=export(self.issue,[],t)
             self.assertEqual(exported['offline_complete']['epub'],exported['deep']['epub'])
+            from scripts.check_offline_package import inspect
+            audit=inspect(exported['offline_complete']['epub'])
+            self.assertTrue(audit['offline_in_book_navigation'],audit['issues'])
+            self.assertGreater(audit['local_links'],10)
+            self.assertEqual(audit['resource_dependencies_on_network'],0)
             with ZipFile(exported['offline_complete']['epub']) as z:
                 chapters=' '.join(z.read(p).decode('utf-8') for p in z.namelist() if p.endswith('.xhtml'))
                 self.assertIn('本書閱讀路線',chapters)
