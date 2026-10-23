@@ -67,8 +67,11 @@ def freenews(config, now, errors, pause=.55):
         errors.append('FreeNewsApi: KEY_NOT_CONFIGURED; continue with other free sources')
         return []
     cutoff=now-dt.timedelta(hours=48)
-    params_base={'published_after':cutoff.isoformat(),'language':'en','order_by':'recent'}
-    searches=[{'in_title':q} for q in config.get('freenews_titles',[])[:8]]+[{}]
+    # API has intermittently returned HTTP 500 for combined date/sort/search
+    # filters. Prefer a broad supported query, then title searches, and apply
+    # a strict UTC freshness filter locally. Never silently use stale articles.
+    params_base={'language':'en'}
+    searches=[{}]+[{'in_title':q} for q in config.get('freenews_titles',[])[:8]]
     seen={};detail_limit=int(config.get('freenews_details_daily_cap',32));detail_used=0
     for params in searches:
         try:
@@ -82,6 +85,20 @@ def freenews(config, now, errors, pause=.55):
                 if label and label not in seen:seen[label]=item
         except RuntimeError as ex:errors.append(str(ex)[:250])
         time.sleep(pause)
+    if not seen:
+        # Known-good, low-cost endpoint from provider's public quickstart.
+        # Geographic fallback is labeled as such, not global coverage.
+        try:
+            data=get_json('https://api.freenewsapi.io/v1/news',
+                params={'language':'en','country':'us'},headers={'x-api-key':key})
+            if isinstance(data,dict) and isinstance(data.get('data'),list):
+                errors.append('FreeNewsApi: US_FILTER_FALLBACK_USED; not global coverage')
+                for item in data['data']:
+                    if not isinstance(item,dict):continue
+                    label=str(item.get('uuid') or item.get('url') or item.get('title') or '')
+                    if label and label not in seen:seen[label]=item
+        except RuntimeError as ex:
+            errors.append('FreeNewsApi fallback: '+str(ex)[:160])
     output=[]
     for item in list(seen.values()):
         row=dict(item)
@@ -103,6 +120,13 @@ def freenews(config, now, errors, pause=.55):
         if not row.get('url'):
             row['url']=row.get('original_url') or row.get('link')
         obj=normalize(row,'freenews')
+        stamp=timestamp(row.get('published_at'))
+        if not stamp:
+            errors.append('FreeNewsApi: undated article excluded')
+            continue
+        article_dt=dt.datetime.fromisoformat(stamp)
+        if article_dt < cutoff or article_dt > now + dt.timedelta(hours=1):
+            continue
         if obj.get('url') and obj.get('title'):output.append(obj)
     if detail_used>=detail_limit:errors.append('FreeNewsApi details: bounded daily detail cap reached')
     return output
