@@ -43,7 +43,9 @@ def _prepare(issue):
 
 def audit_model_output(data, issue):
     allowed={x['event_id']:set(s['source_id'] for s in x['sources']) for x in issue['articles']}
-    all_source_text=' '.join(e['text'] for a in issue['articles'] for e in a['evidence'])
+    all_source_text=' '.join(
+        e['text']+' '+e.get('official_context_excerpt','')
+        for a in issue['articles'] for e in a['evidence'])
     permitted_numbers=set(re.findall(r'\d+(?:\.\d+)?',all_source_text+' '+issue['report_date']))
     accepted=[];warnings=[]
     for x in data.get('items',[]):
