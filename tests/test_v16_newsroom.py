@@ -67,6 +67,18 @@ class TestNewsroom(unittest.TestCase):
                 for x in pages:etree.fromstring(z.read(x))
             html=Path(out['essential']['xhtml']).read_text(encoding='utf-8')
             self.assertIn('The World in Brief',html);self.assertIn('尚未通過發行審核',html)
+    def test_invalid_top_urls_do_not_consume_news_slots(self):
+        countries=['Australia','Brazil','Chile','Denmark','Egypt','Finland','Greece','Hungary']
+        bad=[]
+        for i,country in enumerate(countries):
+            entry=item(200+i,f'{country} central bank policy rate decision with inflation update')
+            entry['url']=f'http://publisher-invalid.example/{i}' # QA requires HTTPS
+            entry['official']=True
+            bad.append(entry)
+        issue=canonical_issue(bad+self.raw,'morning',NOW)
+        self.assertGreaterEqual(len(issue['articles']),8)
+        self.assertTrue(all(a['sources'][0]['url'].startswith('https://') for a in issue['articles']))
+
     def test_published_dates_preserved(self):
         self.assertTrue(all(a.get('article_published_at') for a in self.issue['articles']))
     def test_edition_identity(self):self.assertEqual(self.issue['edition'],'morning')
