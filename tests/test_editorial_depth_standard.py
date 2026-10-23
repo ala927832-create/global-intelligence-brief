@@ -8,6 +8,7 @@ import unittest
 from unittest.mock import patch
 
 from gib.newsroom_v16 import canonical_issue
+from gib.editorial import rank
 from gib.editorial_depth import audit_editorial_depth, hanzi, redundancy
 from gib.gemini_editor_v16 import _prepare, audit_model_output, research_and_revise
 
@@ -26,6 +27,17 @@ class DepthTests(unittest.TestCase):
                 "published_at":NOW.isoformat()})
         self.issue=canonical_issue(raw,"morning",NOW)
         self.assertGreaterEqual(len(self.issue["articles"]),8)
+
+    def test_material_global_policy_outranks_daily_price_listing(self):
+        items=[
+          {"title":"Daily gold price rate today in a local store",
+           "section":"macro","publishers":["Retail Bulletin"],"official":False},
+          {"title":"International central bank policy decision changes global trade",
+           "section":"macro","publishers":["Central Bank"],"official":True},
+        ]
+        ordered=rank(items,{"macro":20})
+        self.assertIn("International",ordered[0]["title"])
+        self.assertGreaterEqual(ordered[-1]["editorial_rank_signals"]["narrow_listing"],1)
 
     def test_no_editorial_draft_does_not_fake_deep_research(self):
         report=audit_editorial_depth(self.issue,[])
