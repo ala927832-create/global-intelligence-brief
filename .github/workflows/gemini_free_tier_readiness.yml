@@ -1,0 +1,33 @@
+name: GIB Gemini free-tier readiness (no model calls)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/gemini_free_tier_readiness.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GEMINI_KEY_PRESENT: ${{ secrets.GEMINI_API_KEY != '' }}
+      FREE_TIER_CONFIRMED: ${{ vars.GEMINI_FREE_TIER_CONFIRMED || '0' }}
+      MODEL: ${{ vars.GEMINI_MODEL || 'gemini-2.5-flash-lite' }}
+    steps:
+      - name: Report prerequisite status only
+        run: |
+          echo '## Gemini 雙輪編輯｜免費層安全檢查' >> "$GITHUB_STEP_SUMMARY"
+          if [ "$GEMINI_KEY_PRESENT" = "true" ]; then
+            echo 'Gemini API Secret：已設定（不顯示內容）' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'Gemini API Secret：未設定' >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ "$FREE_TIER_CONFIRMED" = "1" ]; then
+            echo '免費方案確認旗標：已設定。仍須自行在 AI Studio 核對專案及配額。' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo '免費方案確認旗標：尚未設定，AI 推論仍被鎖定。' >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "模型：$MODEL" >> "$GITHUB_STEP_SUMMARY"
+          echo '這個檢查沒有任何 Gemini 模型呼叫、計費、LINE 或發布動作。' >> "$GITHUB_STEP_SUMMARY"
