@@ -64,7 +64,7 @@ def issue_body(issue, edits=None, level='essential'):
     result=['''<header class="issue-header" id="cover">
      <p class="overline">GLOBAL INTELLIGENCE BRIEF · LAYOUT 01</p>
      <div class="brand">Global<br/>Intelligence Brief</div>
-     <p class="brand-sub">全球財經'''+period+(' · 30–45 分鐘深讀' if isdeep else ' · 10–15 分鐘速讀')+'''</p>
+     <p class="brand-sub">全球財經'''+period+((' · 深讀研究草稿／閱讀時間未驗收' if qa else ' · 30–45 分鐘深讀') if isdeep else (' · 速讀 QA／閱讀時間未驗收' if qa else ' · 10–15 分鐘速讀'))+'''</p>
      <div class="issue-meta">'''+h(issue['report_date'])+' · Asia/Taipei · '+h(issue['as_of_utc'])+'''</div>
      <div class="topic-nav"><span>國際政經</span><span>全球經濟</span><span>科技產業</span><span>市場觀察</span></div>
      </header>''']
