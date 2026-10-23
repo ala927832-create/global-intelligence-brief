@@ -11,6 +11,7 @@ from gib.gemini_editor_v16 import research_and_revise
 from gib.contract import locked_contract
 from gib.evidence_review import review_official_excerpts, check_claim_lineage
 from gib.editorial_depth import audit_editorial_depth
+from gib.research_dossier import make_dossiers, write_review_workbook, progress
 from gib.qa_tracker import build_record, persist_record
 from gib.publish_v16 import export
 
@@ -35,6 +36,7 @@ def run(args):
         try:review_official_excerpts(issue)
         except Exception as exc:errors.append('Official evidence: '+type(exc).__name__)
     issue['source_health']['claim_lineage_errors']=check_claim_lineage(issue)
+    issue['research_dossiers']=make_dossiers(issue)
     # Two paid-independent opt-in Gemini requests only, never automatically enables billing.
     edits=[]
     if args.gemini:
@@ -55,6 +57,7 @@ def run(args):
     # QA previews are generated despite release hold and prominently labeled.
     folder=issues/issue['issue_id']; folder.mkdir(parents=True,exist_ok=True)
     doc=folder/'issue.json';save_issue(issue,doc)
+    review=write_review_workbook(issue,folder)
     output=export(issue,edits,folder,qa_only=True)
     quality_record=build_record(issue,issue.get('gemini_editorial'),None,None,live_source=not bool(args.fixture),fixture=bool(args.fixture))
     record_file=persist_record(quality_record,issues/'records')
@@ -62,6 +65,8 @@ def run(args):
             'release_hold_reasons':audit['reasons']+
             issue['editorial_depth_audit']['release_blockers'],
             'editorial_depth_audit':issue['editorial_depth_audit'],
+            'primary_evidence_review':review,
+            'primary_evidence_progress':progress(issue),
             'collector_errors':errors,
             'gemini_connected_and_called':bool(issue.get('gemini_editorial',{}).get('status')=='REVISED_DRAFT_PENDING_REVIEW')}
     (issues/(issue['issue_id']+'-QA.json')).write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
