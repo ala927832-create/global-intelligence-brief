@@ -67,11 +67,12 @@ def freenews(config, now, errors, pause=.55):
         errors.append('FreeNewsApi: KEY_NOT_CONFIGURED; continue with other free sources')
         return []
     cutoff=now-dt.timedelta(hours=48)
-    # API has intermittently returned HTTP 500 for combined date/sort/search
-    # filters. Prefer a broad supported query, then title searches, and apply
-    # a strict UTC freshness filter locally. Never silently use stale articles.
+    # Live QA on 2026-10-23 found all provider `in_title` requests returned
+    # HTTP 500 while the simple /news listing worked. Use bounded global
+    # pagination, not 7 failing keyword requests. Keep local freshness checks.
+    # Offset pagination is documented by the provider; no paid APIs used.
     params_base={'language':'en'}
-    searches=[{}]+[{'in_title':q} for q in config.get('freenews_titles',[])[:8]]
+    searches=[{'offset':offset} for offset in (0,10,20,30,40,50)]
     seen={};detail_limit=int(config.get('freenews_details_daily_cap',32));detail_used=0
     for params in searches:
         try:
