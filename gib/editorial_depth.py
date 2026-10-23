@@ -53,8 +53,14 @@ def audit_editorial_depth(issue, drafts=None):
     """Audit formatting and traceability; zero automatic publication approval."""
     drafts=issue.get("editorial_drafts", []) if drafts is None else drafts
     by_id={a.get("event_id"):a for a in issue.get("articles", [])}
+    short_count=sum(1 for draft in drafts
+                    if not any(str(value).strip() for value in
+                               (draft.get("sections") or {}).values()))
     results=[]
     for draft in drafts:
+        if not any(str(value).strip() for value in
+                   (draft.get("sections") or {}).values()):
+            continue  # A 2-sentence world brief is not a research chapter.
         event_id=draft.get("event_id")
         article=by_id.get(event_id)
         if article is None:
@@ -102,6 +108,7 @@ def audit_editorial_depth(issue, drafts=None):
         "issue_id":issue.get("issue_id"),
         "news_count":len(issue.get("articles", [])),
         "editorial_draft_count":len(results),
+        "translated_short_brief_count":short_count,
         "deep_drafts_meeting_minimum_review_standard":len(ready),
         "required_depth_topics":2,
         "full_issue_quality_passed":False,
