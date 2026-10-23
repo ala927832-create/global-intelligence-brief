@@ -16,7 +16,7 @@ class OfflineReadingTest(unittest.TestCase):
         root=etree.fromstring(raw)
         nodes=root.xpath('//*[@id]')
         ids=[node.get('id') for node in nodes]
-        self.assertEqual(len(ids),len(set(ids)))
+        self.assertEqual(len(ids),len(set(ids)), 'duplicated ids: '+str(sorted({x for x in ids if ids.count(x)>1})))
         targets=[x[1:] for x in root.xpath('//@href') if x.startswith('#')]
         self.assertTrue(targets)
         self.assertTrue(all(t in ids for t in targets),set(targets)-set(ids))
