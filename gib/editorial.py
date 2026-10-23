@@ -32,6 +32,19 @@ def classify(title):
     hits={k:sum(1 for kw in words if kw in t) for k,words in KEYWORDS.items()}
     return max(hits,key=hits.get) if max(hits.values())>0 else 'unexpected'
 
+def same_repeated_story_title(left,right):
+    """Merge strong syndication variants without equating all oil/geopolitics news."""
+    a=normalized_title(left).split()
+    b=normalized_title(right).split()
+    if not a or not b:return False
+    if difflib.SequenceMatcher(None,' '.join(a),' '.join(b)).ratio()>=.85 and min(len(a),len(b))>=5:
+        return True
+    # Identical 8-word reporting lead is strong evidence of a rewritten
+    # headline. This is deliberately conservative for distinct policy events.
+    if min(len(a),len(b))>=10 and a[:8]==b[:8]:
+        return len(set(a)&set(b))/max(1,len(set(a)|set(b)))>=.48
+    return False
+
 def cluster(articles,now,cutoff_hours=48):
     out=[]
     for a in articles:
@@ -47,8 +60,7 @@ def cluster(articles,now,cutoff_hours=48):
             except ValueError: pub=None
         norm=normalized_title(title)
         similar=next((b for b in out if canon_url(b['url'])==url or
-                  (difflib.SequenceMatcher(None,norm,normalized_title(b['title'])).ratio()>=.85 and
-                   len(norm)>=18)),None)
+                  (same_repeated_story_title(title,b['title']) and len(norm)>=18)),None)
         if similar:
             k=(a.get('publisher') or a.get('provider') or '')
             if k and k not in similar['publishers']: similar['publishers'].append(k)
