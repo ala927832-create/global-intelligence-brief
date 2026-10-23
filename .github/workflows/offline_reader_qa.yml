@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/offline_reader_qa.yml'
       - 'scripts/build_historical_offline_sample.py'
+      - 'scripts/check_offline_package.py'
       - 'gib/publish_v16.py'
       - 'gib/gemini_editor_v16.py'
       - 'gib/evidence_review.py'
@@ -29,6 +30,8 @@ jobs:
         run: python -m unittest discover -s tests -q
       - name: Render complete offline historical QA book
         run: python scripts/build_historical_offline_sample.py
+      - name: Check every offline internal link and self-contained resource
+        run: python scripts/check_offline_package.py qa_outputs/historical-offline-reader-demo/morning-deep.epub
       - name: EPUBCheck inside the downloadable complete book
         run: bash scripts/run_epubcheck_qa.sh qa_outputs/historical-offline-reader-demo
       - name: Explain output and historical data limitations
