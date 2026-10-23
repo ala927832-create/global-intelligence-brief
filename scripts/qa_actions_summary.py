@@ -31,6 +31,7 @@ def main():
         except OSError:
             book_hanzi[level] = 0
     depth = issue.get("editorial_depth_audit") or obj.get("editorial_depth_audit") or {}
+    evidence=obj.get("primary_evidence_progress") or {}
     rows = [
         "# Global Intelligence Brief — 新聞試刊 QA",
         "",
@@ -43,6 +44,8 @@ def main():
         f"| 合併去重後 | {health.get('unique_count', 0)} |",
         f"| 入選新聞 | {len(issue.get('articles', []))} / 目標 8–12 |",
         f"| 完整深度研究專題 | {len(issue.get('deep_research', []))} / 目標 2–3 |",
+        f"| 官方來源對應事件 | {evidence.get('primary_source_linked',0)}/{evidence.get('total_core_events',0)} |",
+        f"| 來源定位事件 | {evidence.get('events_with_located_claim',0)}/{evidence.get('total_core_events',0)} |",
         f"| AI 延伸研究草稿（不等於已審定專題） | {len(drafts)} 篇，約 {draft_hanzi} 漢字 |",
         f"| 達到深讀審稿最低門檻（非出版許可） | {depth.get('deep_drafts_meeting_minimum_review_standard',0)}／{depth.get('required_depth_topics',2)} |",
         f"| Essential／Deep 實際內頁漢字數 | {book_hanzi['essential']}／{book_hanzi['deep']} |",
