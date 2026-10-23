@@ -30,6 +30,7 @@ def main():
                 re.sub(r"<[^>]*>", "", html_text)))
         except OSError:
             book_hanzi[level] = 0
+    depth = issue.get("editorial_depth_audit") or obj.get("editorial_depth_audit") or {}
     rows = [
         "# Global Intelligence Brief — 新聞試刊 QA",
         "",
@@ -43,6 +44,7 @@ def main():
         f"| 入選新聞 | {len(issue.get('articles', []))} / 目標 8–12 |",
         f"| 完整深度研究專題 | {len(issue.get('deep_research', []))} / 目標 2–3 |",
         f"| AI 延伸研究草稿（不等於已審定專題） | {len(drafts)} 篇，約 {draft_hanzi} 漢字 |",
+        f"| 達到深讀審稿最低門檻（非出版許可） | {depth.get('deep_drafts_meeting_minimum_review_standard',0)}／{depth.get('required_depth_topics',2)} |",
         f"| Essential／Deep 實際內頁漢字數 | {book_hanzi['essential']}／{book_hanzi['deep']} |",
         f"| 晨晚報增量比較 | {'有' if health.get('has_morning_comparison') else '缺少晨報快照'} |",
         f"| Gemini 第一／二輪編輯 | {'已呼叫，待審查' if obj.get('gemini_connected_and_called') else '未呼叫'} |",
@@ -54,6 +56,15 @@ def main():
         rows.append(f"{k}. **{safe(article.get('title_original'))}** · {safe(s.get('publisher'))} · {safe(article.get('article_published_at'))}")
     if not issue.get("articles"):
         rows.append("沒有入選新聞。")
+    rows.extend(["", "## 深讀研究的證據與內容缺口", ""])
+    for topic in depth.get("research", []):
+        rows.append("- **"+safe(topic.get("title"))+"**："+
+                    str(topic.get("chinese_analysis_hanzi",0))+" 個分析漢字；"+
+                    str(topic.get("evidence",{}).get("signed_verified_claims",0))+" 項已人工簽核的主張")
+        for reason in topic.get("reasons",[])[:5]:
+            rows.append("  - "+safe(reason))
+    if not depth.get("research"):
+        rows.append("目前尚無經 Gemini 雙輪整理的核心研究稿。")
     rows.extend(["", "## 正式發布遭拒原因", ""])
     for reason in obj.get("release_hold_reasons", []):
         rows.append("- " + safe(reason))
