@@ -1,0 +1,45 @@
+name: GIB historical offline BOOX reader QA (no publication)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/offline_reader_qa.yml'
+      - 'scripts/build_historical_offline_sample.py'
+      - 'gib/publish_v16.py'
+      - 'gib/gemini_editor_v16.py'
+      - 'gib/evidence_review.py'
+      - 'assets/editorial/newsroom-v16.css'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12', cache: pip}
+      - name: Install open source EPUB tools
+        run: |
+          pip install -r requirements.txt
+          sudo apt-get update -qq
+          sudo apt-get install -y pandoc fonts-noto-cjk
+      - name: Frozen spec and offline crosslink regression tests
+        run: python -m unittest discover -s tests -q
+      - name: Render complete offline historical QA book
+        run: python scripts/build_historical_offline_sample.py
+      - name: EPUBCheck inside the downloadable complete book
+        run: bash scripts/run_epubcheck_qa.sh qa_outputs/historical-offline-reader-demo
+      - name: Explain output and historical data limitations
+        run: |
+          echo '## BOOX 離線 EPUB 試讀' >> "$GITHUB_STEP_SUMMARY"
+          echo '這是歷史研究排版驗證樣本，不是今天的即時新聞。' >> "$GITHUB_STEP_SUMMARY"
+          echo '在下方 Artifacts 下載 gib-offline-reader-sample ZIP，解壓縮，將 morning-deep.epub 匯入 BOOX。只需下載這一本，即可離線從快訊點入解析及長篇研究。' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gib-offline-reader-sample-${{ github.run_number }}
+          path: qa_outputs/historical-offline-reader-demo/
+          retention-days: 14
+# Read-only historical QA; no Gemini tokens, paid API, LINE, GitHub Pages or live publication.
