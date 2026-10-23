@@ -29,7 +29,7 @@ jobs:
       - name: Frozen spec and offline crosslink regression tests
         run: python -m unittest discover -s tests -q
       - name: Render complete offline historical QA book
-        run: python scripts/build_historical_offline_sample.py
+        run: python -m scripts.build_historical_offline_sample
       - name: Check every offline internal link and self-contained resource
         run: python scripts/check_offline_package.py qa_outputs/historical-offline-reader-demo/morning-deep.epub
       - name: EPUBCheck inside the downloadable complete book
