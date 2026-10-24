@@ -133,7 +133,7 @@ def run(output_dir):
                 "\n## EIA 1991–2026 direct official weekly historical rebuild\n\n"
                 "The full historical comparison **has now been recomputed** from the official "
                 "EIA HTML weekly table; this is distinct from the earlier 44-row transcription. "
-                f"The downloaded source SHA-256 is \`{result['retrieved_source_sha256']}\`. "
+                f"The downloaded source SHA-256 is `{result['retrieved_source_sha256']}`. "
                 f"Historical summer averages: **1998 {result['may_sep_avg_pct']['1998']}%**, "
                 f"**2000 {result['may_sep_avg_pct']['2000']}%**, "
                 f"**2025 {result['may_sep_avg_pct']['2025']}%**, "
