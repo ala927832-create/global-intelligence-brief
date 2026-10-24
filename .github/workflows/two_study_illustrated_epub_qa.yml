@@ -1,9 +1,5 @@
 name: GIB illustrated EIA-BLS original evidence book QA (no Gemini, no publishing)
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/two_study_illustrated_epub_qa.yml'
   workflow_dispatch:
 permissions: {contents: read}
 jobs:
@@ -61,5 +57,5 @@ jobs:
             qa_outputs/illustrated_studies/
             docs/TWO_STUDIES_HUMAN_SIGNOFF_AND_BOOX_READING_FORM.md
           retention-days: 14
-# One-time validation rerun after restoring Python publisher syntax; manual-only after verifying.
+# Verified 2026-10-24. Manual-only; never calls Gemini, publishing, or LINE.
 # No GEMINI_API_KEY, no access to publishing or LINE secrets.
