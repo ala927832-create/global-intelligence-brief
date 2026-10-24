@@ -56,8 +56,11 @@ def run(args):
         else:
             ai=research_and_revise(issue)
             edits=ai.get('edits',[])
+            issue['editorial_first_pass']=ai.get('first_pass_drafts',[])
             issue['gemini_editorial']={'status':ai['status'],'warnings':ai.get('warnings',[]),
                                        'draft_count':len(edits),
+                                       'first_pass_draft_count':len(ai.get('first_pass_drafts',[])),
+                                       'revision_ratio_by_event':ai.get('revision_ratio_by_event',{}),
                                        'failed_stage':ai.get('failed_stage'),
                                        'http_status':ai.get('http_status')}
     # Keep both editorial passages and their linked source identifiers in the
