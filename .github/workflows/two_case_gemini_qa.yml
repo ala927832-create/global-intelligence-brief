@@ -91,5 +91,5 @@ jobs:
           if len(valid)<2:
               raise SystemExit("Both cases must survive numeric and source checks; one alone is insufficient")
           PY
-# Revalidation: date/year-equivalent numeric guard + 2-case gate; at most two calls.
+# Final bounded QA recheck: preserve rejected drafts, demand substantive 2nd revision; at most two calls.
 # No live publishing, LINE, or main Zinc repository changes.
