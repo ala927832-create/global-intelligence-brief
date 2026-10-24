@@ -23,6 +23,8 @@ jobs:
         run: python -m unittest discover -s tests -q
       - name: Rebuild two official source arithmetic cases and charts (offline)
         run: python -m scripts.build_official_data_qa
+      - name: Attempt independent EIA official historical series reconstruction
+        run: python -m scripts.eia_official_html_history_qa --output-dir qa_outputs/official_data_figures
       - name: Summarize strict evidence status
         run: |
           python - <<'PY'
@@ -31,6 +33,10 @@ jobs:
           assert not d['release_approved']
           assert d['eia']['mean_pct']=={'2025':'93.70','2026':'95.41'}
           assert d['bls']['july_august_combined_revision_persons']==-60000
+          historic=json.load(open('qa_outputs/official_data_figures/eia_full_history_check.json',encoding='utf-8'))
+          print("EIA historical source:",historic['status'])
+          # If official source fetch fails, keep evidence gap open; do not infer verification.
+          assert not historic["release_approved"] and not historic["human_signed"]
           with open('qa_outputs/official_data_figures/EVIDENCE_REBUILD_QA.md',encoding='utf-8') as f:
               m=f.read()
           with open(__import__('os').environ['GITHUB_STEP_SUMMARY'],'a',encoding='utf-8') as f:
