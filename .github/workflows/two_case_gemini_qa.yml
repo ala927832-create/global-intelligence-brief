@@ -1,9 +1,5 @@
 name: GIB two official-source Gemini editorial passes (QA only)
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/two_case_gemini_qa.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -91,5 +87,5 @@ jobs:
           if len(valid)<2:
               raise SystemExit("Both cases must survive numeric and source checks; one alone is insufficient")
           PY
-# Final bounded QA recheck: preserve rejected drafts, demand substantive 2nd revision; at most two calls.
+# MANUAL ONLY: successful two-case prototype; no automatic Gemini calls on code changes.
 # No live publishing, LINE, or main Zinc repository changes.
