@@ -12,6 +12,26 @@ import requests
 ALLOWED_SECTIONS=('background','why_it_matters','transmission','history','alternative','watch','limitations')
 EDITORIAL_LEADS=('headline_zh','brief_zh')
 
+def unsupported_numeric_evidence(candidate_text, source_text):
+    """Reject new quantities; permit only lossless date/year spellings.
+
+    An article published on the 02nd may say 2日. A quoted full year 1998
+    may say 98年. Neither licenses 2% nor 98% or other fabricated quantities.
+    """
+    allowed=set(re.findall(r'\\d+(?:\\.\\d+)?',source_text or ''))
+    unsupported=[]
+    for m in re.finditer(r'\\d+(?:\\.\\d+)?',candidate_text or ''):
+        token=m.group()
+        if token in allowed:continue
+        rest=(candidate_text or '')[m.end():m.end()+2]
+        if token.isdigit() and len(token)==1 and rest.startswith('日'):
+            if token.zfill(2) in allowed:continue
+        if token.isdigit() and len(token)==2 and rest.startswith('年'):
+            if any(len(x)==4 and x.endswith(token) for x in allowed):continue
+        unsupported.append((token,m.start(),m.end()))
+    return unsupported
+
+
 def _safe_text(v,lim=2300):
     v=str(v or '')[:lim]
     if 'http://' in v or 'https://' in v:raise ValueError('model attempted to add new URL')
@@ -84,21 +104,15 @@ def audit_model_output(data, issue):
              original.get('article_published_at','')] +
             [e.get('text','')+' '+e.get('official_context_excerpt','')
              for e in original.get('evidence',[])])
-        permitted_numbers=set(re.findall(r'\d+(?:\.\d+)?',local_text))
-        new_numbers=set(re.findall(r'\d+(?:\.\d+)?',
-            ' '.join(list(fields.values())+list(leads.values()))))-permitted_numbers
-        if new_numbers:
-            # Keep only tiny bounded excerpts of the PUBLIC model draft for
-            # an editor to distinguish factual hallucinations from list labels.
-            merged=' '.join(list(fields.values())+list(leads.values()))
-            rejected=sorted(new_numbers)[:4]
-            spans=[]
-            for token in rejected:
-                m=re.search(r'(?<![\\d.])'+re.escape(token)+r'(?![\\d.])',merged)
-                if m:spans.append(merged[max(0,m.start()-24):m.end()+24])
+        merged=' '.join(list(fields.values())+list(leads.values()))
+        unsupported=unsupported_numeric_evidence(merged,local_text)
+        if unsupported:
+            sample=[]
+            for token,start,end in unsupported[:4]:
+                sample.append(merged[max(0,start-22):start]+'<<'+token+'>>'+merged[end:end+23])
             warnings.append('AI added unsupported numeric tokens for event '+
-                x['event_id']+': '+','.join(rejected)+
-                ' | REVIEW_ONLY_CONTEXT='+repr(' / '.join(spans)[:170]))
+                x['event_id']+': '+','.join(x[0] for x in unsupported[:4])+
+                ' | REVIEW_ONLY_CONTEXT='+repr(' / '.join(sample)[:240]))
             continue
         if len(''.join(fields.values()))<220:
             warnings.append('Insufficient editorial depth for event '+x['event_id'])
