@@ -82,28 +82,48 @@ def rebuild_refinery(path):
     }
 
 
-def rebuild_bls_revision():
-    """Arithmetic from October 2, 2026 BLS archived September employment report."""
-    july_old=21000
-    july_new=-10000
-    aug_old=162000
-    aug_new=133000
+def rebuild_bls_revision(snapshot_path=None):
+    """Rebuild archived BLS payroll revisions from a versioned public-value snapshot."""
+    if snapshot_path is None:
+        snapshot_path=Path(__file__).resolve().parents[1]/"data"/"bls_2026_09_initial_release_transcribed.json"
+    snapshot=json.loads(Path(snapshot_path).read_text(encoding="utf-8"))
+    if snapshot.get("source")!=BLS_RELEASE or snapshot.get("release_date")!="2026-10-02":
+        raise ValueError("Snapshot source/version mismatch")
+    if snapshot.get("human_signed") is not False:
+        raise ValueError("No programmatic editorial attestation permitted")
+    obs=snapshot["observations"]
+    needed=("september_nonfarm_payroll_change_persons",
+            "september_unemployment_rate_pct",
+            "july_payroll_prior_revision_persons","july_payroll_current_revision_persons",
+            "august_payroll_prior_revision_persons","august_payroll_current_revision_persons",
+            "september_private_average_hourly_earnings_usd",
+            "september_private_average_workweek_hours")
+    if set(obs)!=set(needed):
+        raise ValueError("Incomplete BLS original-release fields")
+    july_old=obs["july_payroll_prior_revision_persons"]
+    july_new=obs["july_payroll_current_revision_persons"]
+    aug_old=obs["august_payroll_prior_revision_persons"]
+    aug_new=obs["august_payroll_current_revision_persons"]
+    for x in (july_old,july_new,aug_old,aug_new,obs["september_nonfarm_payroll_change_persons"]):
+        if type(x) is not int:raise ValueError("Incorrect employment unit")
     july_diff=july_new-july_old
     aug_diff=aug_new-aug_old
     combined=july_diff+aug_diff
+    matches=(combined==snapshot.get("reported_july_august_combined_revision_persons"))
+    if not matches:raise ValueError("Revision arithmetic disagrees with BLS release")
     return {
       "status":"ARITHMETIC_REBUILT_FROM_ARCHIVED_RELEASE_MANUAL_TRANSCRIPTION",
-      "release_date":"2026-10-02",
-      "reference_month":"2026-09",
+      "release_date":snapshot["release_date"],
+      "reference_month":snapshot["reference_month"],
       "source":BLS_RELEASE,
-      "september_nonfarm_payroll_change_persons":29000,
-      "september_unemployment_rate_pct":"4.2",
+      "september_nonfarm_payroll_change_persons":obs["september_nonfarm_payroll_change_persons"],
+      "september_unemployment_rate_pct":obs["september_unemployment_rate_pct"],
       "july_revision":{"previous":july_old,"current":july_new,"delta":july_diff},
       "august_revision":{"previous":aug_old,"current":aug_new,"delta":aug_diff},
       "july_august_combined_revision_persons":combined,
-      "matches_bls_stated_combined_revision":combined==-60000,
-      "september_private_hourly_earnings_usd":"37.81",
-      "september_private_average_workweek_hours":"34.4",
+      "matches_bls_stated_combined_revision":matches,
+      "september_private_hourly_earnings_usd":obs["september_private_average_hourly_earnings_usd"],
+      "september_private_average_workweek_hours":obs["september_private_average_workweek_hours"],
       "survey_distinction":"Payroll changes are establishment survey; unemployment rate is household survey",
       "source_as_of":"Initial October 2, 2026 report, not latest revised monthly series",
       "human_signed":False,
