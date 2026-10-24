@@ -195,6 +195,7 @@ Deep Research 必須增加新的證據、反例、口徑、情境和觀察條件
                     'warnings':warns+warns2,
                     'revision_ratio_by_event':revisions}
         return {'status':'REVISED_DRAFT_PENDING_REVIEW','edits':revised,
+                'first_pass_drafts':edits,
                 'revision_ratio_by_event':revisions,
                 'warnings':warns+warns2,
                 'model':model, 'max_calls':2,
