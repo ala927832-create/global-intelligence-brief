@@ -1,9 +1,5 @@
 name: GIB official EIA-BLS data reconstruction QA (no Gemini or publication)
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/two_official_data_rebuild_qa.yml'
   workflow_dispatch:
 permissions: {contents: read}
 jobs:
