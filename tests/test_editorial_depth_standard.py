@@ -3,6 +3,7 @@
 Tests use invented headlines as fixtures, never real-world news assertions.
 """
 import datetime as dt
+import copy
 import os
 import unittest
 from unittest.mock import patch
@@ -135,14 +136,35 @@ class DepthTests(unittest.TestCase):
             "briefs":[{
             "event_id":b["event_id"],"source_ids":[b["sources"][0]["source_id"]],
             "headline_zh":"重要國際短訊","brief_zh":"來源提供一項仍待查證的消息。"}]}
+        second_response=copy.deepcopy(response)
+        second_response["items"][0]["background"]=(
+            "研究稿核對顯示仍只有來源索引，不能據此確認政策結果。"
+            "下一階段應先找到對應官方公告，釐清適用範圍和發布日期。"
+            "若後續正式數據與報導不一致，就需要改變原本的假設。"
+        )*4
         with patch.dict(os.environ,{"ENABLE_GEMINI":"1",
              "GEMINI_FREE_TIER_CONFIRMED":"1","GEMINI_API_KEY":"NOT_REAL"},
-             clear=False),patch("gib.gemini_editor_v16._call",side_effect=[response,response]) as api:
+             clear=False),patch("gib.gemini_editor_v16._call",side_effect=[response,second_response]) as api:
             res=research_and_revise(self.issue)
         self.assertEqual(api.call_count,2)
         self.assertEqual(res["status"],"REVISED_DRAFT_PENDING_REVIEW")
         self.assertTrue(any(e["event_id"]==b["event_id"] for e in res["edits"]))
         self.assertTrue(any(e["event_id"]==a["event_id"] for e in res["edits"]))
+        self.assertGreater(max(res["revision_ratio_by_event"].values()),0.02)
+
+    def test_unchanged_second_pass_does_not_count_as_edited(self):
+        a=self.issue["articles"][0]
+        identical={"items":[{
+            "event_id":a["event_id"],"source_ids":[a["sources"][0]["source_id"]],
+            "headline_zh":"需要查證的政策","brief_zh":"來源仍未核實。",
+            "background":"這份研究還缺少原始官方公告和數據期間的定位證據。"*10,
+            "why_it_matters":"缺乏原始證據就不應假設經濟影響已經發生。"*10,
+            "transmission":"必須逐步確認政策改變是否已實際落地。"*10}]}
+        with patch.dict(os.environ,{"ENABLE_GEMINI":"1",
+             "GEMINI_FREE_TIER_CONFIRMED":"1","GEMINI_API_KEY":"FAKE"},
+             clear=False),patch("gib.gemini_editor_v16._call",side_effect=[identical,identical]):
+            res=research_and_revise(self.issue)
+        self.assertEqual(res["status"],"SECOND_PASS_NO_MATERIAL_EDIT")
 
 
 if __name__=="__main__":
