@@ -231,7 +231,11 @@ def issue_body(issue, edits=None, level='essential'):
         result.append('</ol><h3>深讀研究補充原始資料（尚待人工簽核）</h3><ol>')
         for row in supplemental[:20]:
             url=str(row.get('source') or '')
-            if not re.match(r'^https://[^\\s<>"\\\']{5,500}
+            if not url.startswith('https://') or len(url)>500:
+                continue
+            result.append('<li>'+h(row.get('kind') or '研究補充資料')+
+                ' · <a href="'+h(url)+'">官方資料原址（離線閱讀不需開啟）</a></li>')
+    result.append('</ol><p class="method">來源文章、新聞索引、Gemini 編輯解釋分開標示。來源網址存在不代表所有主張已被核實。'
         +' 只摘要與引用連結，不重製有版權的新聞全文。</p></section>')
     text='\n'.join(result)
     # Pandoc's HTML reader can discard id attributes on HTML5 <nav>/<article>
