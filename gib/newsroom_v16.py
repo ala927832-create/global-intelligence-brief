@@ -7,7 +7,7 @@ import datetime as dt
 import hashlib
 import json
 from urllib.parse import urlsplit
-from .editorial import cluster, rank, diversified, sig
+from .editorial import cluster, rank, diversified, sig, material_news_candidate
 
 TOPICS = {
     'macro': '全球宏觀', 'central_banks': '央行與金融',
@@ -59,7 +59,8 @@ def canonical_issue(raw, edition, now, weights=None, prior=None, max_items=12):
     # Verify source eligibility BEFORE the 12-story cap.
     # Earlier six of twelve selected candidates were dropped afterwards
     # because URLs were non-HTTPS/missing, wasting slots.
-    eligible=[a for a in candidates if article_sources(a) and _date(a.get('published_at'))]
+    eligible=[a for a in candidates if article_sources(a) and _date(a.get('published_at'))
+              and material_news_candidate(a)]
     chosen=diversified(eligible,max_items,max_per_section=4)
     rows=[]
     updates=[]
@@ -89,7 +90,10 @@ def canonical_issue(raw, edition, now, weights=None, prior=None, max_items=12):
         if edition=='evening':updates.append({'event_id':sig(a['title']),'event_title':a['title'],
           'change_kind':change_kind,'summary':(a.get('snippet','') or '原始消息尚無摘要')[:300]+'（來源聲稱，尚未逐項核實）'})
     health={
-      'candidate_count':len(raw), 'unique_count':len(grouped), 'selected_count':len(rows),
+      'candidate_count':len(raw), 'unique_count':len(grouped),
+      'material_candidate_count':len(eligible),
+      'unrelated_candidate_excluded':len(candidates)-len(eligible),
+      'selected_count':len(rows),
       'fresh_dated_count':sum(bool(x['article_published_at']) for x in rows),
       'distinct_domains':len({s['publisher'] for x in rows for s in x['sources']}),
       'has_morning_comparison':bool(prior.get('issue_id')) if edition=='evening' else True
