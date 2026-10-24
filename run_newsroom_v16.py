@@ -24,13 +24,23 @@ def run(args):
     config=json.loads((ROOT/'config'/'sources.json').read_text(encoding='utf-8'))
     issues=ROOT/'qa_outputs';issues.mkdir(exist_ok=True)
     errors=[]
-    if args.fixture:
-        raw=json.loads(Path(args.fixture).read_text(encoding='utf-8'))['articles']
+    cached_path=getattr(args,'cached_issue',None)
+    if cached_path:
+        if args.fixture or args.morning_issue:
+            raise ValueError('Cached issue cannot be combined with fixture or morning comparison')
+        # Reuse the already attributed source list; no FreeNewsApi/GDELT calls.
+        # This is HISTORICAL OFFICIAL RESEARCH QA, never live-news validation.
+        issue=load_issue(cached_path)
+        if issue.get('kind')!='canonical_news_evidence':
+            raise ValueError('Cached issue must use canonical evidence schema')
     else:
-        raw=freenews(config,now,errors)+official_rss(config,errors)+gdelt(config,errors)
-    prior=None
-    if args.morning_issue:prior=load_issue(args.morning_issue)
-    issue=canonical_issue(raw,args.edition,now,config.get('section_weights'),prior)
+        if args.fixture:
+            raw=json.loads(Path(args.fixture).read_text(encoding='utf-8'))['articles']
+        else:
+            raw=freenews(config,now,errors)+official_rss(config,errors)+gdelt(config,errors)
+        prior=None
+        if args.morning_issue:prior=load_issue(args.morning_issue)
+        issue=canonical_issue(raw,args.edition,now,config.get('section_weights'),prior)
     issue['source_health']['collector_errors']=errors
     if getattr(args,'verify_official',False) and not args.fixture:
         try:review_official_excerpts(issue)
@@ -61,7 +71,7 @@ def run(args):
     doc=folder/'issue.json';save_issue(issue,doc)
     review=write_review_workbook(issue,folder)
     output=export(issue,edits,folder,qa_only=True)
-    quality_record=build_record(issue,issue.get('gemini_editorial'),None,None,live_source=not bool(args.fixture),fixture=bool(args.fixture))
+    quality_record=build_record(issue,issue.get('gemini_editorial'),None,None,live_source=not bool(args.fixture or cached_path),fixture=bool(args.fixture or cached_path))
     record_file=persist_record(quality_record,issues/'records')
     result={'issue_json':str(doc),'epub':output,'qa_record':str(record_file),'release_approved':False,
             'release_hold_reasons':audit['reasons']+
@@ -82,6 +92,7 @@ if __name__=='__main__':
     ap=argparse.ArgumentParser()
     ap.add_argument('--edition',choices=['morning','evening'],required=True)
     ap.add_argument('--fixture',help='offline test fixture (not a live feed)')
+    ap.add_argument('--cached-issue',help='Reuse a frozen, public and unverified issue.json without re-collecting news')
     ap.add_argument('--as-of',help='UTC, used for offline historical QA')
     ap.add_argument('--gemini',action='store_true',help='explicit API opt-in, also needs env vars')
     ap.add_argument('--verify-official',action='store_true',help='bounded official-source excerpt check; not automatic truth verification')
