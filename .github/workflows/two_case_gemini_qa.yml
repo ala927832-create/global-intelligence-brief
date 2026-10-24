@@ -82,5 +82,13 @@ jobs:
                 "http:",o.get("gemini_http_status"))
           if o.get("gemini_status")!="REVISED_DRAFT_PENDING_REVIEW":
               raise SystemExit("Two-pass editorial QA did not pass")
+          issue=json.load(open(o["issue_json"],encoding="utf-8"))
+          valid=[a for a in issue.get("editorial_drafts",[])
+                 if a.get("verification")=="AI_INTERPRETATION_NOT_VERIFIED"
+                 and len("".join(str(x) for x in a.get("sections",{}).values()))>=250]
+          print("Substantive official-source draft cases:",len(valid),"/2")
+          print("Revision ratios:",issue.get("gemini_editorial",{}).get("revision_ratio_by_event",{}))
+          if len(valid)<2:
+              raise SystemExit("Both cases must survive numeric and source checks; one alone is insufficient")
           PY
 # No live publishing, LINE, or main Zinc repository changes.
