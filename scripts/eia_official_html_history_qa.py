@@ -96,6 +96,26 @@ def run(output_dir):
         result["retrieved_source_sha256"]=hashlib.sha256(raw).hexdigest()
         weekly=parse_history(raw)
         result.update(summarize_history(weekly))
+        # A separate historical graph makes the 'since 1998' test auditable.
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        means=result["may_sep_avg_pct"]
+        years=sorted(map(int,means))
+        fig,ax=plt.subplots(figsize=(9.2,4.5))
+        ax.plot(years,[float(means[str(y)]) for y in years],marker="o",markersize=3)
+        ax.scatter([1998,2026],[float(means["1998"]),float(means["2026"])])
+        ax.axhline(float(means["2026"]),linestyle="--",alpha=.55)
+        ax.set(xlabel="Calendar year",ylabel="May–Sep mean utilization (%)",
+               title="EIA WPULEUS3 | 1991–2026 summer weekly means")
+        ax.set_xlim(1991,2027)
+        ax.grid(alpha=.25)
+        fig.text(.08,.015,
+            "QA direct official HTML time-series rebuild; arithmetic means of weekly end dates; methodology subject to review",
+            fontsize=7)
+        fig.tight_layout(rect=(0,.05,1,1))
+        fig.savefig(out/"eia_refinery_summer_means_1991_2026.png",dpi=160)
+        plt.close(fig)
         with (out/"eia_weekly_official_history.csv").open("w",encoding="utf-8") as f:
             f.write("week_ending,utilization_pct,source\n")
             for day,val in sorted(weekly.items()):
@@ -106,6 +126,34 @@ def run(output_dir):
         result["status"]="OFFICIAL_HISTORY_BLOCKED"
     (out/"eia_full_history_check.json").write_text(
         json.dumps(result,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
+    report=out/"EVIDENCE_REBUILD_QA.md"
+    if report.exists():
+        if result.get("status")=="INDEPENDENT_OFFICIAL_HTML_HISTORY_RECOMPUTED_NEEDS_EDITOR_REVIEW":
+            history_note=(
+                "\n## EIA 1991–2026 direct official weekly historical rebuild\n\n"
+                "The full historical comparison **has now been recomputed** from the official "
+                "EIA HTML weekly table; this is distinct from the earlier 44-row transcription. "
+                f"The downloaded source SHA-256 is \`{result['retrieved_source_sha256']}\`. "
+                f"Historical summer averages: **1998 {result['may_sep_avg_pct']['1998']}%**, "
+                f"**2000 {result['may_sep_avg_pct']['2000']}%**, "
+                f"**2025 {result['may_sep_avg_pct']['2025']}%**, "
+                f"**2026 {result['may_sep_avg_pct']['2026']}%**. "
+                f"The 1999–2025 maximum was {result['highest_1999_to_2025']['year']} "
+                f"({result['highest_1999_to_2025']['mean_pct']}%). "
+                "The historical claim passes the unweighted weekly-year grouping test: "
+                f"**{result['matches_2026_highest_since_1998_under_this_method']}**. "
+                "This does **not** certify the EIA chart methodology, refinery output, "
+                "diesel inventory causal claims, or signed editorial fact-checking.\n"
+            )
+        else:
+            history_note=(
+                "\n## EIA full history attempt\n\n"
+                "The full official HTML history was not retrieved and parsed. "
+                f"Status: {result.get('status')}; "
+                "historical comparisons remain unverified by independent arithmetic.\n"
+            )
+        with report.open("a",encoding="utf-8") as handle:
+            handle.write(history_note)
     print(json.dumps({k:v for k,v in result.items() if k not in ("may_sep_avg_pct",)},
         ensure_ascii=False))
     return result
