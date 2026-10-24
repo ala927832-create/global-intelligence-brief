@@ -58,6 +58,9 @@ def issue_body(issue, edits=None, level='essential'):
     items=issue.get('articles',[])
     draft_ids={e['event_id'] for e in (edits or [])
                if len(''.join(str(z) for z in e.get('sections',{}).values()))>=120}
+    # Original research topic anchors are navigable even without AI drafts.
+    draft_ids.update(str(topic.get('event_id')) for topic in issue.get('deep_research',[])
+                     if topic.get('event_id'))
     isdeep=(level=='deep')
     period='晨報' if issue['edition']=='morning' else '晚報'
     qa=issue.get('editorial_status')!='EDITOR_APPROVED'
@@ -134,7 +137,8 @@ def issue_body(issue, edits=None, level='essential'):
         result.append('<p>此章節的完整研究僅在同一期 Deep Research EPUB 展開。速讀版不以重複文字或未經驗證推論填充篇幅。</p>')
     elif issue.get('deep_research'):
         for i,topic in enumerate(issue['deep_research'],1):
-            result.append(f'<div class="dossier"><p class="eyebrow">RESEARCH {i:02d}</p><h3>{h(topic["title"])}</h3>')
+            topic_anchor=(f' id="research-{anchor_id(topic)}"' if topic.get("event_id") else '')
+            result.append(f'<div class="dossier"><p class="eyebrow">RESEARCH {i:02d} · 待人工簽核</p><h3{topic_anchor}>{h(topic["title"])}</h3>')
             for sec in topic.get('sections',[]):
                 result.append(f'<div class="dossier-section"><h4>{h(sec["heading"])}</h4>{paras(sec.get("body",""))}')
                 fig=sec.get('figure') or {}
@@ -222,6 +226,58 @@ def issue_body(issue, edits=None, level='essential'):
                     +' · SHA-256：'+h(str(claim.get('source_sha256') or '')[:14])
                     +'</p></div>')
             result.append('</li>')
+    supplemental=issue.get('research_source_manifest') or []
+    if supplemental:
+        result.append('</ol><h3>深讀研究補充原始資料（尚待人工簽核）</h3><ol>')
+        for row in supplemental[:20]:
+            url=str(row.get('source') or '')
+            if not re.match(r'^https://[^\\s<>"\\\']{5,500}
+        +' 只摘要與引用連結，不重製有版權的新聞全文。</p></section>')
+    text='\n'.join(result)
+    # Pandoc's HTML reader can discard id attributes on HTML5 <nav>/<article>
+    # even while EPUBCheck succeeds. Native <div id> preserves EPUB fragments.
+    # Convert only structural wrappers; never change the frozen six headings.
+    text=re.sub(r'<article\b','<div',text).replace('</div>','</div>')
+    text=re.sub(r'<nav\b','<div',text).replace('</div>','</div>')
+    # Protect the frozen editorial contract in the output as well.
+    for name in (x['name'] for x in contract['sections']):
+        if text.count('｜'+h(name)) != 1:raise RuntimeError('Frozen section structure violated: '+name)
+    return text
+
+def as_xhtml(issue,edits=None,level='essential',css_file=None):
+    title=f'Global Intelligence Brief {issue["report_date"]} {issue["edition"]} {level}'
+    css=f'<link rel="stylesheet" href="{h(css_file)}"/>' if css_file else ''
+    return f'<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" lang="zh-Hant"><head><meta charset="utf-8"/><title>{h(title)}</title>{css}</head><body>{issue_body(issue,edits,level)}</body></html>'
+
+def export(issue,edits=None,out=None,qa_only=True):
+    if not qa_only:raise PermissionError('Publishing remains locked pending 10 real trading days, EPUBCheck, BOOX device approval and owner release authorization')
+    folder=Path(out or ROOT/'qa_outputs'/issue['issue_id']);folder.mkdir(parents=True,exist_ok=True)
+    if not shutil.which('pandoc'):raise RuntimeError('Pandoc required')
+    results={}
+    for level in ('essential','deep'):
+        stem=f'{issue["edition"]}-{level}'
+        xhtml=folder/(stem+'.xhtml');xhtml.write_text(as_xhtml(issue,edits,level),encoding='utf-8')
+        epub=folder/(stem+'.epub')
+        with tempfile.TemporaryDirectory() as tmp:
+            cover=Path(tmp)/'cover.png';make_cover(cover,issue['edition'],level,issue['report_date'])
+            args=['pandoc',str(xhtml),'-f','html','-t','epub3','--standalone','--toc','--toc-depth=2',
+                '--css',str(CSS),'--epub-cover-image',str(cover),'--metadata=lang:zh-TW',
+                '--metadata=title:Global Intelligence Brief '+issue['report_date']+' '+stem,
+                '--metadata=author:Global Intelligence Brief','-o',str(epub)]
+            subprocess.run(args,capture_output=True,text=True,check=True,timeout=100)
+        validate_epub(epub)
+        with ZipFile(epub) as z:
+            if not any(n.endswith('.xhtml') for n in z.namelist()):raise ValueError('EPUB missing XHTML')
+        results[level]={'xhtml':str(xhtml),'epub':str(epub),'bytes':epub.stat().st_size}
+    # Deep edition already embeds the short brief and all in-book reading.
+    # A stable descriptive alias communicates the one-download offline use case,
+    # without duplicating the EPUB or downloading external publisher articles.
+    results['offline_complete']={**results['deep'],'description':'整本離線合輯：速讀→解析→研究→來源'}
+    return results
+,url):
+                continue
+            result.append('<li>'+h(row.get('kind') or '研究補充資料')+
+                ' · <a href="'+h(url)+'">官方資料原址（離線閱讀不需開啟）</a></li>')
     result.append('</ol><p class="method">來源文章、新聞索引、Gemini 編輯解釋分開標示。來源網址存在不代表所有主張已被核實。'
         +' 只摘要與引用連結，不重製有版權的新聞全文。</p></section>')
     text='\n'.join(result)
