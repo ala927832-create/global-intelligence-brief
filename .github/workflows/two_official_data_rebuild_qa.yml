@@ -48,4 +48,5 @@ jobs:
           name: gib-official-eia-bls-arithmetic-and-figures
           path: qa_outputs/official_data_figures/
           retention-days: 14
+# Re-run once to include 36-year annual chart and reconciled evidence notes.
 # No scheduled API calls, Gemini, publisher/LINE delivery or billing.
