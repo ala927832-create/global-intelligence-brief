@@ -4,6 +4,7 @@ A model cannot turn a news-index snippet into a verified claim. All output needs
 source-level editorial review before production approval.
 """
 import json
+import difflib
 import os
 import re
 import requests
@@ -172,7 +173,29 @@ Deep Research 必須增加新的證據、反例、口徑、情境和觀察條件
         revised,warns2=audit_model_output(second,issue)
         if not revised:
             return {'status':'SECOND_PASS_FAILED','edits':[], 'warnings':warns+warns2}
+        def narrative(edit):
+            return ' '.join(str(v) for v in edit.get('sections',{}).values() if v)
+        first_core={e['event_id']:e for e in edits if narrative(e)}
+        final_core={e['event_id']:e for e in revised if narrative(e)}
+        retained=set(first_core)&set(final_core)
+        if not retained:
+            return {'status':'SECOND_PASS_LOST_CORE_RESEARCH','edits':[],
+                    'warnings':warns+warns2}
+        revisions={}
+        for event_id in retained:
+            old=narrative(first_core[event_id])
+            new=narrative(final_core[event_id])
+            similarity=difflib.SequenceMatcher(None,old,new,autojunk=False).ratio()
+            revisions[event_id]=round(1-similarity,3)
+            if len(new)<len(old)*0.55:
+                return {'status':'SECOND_PASS_LOST_SUBSTANCE','edits':[],
+                        'warnings':warns+warns2}
+        if max(revisions.values(),default=0)<0.02:
+            return {'status':'SECOND_PASS_NO_MATERIAL_EDIT','edits':[],
+                    'warnings':warns+warns2,
+                    'revision_ratio_by_event':revisions}
         return {'status':'REVISED_DRAFT_PENDING_REVIEW','edits':revised,
+                'revision_ratio_by_event':revisions,
                 'warnings':warns+warns2,
                 'model':model, 'max_calls':2,
                 'word_count_cjk':sum(len(re.findall(r'[\u3400-\u9fff]',
