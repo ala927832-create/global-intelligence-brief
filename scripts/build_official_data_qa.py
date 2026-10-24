@@ -74,7 +74,7 @@ The manually transcribed EIA weekly observations, grouped by **week-ending dates
 - Change: **{eia['difference_percentage_points_2026_minus_2025']} percentage points**
 - 2026 highest week: **{eia['max_2026']['utilization_pct']}%** (week ending {eia['max_2026']['week_ending']})
 
-This checks only two seasons. The EIA article's **"highest since 1998"** is still NOT independently reconstructed from 1991–2026 history. Compare original XLS file and grouping methodology before an editor endorses it. Utilization is not absolute refinery output.
+**This first chart checks only two seasons.** A separate direct EIA HTML whole-history calculation is stored in `eia_full_history_check.json`, with its own source SHA-256 and 1991–2026 ranking. Read that separate result before assessing the 1998 comparison. Full-history matching still needs human methodology review. Utilization is not absolute refinery output.
 
 ## BLS original-vintage revision reconciliation
 
