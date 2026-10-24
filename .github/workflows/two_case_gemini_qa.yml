@@ -1,0 +1,86 @@
+name: GIB two official-source Gemini editorial passes (QA only)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/two_case_gemini_qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  editorial_qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GEMINI_MODEL: gemini-3.5-flash-lite
+      GEMINI_FREE_TIER_CONFIRMED: ${{ vars.GEMINI_FREE_TIER_CONFIRMED || '0' }}
+      ENABLE_GEMINI: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12', cache: pip}
+      - name: Install offline EPUB QA dependencies
+        run: |
+          pip install -r requirements.txt
+          sudo apt-get update -qq && sudo apt-get install -y pandoc fonts-noto-cjk
+      - name: Validate free-tier opt-in
+        run: |
+          if [ "$GEMINI_FREE_TIER_CONFIRMED" != '1' ] || [ -z "$GEMINI_API_KEY" ]; then
+            echo "::error::Free-tier authorization/key missing; do not call Gemini"
+            exit 2
+          fi
+      - name: Regression tests
+        run: python -m unittest discover -s tests -q
+      - name: Reuse EIA and BLS provenance packets; at most two Gemini calls
+        run: |
+          python run_newsroom_v16.py --edition morning --cached-issue samples/official_two_case_20261024.json --verify-official --gemini > qa_run.json
+      - name: Verify two EPUBs are self-contained
+        run: |
+          python - <<'PY'
+          import json
+          from scripts.check_offline_package import inspect
+          result=json.load(open("qa_run.json",encoding="utf-8"))
+          for level in ("essential","deep"):
+              outcome=inspect(result["epub"][level]["epub"])
+              print(level,{k:v for k,v in outcome.items() if k!="epub"})
+              if outcome["issues"]:
+                  raise SystemExit(2)
+          PY
+      - name: Validate EPUB3 with W3C EPUBCheck
+        run: |
+          out=$(python -c 'import json,pathlib;d=json.load(open("qa_run.json"));print(pathlib.Path(d["issue_json"]).parent)')
+          bash scripts/run_epubcheck_qa.sh "$out"
+      - name: Record editorial findings and source gaps
+        if: always()
+        run: |
+          if [ -s qa_run.json ]; then
+            python scripts/qa_actions_summary.py
+          else
+            echo '## QA stopped before two-pass research' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gib-two-official-case-review-${{ github.run_number }}
+          path: |
+            qa_outputs/
+            qa_run.json
+          retention-days: 14
+      - name: Enforce Gemini dual-pass completion independently of EPUB validity
+        if: always()
+        run: |
+          if [ ! -s qa_run.json ]; then
+            echo "::error::No editorial result"
+            exit 2
+          fi
+          python - <<'PY'
+          import json
+          o=json.load(open("qa_run.json",encoding="utf-8"))
+          print("Gemini status:",o.get("gemini_status"),
+                "stage:",o.get("gemini_failed_stage"),
+                "http:",o.get("gemini_http_status"))
+          if o.get("gemini_status")!="REVISED_DRAFT_PENDING_REVIEW":
+              raise SystemExit("Two-pass editorial QA did not pass")
+          PY
+# No live publishing, LINE, or main Zinc repository changes.
