@@ -32,6 +32,15 @@ def main():
             book_hanzi[level] = 0
     depth = issue.get("editorial_depth_audit") or obj.get("editorial_depth_audit") or {}
     evidence=obj.get("primary_evidence_progress") or {}
+    gemini=issue.get("gemini_editorial") or {}
+    gemini_status=gemini.get("status","NOT_REQUESTED")
+    gemini_stage=gemini.get("failed_stage") or "NOT_APPLICABLE"
+    gemini_http=gemini.get("http_status")
+    gemini_label=("雙輪完成但尚待人工審稿" if gemini_status=="REVISED_DRAFT_PENDING_REVIEW"
+                  else "未啟用" if gemini_status=="NOT_REQUESTED"
+                  else "未完成；請查核 API、模型權限、額度及回應")
+    if gemini_status=="ERROR_NO_PAID_FALLBACK" and gemini_http:
+        gemini_label+=f"（{safe(gemini_stage)}：HTTP {gemini_http}）"
     rows = [
         "# Global Intelligence Brief — 新聞試刊 QA",
         "",
@@ -50,7 +59,7 @@ def main():
         f"| 達到深讀審稿最低門檻（非出版許可） | {depth.get('deep_drafts_meeting_minimum_review_standard',0)}／{depth.get('required_depth_topics',2)} |",
         f"| Essential／Deep 實際內頁漢字數 | {book_hanzi['essential']}／{book_hanzi['deep']} |",
         f"| 晨晚報增量比較 | {'有' if health.get('has_morning_comparison') else '缺少晨報快照'} |",
-        f"| Gemini 第一／二輪編輯 | {'已呼叫，待審查' if obj.get('gemini_connected_and_called') else '未呼叫'} |",
+        f"| Gemini 第一／二輪編輯 | {gemini_label} |",
         "",
         "## 入選新聞候選（未核實）", "",
     ]
