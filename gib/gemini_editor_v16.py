@@ -88,7 +88,17 @@ def audit_model_output(data, issue):
         new_numbers=set(re.findall(r'\d+(?:\.\d+)?',
             ' '.join(list(fields.values())+list(leads.values()))))-permitted_numbers
         if new_numbers:
-            warnings.append('AI added unsupported numeric tokens: '+','.join(sorted(new_numbers)[:4]))
+            # Keep only tiny bounded excerpts of the PUBLIC model draft for
+            # an editor to distinguish factual hallucinations from list labels.
+            merged=' '.join(list(fields.values())+list(leads.values()))
+            rejected=sorted(new_numbers)[:4]
+            spans=[]
+            for token in rejected:
+                m=re.search(r'(?<![\\d.])'+re.escape(token)+r'(?![\\d.])',merged)
+                if m:spans.append(merged[max(0,m.start()-24):m.end()+24])
+            warnings.append('AI added unsupported numeric tokens for event '+
+                x['event_id']+': '+','.join(rejected)+
+                ' | REVIEW_ONLY_CONTEXT='+repr(' / '.join(spans)[:170]))
             continue
         if len(''.join(fields.values()))<220:
             warnings.append('Insufficient editorial depth for event '+x['event_id'])
