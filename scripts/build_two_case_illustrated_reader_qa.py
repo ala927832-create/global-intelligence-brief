@@ -123,6 +123,14 @@ def build(output_dir:Path):
     output_dir.mkdir(parents=True,exist_ok=True)
     figures=output_dir/"figures"
     build_charts(figures)
+    # Reuse the separately downloaded full official source data and its chart.
+    # Never fake a historical graph when retrieval is blocked.
+    primary_figures=ROOT/"qa_outputs"/"official_data_figures"
+    for name in ("eia_full_history_check.json","eia_refinery_summer_means_1991_2026.png",
+                 "eia_weekly_official_history.csv"):
+        source=primary_figures/name
+        if source.is_file():
+            shutil.copy2(source,figures/name)
     historical_path=figures/"eia_full_history_check.json"
     if historical_path.is_file():
         history=json.loads(historical_path.read_text("utf-8"))
