@@ -31,7 +31,7 @@ class MaterialNewsTests(unittest.TestCase):
             "Federal Reserve monetary policy decision on global inflation",
             "Who Are College Football's Leading Receivers After Week 7?",
         ))]
-        result=canonical_issue(raw,"morning",now)
+        result=canonical_issue(raw,"morning",now,require_material_relevance=True)
         self.assertEqual(len(result["articles"]),2)
         self.assertGreaterEqual(result["source_health"]["unrelated_candidate_excluded"],2)
 
