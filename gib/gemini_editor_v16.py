@@ -18,9 +18,9 @@ def unsupported_numeric_evidence(candidate_text, source_text):
     An article published on the 02nd may say 2日. A quoted full year 1998
     may say 98年. Neither licenses 2% nor 98% or other fabricated quantities.
     """
-    allowed=set(re.findall(r'\\d+(?:\\.\\d+)?',source_text or ''))
+    allowed=set(re.findall(r'\d+(?:\.\d+)?',source_text or ''))
     unsupported=[]
-    for m in re.finditer(r'\\d+(?:\\.\\d+)?',candidate_text or ''):
+    for m in re.finditer(r'\d+(?:\.\d+)?',candidate_text or ''):
         token=m.group()
         if token in allowed:continue
         rest=(candidate_text or '')[m.end():m.end()+2]
