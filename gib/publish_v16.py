@@ -71,6 +71,10 @@ def issue_body(issue, edits=None, level='essential'):
     if qa:
         result.append('<p class="quality-label"><strong>QA／非正式刊物：</strong>資料與研究尚未通過發行審核；'+
          '新聞索引並非已查證事實，未完成實機／EPUBCheck／10 交易日驗收。</p>')
+        if issue.get('gemini_editorial',{}).get('status')=='SECOND_PASS_NO_MATERIAL_EDIT':
+            result.append('<p class="quality-label"><strong>雙輪編輯未通過：</strong>'+
+                '本書所見的研究文字僅供人工比對。第二輪沒有提供足夠的實質修訂，'+
+                '不能認定完成深度研究，也不得作為正式發布內容。</p>')
     result.append(reading_index(items,isdeep,draft_ids))
     # 01. Executive Brief
     result.append('<section class="opening" id="executive">'+heading('01','Executive Brief','本期三個最值得追蹤的主題'))
