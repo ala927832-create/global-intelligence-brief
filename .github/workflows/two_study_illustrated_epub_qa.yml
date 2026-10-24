@@ -1,0 +1,65 @@
+name: GIB illustrated EIA-BLS original evidence book QA (no Gemini, no publishing)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/two_study_illustrated_epub_qa.yml'
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  offline_illustrated_qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12', cache: pip}
+      - name: Install QA-only tools
+        run: |
+          pip install -r requirements.txt
+          sudo apt-get update -qq
+          sudo apt-get install -y pandoc fonts-noto-cjk
+      - name: Verify frozen six chapters and statistical rebuild
+        run: python -m unittest discover -s tests -q
+      - name: Rebuild EIA/BLS source figures from local public transcriptions
+        run: python -m scripts.build_official_data_qa --output-dir qa_outputs/official_data_figures
+      - name: Independently obtain EIA 1991–2026 official weekly table and original history chart
+        run: python -m scripts.eia_official_html_history_qa --output-dir qa_outputs/official_data_figures
+      - name: Render two original research articles with embedded figures and explicit editorial hold
+        run: python -m scripts.build_two_case_illustrated_reader_qa --output-dir qa_outputs/illustrated_studies
+      - name: Inspect the single EPUB offline, embedded research charts and signed status
+        run: |
+          python - <<'PY'
+          import json
+          from scripts.check_offline_package import inspect
+          record=json.load(open('qa_outputs/illustrated_studies/ILLUSTRATED_READER_QA.json',encoding='utf-8'))
+          assert record["status"]=="ILLUSTRATED_QA_ONLY_NOT_PUBLISHED"
+          assert record["human_signed"] is False
+          assert record["reading_time_verified"] is False
+          assert record["release_approved"] is False
+          assert record["historical_data_available"] is True, "Full official EIA history needed for chart"
+          for name in ("essential","deep"):
+              result=inspect(record["issue"][name]["epub"])
+              print(name,{k:v for k,v in result.items() if k!="epub"})
+              assert not result["issues"]
+          assert record["embedded_images_deep"]>=4, "Full-history/EIA/BLS/challenge figures must all be embedded"
+          PY
+      - name: Validate both EPUB3 books with real W3C EPUBCheck
+        run: bash scripts/run_epubcheck_qa.sh qa_outputs/illustrated_studies
+      - name: Record reader and human review as OPEN (no fictional signoff)
+        if: always()
+        run: |
+          echo '## Deep reading figures and review status' >> "$GITHUB_STEP_SUMMARY"
+          echo 'QA-only, non-live, no Gemini or publication. Human signoff and BOOX reading time remain OPEN.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Reviewer form: docs/TWO_STUDIES_HUMAN_SIGNOFF_AND_BOOX_READING_FORM.md' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gib-eia-bls-illustrated-review-qa
+          path: |
+            qa_outputs/official_data_figures/
+            qa_outputs/illustrated_studies/
+            docs/TWO_STUDIES_HUMAN_SIGNOFF_AND_BOOX_READING_FORM.md
+          retention-days: 14
+# Remove one-time push after verifying; always manual for subsequent runs.
+# No GEMINI_API_KEY, no access to publishing or LINE secrets.
