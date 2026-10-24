@@ -159,10 +159,12 @@ items 僅對證據較完整的前3個核心事件深入撰寫；briefs 對 brief
 來源只有索引摘要時，該事件只能是「未經證實的短訊」，不能寫作權威的深度分析。
 Deep Research 必須增加新的證據、反例、口徑、情境和觀察條件，不准只是重複 Essential 段落。
 編輯不得引導使用者依據未核實新聞做交易。'''
+    stage='FIRST_PASS'
     try:
         first=_call(spec+'\n證據：'+json.dumps(evidence,ensure_ascii=False),model)
         edits,warns=audit_model_output(first,issue)
         if not edits:return {'status':'NO_ACCEPTABLE_DRAFT','edits':[], 'warnings':warns}
+        stage='SECOND_PASS'
         second=_call(spec+'\n總編輯複核：先檢查一輪稿件的連貫性、證據限制與有無重複論述。刪除無來源事實，清楚串起背景→機制→不同觀點→後續觀察，保留 event_id 和 source_ids，優先使繁體中文正文適合連續閱讀。嚴禁補造任何事件、日期、數字及外部來源。\n證據：'+json.dumps(evidence,ensure_ascii=False)+'\n一輪稿件：'+json.dumps(
             {'items':[e for e in edits if any(e.get('sections',{}).values())],
              'briefs':[e for e in edits if not any(e.get('sections',{}).values())]},
@@ -175,5 +177,15 @@ Deep Research 必須增加新的證據、反例、口徑、情境和觀察條件
                 'model':model, 'max_calls':2,
                 'word_count_cjk':sum(len(re.findall(r'[\u3400-\u9fff]',
                     ' '.join(e['sections'].values()))) for e in revised)}
+    except requests.HTTPError as ex:
+        # Only publish the HTTP status and failed stage; never output API
+        # responses, project identifiers, request headers or credentials.
+        response=getattr(ex,'response',None)
+        status=getattr(response,'status_code',None)
+        safe_code=status if isinstance(status,int) and 100<=status<=599 else None
+        return {'status':'ERROR_NO_PAID_FALLBACK','edits':[],
+                'warnings':['GEMINI_HTTP_'+str(safe_code or 'UNKNOWN')],
+                'failed_stage':stage,'http_status':safe_code}
     except (KeyError,ValueError,requests.RequestException) as ex:
-        return {'status':'ERROR_NO_PAID_FALLBACK','edits':[],'warnings':[type(ex).__name__]}
+        return {'status':'ERROR_NO_PAID_FALLBACK','edits':[],
+                'warnings':[type(ex).__name__],'failed_stage':stage}
