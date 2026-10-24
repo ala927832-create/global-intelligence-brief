@@ -165,6 +165,15 @@ class DepthTests(unittest.TestCase):
              clear=False),patch("gib.gemini_editor_v16._call",side_effect=[identical,identical]):
             res=research_and_revise(self.issue)
         self.assertEqual(res["status"],"SECOND_PASS_NO_MATERIAL_EDIT")
+        self.assertFalse(res["edits"])
+        self.assertEqual(len(res["first_pass_drafts"]),1)
+        self.assertEqual(len(res["second_pass_rejected_drafts"]),1)
+        from gib.publish_v16 import as_xhtml
+        qa_issue=copy.deepcopy(self.issue)
+        qa_issue["gemini_editorial"]={"status":res["status"]}
+        page=as_xhtml(qa_issue,res["second_pass_rejected_drafts"],level="deep")
+        self.assertIn("雙輪編輯未通過",page)
+        self.assertIn("不能認定完成深度研究",page)
 
 
 if __name__=="__main__":
