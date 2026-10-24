@@ -16,6 +16,7 @@ def main():
     issue = json.loads(Path(obj["issue_json"]).read_text(encoding="utf-8"))
     health = issue.get("source_health", {})
     drafts = issue.get("editorial_drafts", [])
+    rejected_previews=issue.get("editorial_rejected_second_pass", [])
     draft_text = " ".join(
         " ".join(str(x) for x in draft.get("sections", {}).values())
         for draft in drafts
@@ -56,10 +57,12 @@ def main():
         f"| 官方來源對應事件 | {evidence.get('primary_source_linked',0)}/{evidence.get('total_core_events',0)} |",
         f"| 來源定位事件 | {evidence.get('events_with_located_claim',0)}/{evidence.get('total_core_events',0)} |",
         f"| AI 延伸研究草稿（不等於已審定專題） | {len(drafts)} 篇，約 {draft_hanzi} 漢字 |",
+        f"| Gemini 未通過二輪編修、僅供試讀的草稿 | {len(rejected_previews)} 篇（不計入已完成研究） |",
         f"| 達到深讀審稿最低門檻（非出版許可） | {depth.get('deep_drafts_meeting_minimum_review_standard',0)}／{depth.get('required_depth_topics',2)} |",
         f"| Essential／Deep 實際內頁漢字數 | {book_hanzi['essential']}／{book_hanzi['deep']} |",
         f"| 晨晚報增量比較 | {'有' if health.get('has_morning_comparison') else '缺少晨報快照'} |",
         f"| Gemini 第一／二輪編輯 | {gemini_label} |",
+        f"| Gemini 核心文章修訂比率 | {safe(gemini.get('revision_ratio_by_event',{}))} |",
         "",
         "## 入選新聞候選（未核實）", "",
     ]
