@@ -1,0 +1,153 @@
+{
+  "schema_version": "1.6",
+  "kind": "canonical_news_evidence",
+  "issue_id": "20261024T070000Z-morning-two-official-cases",
+  "edition": "morning",
+  "report_date": "2026-10-24",
+  "as_of_utc": "2026-10-24T07:00:00+00:00",
+  "editorial_status": "SOURCE_CANDIDATES_UNVERIFIED",
+  "articles": [
+    {
+      "event_id": "eia_refinery_20261022",
+      "topic": "energy",
+      "topic_label": "能源與產業",
+      "title_original": "U.S. refineries have been running at very high rates in 2026",
+      "article_published_at": "2026-10-22T00:00:00+00:00",
+      "sources": [
+        {
+          "source_id": "src_eia_article_20261022",
+          "url": "https://www.eia.gov/todayinenergy/detail.php?id=68344",
+          "kind": "OFFICIAL_FEED",
+          "publisher": "www.eia.gov",
+          "retrieval_status": "INDEX_ONLY",
+          "article_published_at": "2026-10-22T00:00:00+00:00"
+        },
+        {
+          "source_id": "src_eia_weekly",
+          "url": "https://www.eia.gov/petroleum/supply/weekly/",
+          "kind": "OFFICIAL_BACKGROUND",
+          "publisher": "www.eia.gov",
+          "retrieval_status": "INDEX_ONLY",
+          "article_published_at": null
+        }
+      ],
+      "evidence": [
+        {
+          "claim_id": "EIA-1",
+          "text": "EIA稱2026年5月至9月美國煉油廠平均產能利用率超過95%。",
+          "source_id": "src_eia_article_20261022",
+          "support_excerpt": "averaging more than 95% of capacity between May and September",
+          "verification": "ATTRIBUTED_UNVERIFIED",
+          "source_location": "official publication text; machine matching pending"
+        },
+        {
+          "claim_id": "EIA-2",
+          "text": "EIA比較該時段為1998年以來最高水準。",
+          "source_id": "src_eia_article_20261022",
+          "support_excerpt": "highest for those months since 1998",
+          "verification": "ATTRIBUTED_UNVERIFIED",
+          "source_location": "official publication text; machine matching pending"
+        },
+        {
+          "claim_id": "EIA-3",
+          "text": "EIA認為2019年後美國煉油能力下降約4%，不能以利用率直接等同總產量。",
+          "source_id": "src_eia_article_20261022",
+          "support_excerpt": "refining capacity has decreased by 4% since then",
+          "verification": "ATTRIBUTED_UNVERIFIED",
+          "source_location": "official publication text; machine matching pending"
+        }
+      ],
+      "research_questions": {
+        "background": "2019後產能與燃料需求變化",
+        "mechanism": "餾分油供給緊張→煉製利差→產能利用率",
+        "alternative": "季節性與煉油廠維修時程是否足以解釋？",
+        "watch": "查核每週煉油利用率、餾分油庫存與煉製能力變化"
+      },
+      "event_time_utc": null,
+      "headline_summary": "U.S. refineries have been running at very high rates in 2026",
+      "change_kind": "BACKGROUND_RESEARCH_CASE_NOT_NEW_EVENT",
+      "rank_score": 0,
+      "source_count": 2,
+      "interpretations": [],
+      "editorial_note": "事實待核實的官方來源研究案例，第二則發布於10月2日並非10月24日新消息"
+    },
+    {
+      "event_id": "bls_employment_20261002",
+      "topic": "macro",
+      "topic_label": "全球宏觀",
+      "title_original": "U.S. BLS September 2026 Employment Situation",
+      "article_published_at": "2026-10-02T12:30:00+00:00",
+      "sources": [
+        {
+          "source_id": "src_bls_report_20261002",
+          "url": "https://www.bls.gov/news.release/empsit.htm",
+          "kind": "OFFICIAL_FEED",
+          "publisher": "www.bls.gov",
+          "retrieval_status": "INDEX_ONLY",
+          "article_published_at": "2026-10-02T12:30:00+00:00"
+        },
+        {
+          "source_id": "src_bls_table_b",
+          "url": "https://www.bls.gov/news.release/empsit.b.htm",
+          "kind": "OFFICIAL_BACKGROUND",
+          "publisher": "www.bls.gov",
+          "retrieval_status": "INDEX_ONLY",
+          "article_published_at": "2026-10-02T12:30:00+00:00"
+        }
+      ],
+      "evidence": [
+        {
+          "claim_id": "BLS-1",
+          "text": "美國BLS報告2026年9月非農就業月增2.9萬人。",
+          "source_id": "src_bls_report_20261002",
+          "support_excerpt": "nonfarm payroll employment (+29,000)",
+          "verification": "ATTRIBUTED_UNVERIFIED",
+          "source_location": "official release; machine matching pending"
+        },
+        {
+          "claim_id": "BLS-2",
+          "text": "2026年9月失業率為4.2%。",
+          "source_id": "src_bls_report_20261002",
+          "support_excerpt": "unemployment rate (4.2 percent)",
+          "verification": "ATTRIBUTED_UNVERIFIED",
+          "source_location": "official release; machine matching pending"
+        },
+        {
+          "claim_id": "BLS-3",
+          "text": "BLS當期修訂使7至8月合計就業人數比先前公布下修6萬人。",
+          "source_id": "src_bls_report_20261002",
+          "support_excerpt": "60,000 lower than previously reported",
+          "verification": "ATTRIBUTED_UNVERIFIED",
+          "source_location": "official release; machine matching pending"
+        }
+      ],
+      "research_questions": {
+        "background": "家庭調查與企業調查不同定義和修訂週期",
+        "mechanism": "就業→收入→需求→通膨與政策判斷，但不直接推定Fed下一步",
+        "alternative": "樣本誤差與就業下修是否使單月新增失真？",
+        "watch": "2026-11-06的10月就業報告與7-9月修訂"
+      },
+      "event_time_utc": null,
+      "headline_summary": "U.S. BLS September 2026 Employment Situation",
+      "change_kind": "BACKGROUND_RESEARCH_CASE_NOT_NEW_EVENT",
+      "rank_score": 0,
+      "source_count": 2,
+      "interpretations": [],
+      "editorial_note": "事實待核實的官方來源研究案例，第二則發布於10月2日並非10月24日新消息"
+    }
+  ],
+  "deep_research": [],
+  "event_updates": [],
+  "source_health": {
+    "candidate_count": 2,
+    "selected_count": 2,
+    "distinct_domains": 2,
+    "has_morning_comparison": true,
+    "source_mode": "HISTORICAL_PUBLIC_OFFICIAL_RESEARCH_CASE_NOT_CURRENT_NEWS"
+  },
+  "limitations": [
+    "這是兩篇獨立研究練習，不是完整8-12則即時新聞晨報",
+    "尚未完成逐主張人工核實",
+    "Gemini不得把未核對資訊寫成確定因果"
+  ]
+}
