@@ -1,0 +1,11 @@
+{
+  "source": "https://www.eia.gov/dnav/pet/pet_pnp_wiup_dcu_nus_w.htm",
+  "reference": "Weekly Input and Utilization; weekly ending 2026-08-28; 2026-09-10 release snapshot",
+  "week_ending": "2026-08-28",
+  "gross_inputs_thousand_bpd": 17661,
+  "operable_capacity_thousand_bpd": 18027,
+  "official_utilization_pct": 98,
+  "note": "This is a one-week ratio illustration and cannot establish 2019-2026 capacity change or global diesel causal attribution.",
+  "human_signed": false,
+  "publication_approved": false
+}
