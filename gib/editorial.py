@@ -34,27 +34,27 @@ def classify(title):
 
 
 MATERIAL_TOPIC=re.compile(
-    r"\\b(?:federal reserve|central bank|inflation|cpi|gdp|recession|"
+    r"\b(?:federal reserve|central bank|inflation|cpi|gdp|recession|"
     r"econom(?:y|ic|ics)|trade|tariff|sanction|interest rates?|"
     r"treasury|bond|yield|unemployment|jobs|employment|wages?|"
-    r"manufactur\\w*|industr\\w*|semiconductor|microchip|chipmaker|"
-    r"energy|refiner\\w*|petroleum|oil|diesel|natural gas|"
+    r"manufactur\w*|industr\w*|semiconductor|microchip|chipmaker|"
+    r"energy|refiner\w*|petroleum|oil|diesel|natural gas|"
     r"supply chain|logistics|shipping|port congestion|"
     r"electricity|power grid|currency|yen|dollar|bank|"
     r"financial|fiscal|budget|earnings|merger|acquisition|"
-    r"technology|artificial intelligence|\\bai\\b|"
-    r"geopolitic\\w*|military conflict|war on|"
+    r"technology|artificial intelligence|\bai\b|"
+    r"geopolitic\w*|military conflict|war on|"
     r"climate|earthquake|pandemic|wildfire|global health|"
-    r"export|import|output|production|growth|freight)\\b",
+    r"export|import|output|production|growth|freight)\b",
     flags=re.I)
 SPORTS_LEISURE=re.compile(
-    r"\\b(?:football|basketball|soccer|nfl|nba|nhl|"
+    r"\b(?:football|basketball|soccer|nfl|nba|nhl|"
     r"mlb|motogp|formula one|f1 race|grand prix|"
     r"home opener|umpire|touchdown|quarterback|"
     r"trophy|receivers? after week|championship hopes|"
     r"penalised|penalized|australian open|"
     r"warriors fans|premier league|tennis match|"
-    r"rugby|goalscorer|athlete|world cup qualifiers?)\\b",
+    r"rugby|goalscorer|athlete|world cup qualifiers?)\b",
     flags=re.I)
 
 def material_news_candidate(a):
