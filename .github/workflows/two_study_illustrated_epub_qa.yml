@@ -61,5 +61,5 @@ jobs:
             qa_outputs/illustrated_studies/
             docs/TWO_STUDIES_HUMAN_SIGNOFF_AND_BOOX_READING_FORM.md
           retention-days: 14
-# Remove one-time push after verifying; always manual for subsequent runs.
+# One-time validation rerun after restoring Python publisher syntax; manual-only after verifying.
 # No GEMINI_API_KEY, no access to publishing or LINE secrets.
