@@ -27,7 +27,7 @@
 
 ## 專題 2｜美國九月就業：新增職位、失業率與前期修訂的判讀
 
-**一手來源：** U.S. Bureau of Labor Statistics，2026-10-02，<https://www.bls.gov/news.release/empsit.htm>；家庭調查摘要 <https://www.bls.gov/news.release/empsit.a.htm>；企業調查摘要 <https://www.bls.gov/news.release/empsit.b.htm>。
+**一手來源：** U.S. Bureau of Labor Statistics，2026-10-02，<https://www.bls.gov/news.release/archives/empsit_10022026.htm>；同一封存頁內的家庭調查與企業調查摘要（並非三份獨立來源）。
 
 ### 已定位、仍待逐項人工核對的來源主張
 - **BLS-1：** 2026 年 9 月新增非農就業約 29,000 人（企業調查，發布當期值）。
@@ -44,7 +44,7 @@
 ### 什麼會改變結論？
 BLS 已排定下一次（2026 年 10 月）就業報告於 2026-11-06 發布：<https://www.bls.gov/schedule/news_release/empsit.htm>。重點是新的企業調查、失業率、工時與前值修訂是否共同支持或推翻原先判斷。
 
-**人工編輯狀態：待核**。尚缺獨立來源的交叉驗證、各主張文件段落定位、勘誤檢查及審稿者確認。
+**人工編輯狀態：待核**。原始報告已透過官方封存頁定位，仍缺獨立來源的交叉驗證、各主張文件段落定位、勘誤檢查及審稿者確認。
 
 ---
 
