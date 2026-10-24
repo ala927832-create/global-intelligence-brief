@@ -80,7 +80,7 @@
       "sources": [
         {
           "source_id": "src_bls_report_20261002",
-          "url": "https://www.bls.gov/news.release/empsit.htm",
+          "url": "https://www.bls.gov/news.release/archives/empsit_10022026.htm",
           "kind": "OFFICIAL_FEED",
           "publisher": "www.bls.gov",
           "retrieval_status": "INDEX_ONLY",
@@ -88,10 +88,10 @@
         },
         {
           "source_id": "src_bls_table_b",
-          "url": "https://www.bls.gov/news.release/empsit.b.htm",
+          "url": "https://www.bls.gov/news.release/archives/empsit_10022026.htm",
           "kind": "OFFICIAL_BACKGROUND",
           "publisher": "www.bls.gov",
-          "retrieval_status": "INDEX_ONLY",
+          "retrieval_status": "ARCHIVED_BLS_HTML_REFERENCE",
           "article_published_at": "2026-10-02T12:30:00+00:00"
         }
       ],
@@ -100,25 +100,25 @@
           "claim_id": "BLS-1",
           "text": "美國BLS報告2026年9月非農就業月增2.9萬人。",
           "source_id": "src_bls_report_20261002",
-          "support_excerpt": "nonfarm payroll employment (+29,000)",
+          "support_excerpt": "Both nonfarm payroll employment (+29,000) and the unemployment rate (4.2 percent) changed little in September",
           "verification": "ATTRIBUTED_UNVERIFIED",
-          "source_location": "official release; machine matching pending"
+          "source_location": "BLS archived official release dated 2026-10-02; automatic in-run fetch still required"
         },
         {
           "claim_id": "BLS-2",
           "text": "2026年9月失業率為4.2%。",
           "source_id": "src_bls_report_20261002",
-          "support_excerpt": "unemployment rate (4.2 percent)",
+          "support_excerpt": "the unemployment rate (4.2 percent)",
           "verification": "ATTRIBUTED_UNVERIFIED",
-          "source_location": "official release; machine matching pending"
+          "source_location": "BLS archived official release dated 2026-10-02; automatic in-run fetch still required"
         },
         {
           "claim_id": "BLS-3",
           "text": "BLS當期修訂使7至8月合計就業人數比先前公布下修6萬人。",
           "source_id": "src_bls_report_20261002",
-          "support_excerpt": "60,000 lower than previously reported",
+          "support_excerpt": "employment in July and August combined is 60,000 lower than previously reported",
           "verification": "ATTRIBUTED_UNVERIFIED",
-          "source_location": "official release; machine matching pending"
+          "source_location": "BLS archived official release dated 2026-10-02; automatic in-run fetch still required"
         }
       ],
       "research_questions": {
@@ -133,7 +133,7 @@
       "rank_score": 0,
       "source_count": 2,
       "interpretations": [],
-      "editorial_note": "事實待核實的官方來源研究案例，第二則發布於10月2日並非10月24日新消息"
+      "editorial_note": "Official BLS archive 2026-10-02; source excerpts independently cross-referenced but not manually signed; Github-hosted BLS fetch may be HTTP-blocked."
     }
   ],
   "deep_research": [],
