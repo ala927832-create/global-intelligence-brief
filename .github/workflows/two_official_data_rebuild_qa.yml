@@ -1,0 +1,42 @@
+name: GIB official EIA-BLS data reconstruction QA (no Gemini or publication)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/two_official_data_rebuild_qa.yml'
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12', cache: pip}
+      - name: Install plotting and offline QA dependencies
+        run: pip install -r requirements.txt
+      - name: Regression tests including missing-week and vintage checks
+        run: python -m unittest discover -s tests -q
+      - name: Rebuild two official source arithmetic cases and charts (offline)
+        run: python -m scripts.build_official_data_qa
+      - name: Summarize strict evidence status
+        run: |
+          python - <<'PY'
+          import json
+          d=json.load(open('qa_outputs/official_data_figures/source_arithmetic.json',encoding='utf-8'))
+          assert not d['release_approved']
+          assert d['eia']['mean_pct']=={'2025':'93.70','2026':'95.41'}
+          assert d['bls']['july_august_combined_revision_persons']==-60000
+          with open('qa_outputs/official_data_figures/EVIDENCE_REBUILD_QA.md',encoding='utf-8') as f:
+              m=f.read()
+          with open(__import__('os').environ['GITHUB_STEP_SUMMARY'],'a',encoding='utf-8') as f:
+              f.write('## Official data evidence QA (NOT APPROVED)\n\n'+m)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gib-official-eia-bls-arithmetic-and-figures
+          path: qa_outputs/official_data_figures/
+          retention-days: 14
+# No scheduled API calls, Gemini, publisher/LINE delivery or billing.
