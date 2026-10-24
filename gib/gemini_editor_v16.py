@@ -190,7 +190,7 @@ Deep Research 必須增加新的證據、反例、口徑、情境和觀察條件
         edits,warns=audit_model_output(first,issue)
         if not edits:return {'status':'NO_ACCEPTABLE_DRAFT','edits':[], 'warnings':warns}
         stage='SECOND_PASS'
-        second=_call(spec+'\n總編輯複核：先檢查一輪稿件的連貫性、證據限制與有無重複論述。刪除無來源事實，清楚串起背景→機制→不同觀點→後續觀察，保留 event_id 和 source_ids，優先使繁體中文正文適合連續閱讀。嚴禁補造任何事件、日期、數字及外部來源。\n證據：'+json.dumps(evidence,ensure_ascii=False)+'\n一輪稿件：'+json.dumps(
+        second=_call(spec+'\n總編輯複核：你必須對第一輪稿件進行真正編修，而非原文重貼。每個核心事件要重新檢查並具體重寫至少兩個實質段落，優先刪除不可靠因果跳躍，清楚區分來源事實、可驗證假說及反證條件；在不改變已核對數字的前提下改善篇章結構與分析深度。不得憑空補加數據、歷史事件或來源；若根本缺乏證據，應留下清楚限制，而非填字數。保留 event_id 和 source_ids，嚴禁補造任何日期、數字及外部網址。\n證據：'+json.dumps(evidence,ensure_ascii=False)+'\n一輪稿件：'+json.dumps(
             {'items':[e for e in edits if any(e.get('sections',{}).values())],
              'briefs':[e for e in edits if not any(e.get('sections',{}).values())]},
             ensure_ascii=False),model)
@@ -216,6 +216,8 @@ Deep Research 必須增加新的證據、反例、口徑、情境和觀察條件
                         'warnings':warns+warns2}
         if max(revisions.values(),default=0)<0.02:
             return {'status':'SECOND_PASS_NO_MATERIAL_EDIT','edits':[],
+                    'first_pass_drafts':edits,
+                    'second_pass_rejected_drafts':revised,
                     'warnings':warns+warns2,
                     'revision_ratio_by_event':revisions}
         return {'status':'REVISED_DRAFT_PENDING_REVIEW','edits':revised,
