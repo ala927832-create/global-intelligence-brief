@@ -73,11 +73,16 @@ class EditorialEvidenceTests(unittest.TestCase):
             "why_it_matters": "這可能影響政策預期，但目前缺乏因果驗證。" * 12,
             "limitations": "尚未取得相應的完整官方證據。" * 10
         }]}
+        second=copy.deepcopy(response)
+        second["items"][0]["background"]=(
+            "必須取得資料原文與發布者名稱，才能判定來源索引提供的說法。"
+            "即使敘述令人信服，因果關係仍須逐項查證，並列出推翻條件。"
+        )*12
         with patch.dict(os.environ, {
             "ENABLE_GEMINI": "1",
             "GEMINI_FREE_TIER_CONFIRMED": "1",
             "GEMINI_API_KEY": "FAKE_MOCK_KEY"
-        }), patch("gib.gemini_editor_v16._call", side_effect=[response, response]) as call:
+        }), patch("gib.gemini_editor_v16._call", side_effect=[response, second]) as call:
             done = research_and_revise(self.issue)
         self.assertEqual(call.call_count, 2)
         self.assertEqual(done["status"], "REVISED_DRAFT_PENDING_REVIEW")
