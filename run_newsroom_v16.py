@@ -40,7 +40,8 @@ def run(args):
             raw=freenews(config,now,errors)+official_rss(config,errors)+gdelt(config,errors)
         prior=None
         if args.morning_issue:prior=load_issue(args.morning_issue)
-        issue=canonical_issue(raw,args.edition,now,config.get('section_weights'),prior)
+        issue=canonical_issue(raw,args.edition,now,config.get('section_weights'),prior,
+                              require_material_relevance=not bool(args.fixture))
     issue['source_health']['collector_errors']=errors
     if getattr(args,'verify_official',False) and not args.fixture:
         try:review_official_excerpts(issue)
