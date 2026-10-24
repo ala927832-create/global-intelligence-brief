@@ -1,0 +1,29 @@
+{
+  "source": "https://www.bls.gov/news.release/archives/empsit_10022026.htm",
+  "publisher": "U.S. Bureau of Labor Statistics",
+  "release_date": "2026-10-02",
+  "reference_month": "2026-09",
+  "status": "PUBLIC_OFFICIAL_RELEASE_MANUAL_TRANSCRIPTION_NOT_CURRENT_REVISED_SERIES",
+  "survey_mapping": {
+    "payroll_change": "establishment",
+    "unemployment_rate": "household"
+  },
+  "observations": {
+    "september_nonfarm_payroll_change_persons": 29000,
+    "september_unemployment_rate_pct": "4.2",
+    "july_payroll_prior_revision_persons": 21000,
+    "july_payroll_current_revision_persons": -10000,
+    "august_payroll_prior_revision_persons": 162000,
+    "august_payroll_current_revision_persons": 133000,
+    "september_private_average_hourly_earnings_usd": "37.81",
+    "september_private_average_workweek_hours": "34.4"
+  },
+  "reported_july_august_combined_revision_persons": -60000,
+  "published_release_vintage": "2026-10-02",
+  "human_signed": false,
+  "constraints": [
+    "initial 2026-10-02 release only",
+    "do not mix payroll and unemployment survey denominators",
+    "do not treat later revisions as identical"
+  ]
+}
