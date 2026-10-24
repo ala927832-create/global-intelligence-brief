@@ -1,0 +1,23 @@
+{
+  "source": "https://www.bls.gov/news.release/archives/empsit_10022026.htm",
+  "release_date": "2026-10-02",
+  "reference": "Summary table A, August and September 2026 seasonally adjusted",
+  "units": "thousands_of_persons_except_pct",
+  "notes": "Direct numeric transcription from the archived BLS initial publication; NOT independent survey / not manually signed",
+  "august_2026": {
+    "civilian_labor_force_thousands": 169777,
+    "employed_thousands": 162746,
+    "unemployed_thousands": 7031,
+    "participation_pct": 61.6,
+    "unemployment_pct": 4.1
+  },
+  "september_2026": {
+    "civilian_labor_force_thousands": 170262,
+    "employed_thousands": 163152,
+    "unemployed_thousands": 7109,
+    "participation_pct": 61.8,
+    "unemployment_pct": 4.2
+  },
+  "human_signed": false,
+  "publication_approved": false
+}
