@@ -38,7 +38,7 @@ def article_sources(item):
              'kind':'OFFICIAL_FEED' if item.get('official') and url==item.get('url') else 'NEWS_ARTICLE',
              'retrieval_status':'INDEX_ONLY'} for url in uniq]
 
-def canonical_issue(raw, edition, now, weights=None, prior=None, max_items=12):
+def canonical_issue(raw, edition, now, weights=None, prior=None, max_items=12, require_material_relevance=False):
     if now.tzinfo is None: raise ValueError('now must be timezone-aware')
     if edition not in ('morning','evening'):raise ValueError('edition must be morning/evening')
     grouped=rank(cluster(raw,now,cutoff_hours=72 if edition=='morning' else 40),weights or {})
@@ -60,7 +60,7 @@ def canonical_issue(raw, edition, now, weights=None, prior=None, max_items=12):
     # Earlier six of twelve selected candidates were dropped afterwards
     # because URLs were non-HTTPS/missing, wasting slots.
     eligible=[a for a in candidates if article_sources(a) and _date(a.get('published_at'))
-              and material_news_candidate(a)]
+              and (not require_material_relevance or material_news_candidate(a))]
     chosen=diversified(eligible,max_items,max_per_section=4)
     rows=[]
     updates=[]
