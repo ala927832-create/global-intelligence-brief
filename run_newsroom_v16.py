@@ -46,7 +46,9 @@ def run(args):
             ai=research_and_revise(issue)
             edits=ai.get('edits',[])
             issue['gemini_editorial']={'status':ai['status'],'warnings':ai.get('warnings',[]),
-                                       'draft_count':len(edits)}
+                                       'draft_count':len(edits),
+                                       'failed_stage':ai.get('failed_stage'),
+                                       'http_status':ai.get('http_status')}
     # Keep both editorial passages and their linked source identifiers in the
     # canonical issue, so the offline book can be reproduced and audited.
     # They remain UNVERIFIED until explicit source-level editorial approval.
@@ -68,6 +70,9 @@ def run(args):
             'primary_evidence_review':review,
             'primary_evidence_progress':progress(issue),
             'collector_errors':errors,
+            'gemini_status':issue.get('gemini_editorial',{}).get('status','NOT_REQUESTED'),
+            'gemini_failed_stage':issue.get('gemini_editorial',{}).get('failed_stage'),
+            'gemini_http_status':issue.get('gemini_editorial',{}).get('http_status'),
             'gemini_connected_and_called':bool(issue.get('gemini_editorial',{}).get('status')=='REVISED_DRAFT_PENDING_REVIEW')}
     (issues/(issue['issue_id']+'-QA.json')).write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps(result,ensure_ascii=False,indent=2))
