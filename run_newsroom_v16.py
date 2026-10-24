@@ -57,6 +57,7 @@ def run(args):
             ai=research_and_revise(issue)
             edits=ai.get('edits',[])
             issue['editorial_first_pass']=ai.get('first_pass_drafts',[])
+            issue['editorial_rejected_second_pass']=ai.get('second_pass_rejected_drafts',[])
             issue['gemini_editorial']={'status':ai['status'],'warnings':ai.get('warnings',[]),
                                        'draft_count':len(edits),
                                        'first_pass_draft_count':len(ai.get('first_pass_drafts',[])),
@@ -74,7 +75,10 @@ def run(args):
     folder=issues/issue['issue_id']; folder.mkdir(parents=True,exist_ok=True)
     doc=folder/'issue.json';save_issue(issue,doc)
     review=write_review_workbook(issue,folder)
-    output=export(issue,edits,folder,qa_only=True)
+    # Rejected AI material can be rendered only in a visibly labelled QA
+    # offline preview. It is NOT accepted as an editorial_draft or evidence.
+    preview_edits=edits or issue.get('editorial_rejected_second_pass',[])
+    output=export(issue,preview_edits,folder,qa_only=True)
     quality_record=build_record(issue,issue.get('gemini_editorial'),None,None,live_source=not bool(args.fixture or cached_path),fixture=bool(args.fixture or cached_path))
     record_file=persist_record(quality_record,issues/'records')
     result={'issue_json':str(doc),'epub':output,'qa_record':str(record_file),'release_approved':False,
@@ -85,6 +89,7 @@ def run(args):
             'primary_evidence_progress':progress(issue),
             'collector_errors':errors,
             'gemini_status':issue.get('gemini_editorial',{}).get('status','NOT_REQUESTED'),
+            'qa_rejected_preview_draft_count':len(issue.get('editorial_rejected_second_pass',[])),
             'gemini_failed_stage':issue.get('gemini_editorial',{}).get('failed_stage'),
             'gemini_http_status':issue.get('gemini_editorial',{}).get('http_status'),
             'gemini_connected_and_called':bool(issue.get('gemini_editorial',{}).get('status')=='REVISED_DRAFT_PENDING_REVIEW')}
