@@ -90,4 +90,18 @@ jobs:
             qa_outputs/
             qa_run.json
           retention-days: 14
+      - name: Assert Gemini double-pass QA completed when explicitly requested
+        if: inputs.source_mode == 'live_sources' && inputs.use_gemini_free
+        run: |
+          python - <<'PY'
+          import json
+          with open("qa_run.json", encoding="utf-8") as stream:
+              result=json.load(stream)
+          if result.get("gemini_status")!="REVISED_DRAFT_PENDING_REVIEW":
+              stage=result.get("gemini_failed_stage") or "unknown"
+              status=result.get("gemini_http_status") or "unknown"
+              print(f"::error::Gemini two-pass QA incomplete (stage={stage}; http_status={status}); EPUB QA artifacts preserved.")
+              raise SystemExit(2)
+          print("Gemini two editorial passes completed. All content is still unverified and not approved for publication.")
+          PY
 # No live release, LINE, Pages, or paid model fallback.
