@@ -161,7 +161,7 @@ def main():
     if photos:blockers.append("IMAGE_LICENSE_EDITORIAL_SIGNOFF_REQUIRED")
     out=Path(a.output);out.mkdir(parents=True,exist_ok=True)
     save_issue(issue,out/"issue.json")
-    gate={"cutoff_tpe":cutoff.isoformat(),"capture_utc":now.isoformat(),
+    gate={"edition":a.edition,"report_date_tpe":date.isoformat(),"cutoff_tpe":cutoff.isoformat(),"capture_utc":now.isoformat(),
           "capture_finished_utc":collected.isoformat(),"release_approved":False,
           "source_index_candidates":len(raw),"selected":len(rows),
           "capture_lag_minutes":round(offset,1),"image_count":len(photos),
