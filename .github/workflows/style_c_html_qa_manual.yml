@@ -1,0 +1,57 @@
+# GIB Style C: manual HTML QA only. No schedule, no EPUB, no LINE, no Pages.
+name: GIB - Style C live HTML QA (manual)
+on:
+  workflow_dispatch:
+    inputs:
+      edition:
+        type: choice
+        required: true
+        options: [morning, evening]
+      morning_run_id:
+        description: Same-day actual morning QA run ID required for evening
+        type: string
+        required: false
+permissions:
+  contents: read
+  actions: read
+jobs:
+  generate-html-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements.txt pillow
+      - name: Syntax test
+        run: python -m py_compile tools/gib_style_c_rc/live_html_qa.py
+      - name: Verify cutoff, delta and offline-only HTML behavior
+        run: python tools/gib_style_c_rc/test_bridge.py
+      - name: Fetch earlier actual morning issue for evening delta
+        if: ${{ inputs.edition == 'evening' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MORNING_RUN_ID: ${{ inputs.morning_run_id }}
+        run: |
+          test -n "$MORNING_RUN_ID" || { echo "Same-day morning run ID required"; exit 1; }
+          mkdir -p qa_outputs/morning_reference
+          gh run download "$MORNING_RUN_ID" -n "gib-style-c-morning-${MORNING_RUN_ID}" -D qa_outputs/morning_reference
+          test -s qa_outputs/morning_reference/issue.json
+      - name: Collect current sources and generate source-attributed HTML QA
+        env:
+          FREENEWS_API_KEY: ${{ secrets.FREENEWS_API_KEY }}
+          EDITION: ${{ inputs.edition }}
+        run: |
+          args=(--edition "$EDITION" --output qa_outputs/html_style_c --download-photos)
+          if [ "$EDITION" = evening ]; then args+=(--morning-issue qa_outputs/morning_reference/issue.json); fi
+          python tools/gib_style_c_rc/live_html_qa.py "${args[@]}"
+      - name: Check HTML offline and source hashes
+        run: python tools/gib_style_c_rc/check_html_qa.py qa_outputs/html_style_c
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gib-style-c-${{ inputs.edition }}-${{ github.run_id }}
+          path: qa_outputs/html_style_c/
+          retention-days: 14
+# QA success is not editorial sign-off. Do not insert cron or LINE/EPUB jobs.
