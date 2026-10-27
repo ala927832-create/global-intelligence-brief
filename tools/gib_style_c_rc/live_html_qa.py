@@ -85,7 +85,7 @@ def render(issue,stories,photos,photo_status,gate):
     cards=[];articles=[];packet=[]
     for idx,x in enumerate(stories):
         sid="item-"+ESC(x.get("event_id") or idx)
-        title=ESC(x.get("title_original"));desc=ESC((x.get("headline_summary") or "")[:450])
+        title=ESC(x.get("title_original"));desc=ESC("Newsroom index item. Independent source verification and editorial rewriting remain pending.")
         desk=ESC(DESKS.get(x.get("topic"),"Other"))
         stamp=ESC(x.get("article_published_at"))
         cards.append(f'<article class="card"><div class="kicker">{desk.upper()} · {stamp}</div><h3><a href="#{sid}">{title}</a></h3><p>{desc}</p><a href="#{sid}">Read source-attributed brief →</a></article>')
