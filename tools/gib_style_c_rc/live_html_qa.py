@@ -30,6 +30,24 @@ def bounds(date,edition):
         end=dt.datetime.combine(date,dt.time(17),TPE)
     return start,end
 
+def filter_raw_before_ranking(raw,start,end):
+    """Apply the edition's time window before ranking and its top-story cap."""
+    accepted=[];excluded=[]
+    lower=start.astimezone(dt.timezone.utc);upper=end.astimezone(dt.timezone.utc)
+    for item in raw:
+        try:
+            val=dt.datetime.fromisoformat(str(item['published_at']).replace('Z','+00:00'))
+            if val.tzinfo is None: raise ValueError('missing timezone')
+            stamp=val.astimezone(dt.timezone.utc)
+        except (KeyError,TypeError,ValueError,AttributeError):
+            excluded.append({'title':item.get('title'),'reason':'NO_VALID_SOURCE_TIMESTAMP'})
+            continue
+        if not lower<=stamp<=upper:
+            excluded.append({'title':item.get('title'),'reason':'OUTSIDE_CUTOFF_WINDOW'})
+            continue
+        accepted.append(item)
+    return accepted,excluded
+
 def get_photo(row,local,allow_network):
     """Only genuinely decoded, licensed-context photographs are embedded; no fake fallback."""
     p=local/row["filename"]
@@ -85,7 +103,7 @@ def render(issue,stories,photos,photo_status,gate):
     cards=[];articles=[];packet=[]
     for idx,x in enumerate(stories):
         sid="item-"+ESC(x.get("event_id") or idx)
-        title=ESC(x.get("title_original"));desc=ESC("Newsroom index item. Independent source verification and editorial rewriting remain pending.")
+        title=ESC(x.get("title_original"));desc=ESC(x.get("headline_summary") or "Only source headline available; details require verification.")
         desk=ESC(DESKS.get(x.get("topic"),"Other"))
         stamp=ESC(x.get("article_published_at"))
         cards.append(f'<article class="card"><div class="kicker">{desk.upper()} · {stamp}</div><h3><a href="#{sid}">{title}</a></h3><p>{desc}</p><a href="#{sid}">Read source-attributed brief →</a></article>')
@@ -98,7 +116,7 @@ def render(issue,stories,photos,photo_status,gate):
                            "published_at":x.get("article_published_at"),"url":url,
                            "source_id":s.get("source_id"),"retrieval_status":s.get("retrieval_status"),
                            "claim_review":"ATTRIBUTED_UNVERIFIED"})
-        articles.append(f'<article class="full" id="{sid}"><div class="kicker">{desk.upper()} · {stamp}</div><h2>{title}</h2><p class="deck">{desc}</p><h3>What the source index reports</h3><p>{desc or "Only headline metadata was retrieved."}</p><h3>Evidence boundaries</h3><p>This is a sourced index summary, not an independently checked or licensed full original. Background and counter-evidence require editor review.</p><h3>Difference from the morning issue</h3><p>{ESC(x.get("update_type"))}</p><h3>Source packet</h3><ul>{"".join(li)}</ul><a href="#front">Back to front page ↑</a></article>')
+        articles.append(f'<article class="full" id="{sid}"><div class="kicker">{desk.upper()} · {stamp}</div><h2>{title}</h2><p class="deck">{desc}</p><h3>What the source index reports</h3><p>{desc}</p><h3>Evidence boundaries</h3><p>This is a sourced index summary, not an independently checked or licensed full original. Background and counter-evidence require editor review.</p><h3>Difference from the morning issue</h3><p>{ESC(x.get("update_type"))}</p><h3>Source packet</h3><ul>{"".join(li)}</ul><a href="#front">Back to front page ↑</a></article>')
     selected=stories[:5]
     day5="".join(f'<li><a href="#item-{ESC(x.get("event_id"))}">{ESC(x.get("title_original"))}</a></li>' for x in selected)
     lead=stories[0] if stories else None
@@ -110,7 +128,10 @@ def render(issue,stories,photos,photo_status,gate):
         if not data:continue
         caption=f'Archive/context, not this news event · {row["author"]} · {row["date"]} · {row["licence"]}'
         photo_cards.append(f'<figure><img src="{data}" alt="Historical editorial context photo"><figcaption>{ESC(caption)} · <a href="{ESC(row["page"])}" target="_blank" rel="noopener noreferrer">Source and licence</a></figcaption></figure>')
-    hero_visual=photo_cards[0] if photo_cards else '<div class="placeholder"><b>Photo review pending</b><p>No historical or event photo is presented as verified.</p></div>'
+    lead_photo_id={"energy":"refinery","technology":"data-centre","asia":None,"geopolitics":None,"central_banks":None,"macro":None,"corporates":None}.get(lead.get("topic") if lead else None)
+    available_photos={row["id"]:card for row,card in zip((r for r in PHOTOS if photos.get(r["id"])),photo_cards)}
+    hero_visual=available_photos.get(lead_photo_id,"")
+    hero_visual=hero_visual if hero_visual else '<div class="placeholder"><b>Photo review pending</b><p>No historical or event photo is presented as verified.</p></div>'
     coverage=Counter(DESKS.get(x.get("topic"),"Other") for x in stories)
     coverage_text=" · ".join(f'{ESC(k)}: {v}' for k,v in sorted(coverage.items()))
     css="""*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#f5f2ea;color:#1a3043;font:16px/1.7 Georgia,'Noto Serif TC',serif}body.boox{background:#f0eee4;color:#153647}a{color:inherit}header,main,footer{max-width:1220px;margin:auto}header{border-top:5px solid #123b57;border-bottom:1px solid #bcc9c9;padding:12px 24px;background:#fffdf7}.mast{font-size:clamp(29px,4vw,52px);font-weight:bold}.micro,.kicker,nav,.flag,figcaption{font:700 11px Arial,sans-serif;letter-spacing:.5px}.kicker{color:#95713e}nav{display:flex;gap:17px;border-top:1px solid #cad1d0;padding-top:12px;flex-wrap:wrap}nav button{margin-left:auto;background:transparent;border:1px solid #a9bdb8;color:inherit;padding:6px}main{padding:20px 24px}.flag{background:#eee0c9;padding:11px 14px;color:#63431d}.hero{display:grid;grid-template-columns:1.3fr 1fr .76fr;gap:24px;margin-top:24px;padding-bottom:24px;border-bottom:2px solid #163d55}.hero h1{font-size:clamp(34px,3.4vw,53px);line-height:1.12;margin:8px 0}.deck{font-size:19px}.hero aside{border-left:1px solid #c6d0cf;padding-left:14px}.hero li{border-bottom:1px solid #b9c6c7;padding:8px 0}figure{margin:0}img{width:100%;max-height:330px;object-fit:cover}figcaption{font-weight:400;font-size:10px;color:#516773}.placeholder{background:#dfe8e5;padding:50px 15px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}.card{border-top:1px solid #bcc9c9;padding-top:11px}.card h3{font-size:21px;line-height:1.26}.card p{font-size:15px}h2{font-size:29px;margin-top:36px;border-bottom:2px solid #163d55;padding-bottom:8px}.full{max-width:780px;margin:55px auto 0;border-top:3px solid #163d55;padding-top:24px}.full h2{border:0;font-size:36px;margin:8px 0}.full h3{font-size:19px}.full p{font-size:18px}.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}.qa{background:#fffdf7;padding:15px;margin-top:26px}footer{font:12px Arial,sans-serif;color:#536876;padding:20px}@media(max-width:900px){.hero{grid-template-columns:1fr 1fr}.hero aside{grid-column:1/-1;border-left:0;border-top:1px solid #bdd0cf}.cards{grid-template-columns:repeat(2,1fr)}}@media(max-width:630px){header,main{padding:14px}.hero,.cards,.gallery{grid-template-columns:1fr}.hero aside{grid-column:auto}.mast{font-size:28px}}"""
@@ -131,7 +152,8 @@ def main():
     raw=freenews(config,now,errors)+official_rss(config,errors)+gdelt(config,errors)
     collected=dt.datetime.now(dt.timezone.utc)
     prior=load_issue(a.morning_issue) if a.morning_issue else None
-    issue=canonical_issue(raw,a.edition,now,config.get("section_weights"),prior,
+    scoped_raw,pre_rank_exclusions=filter_raw_before_ranking(raw,start,cutoff)
+    issue=canonical_issue(scoped_raw,a.edition,cutoff.astimezone(dt.timezone.utc),config.get("section_weights"),prior,
                           max_items=16,require_material_relevance=True)
     issue["source_health"]["collector_errors"]=errors
     issue["editorial_status"]="REVIEW_REQUIRED"
@@ -163,7 +185,7 @@ def main():
     save_issue(issue,out/"issue.json")
     gate={"edition":a.edition,"report_date_tpe":date.isoformat(),"cutoff_tpe":cutoff.isoformat(),"capture_utc":now.isoformat(),
           "capture_finished_utc":collected.isoformat(),"release_approved":False,
-          "source_index_candidates":len(raw),"selected":len(rows),
+          "source_index_candidates":len(raw),"window_eligible_before_rank":len(scoped_raw),"pre_rank_exclusions":pre_rank_exclusions,"selected":len(rows),
           "capture_lag_minutes":round(offset,1),"image_count":len(photos),
           "photo_audit":photo_audit,"excluded":exclusions,"collector_errors":errors,
           "blockers":sorted(set(blockers)),"morning_snapshot_reference":a.morning_issue}
