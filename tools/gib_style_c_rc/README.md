@@ -36,3 +36,12 @@ Three previously selected historical Wikimedia Commons image references are atte
 **SOURCE QA INTEGRATION CANDIDATE · RELEASE HOLD.** Existing `.github/workflows/morning_evening.yml` is untouched. Existing `ten_day_live_qa.yml` is untouched and must not be armed by this integration.
 
 This folder is intentionally isolated from `zinc-intelligence-v26`.
+
+## Consolidated editorial/offline gate (2026-10-27)
+**Do not create another design version.** Frozen Style C remains the layout contract. This PR adds a single operational QA gate:
+- Select source candidates **inside the edition cutoff window before ranking**, so older high-scoring headlines cannot use up the 16-story quota.
+- A lead photograph is displayed only when its documented *historical context subject* matches the story's desk; otherwise a clearly labelled photo-unavailable treatment appears.
+- Use the provider-attributed news snippet where it exists, never generic fabricated article copy. All feed excerpts remain **unverified until claim-level human review**.
+- GitHub PR/Manual integration QA downloads three Commons photographs (only original licensed image bytes, no AI imagery), verifies them through Pillow, embeds them in a colour/BOOX-friendly standalone HTML proof and records SHA-256, licence and source.
+- The **photo proof does not certify** the entire publication: independent global-news completeness, licensed newsroom reporting and BOOX *real-device timed reading* remain release blockers.
+- The new integration workflow never publishes, schedules a daily issue, calls Gemini, accesses Zinc, generates an EPUB or sends LINE. A red photo gate is an actionable HOLD, not a faux PASS.
