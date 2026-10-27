@@ -1,0 +1,33 @@
+name: GIB - consolidated offline photo and newsroom QA (PR only)
+on:
+  pull_request:
+    paths:
+      - 'tools/gib_style_c_rc/**'
+      - 'tests/test_style_c_consolidated.py'
+      - '.github/workflows/gib_style_c_consolidated_pr_qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  consolidated-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install bounded offline QA dependencies
+        run: python -m pip install -r requirements.txt pillow
+      - name: Cutoff, source and photo regression tests
+        run: python -m unittest discover -s tests -p 'test_style_c_consolidated.py' -v
+      - name: Attempt genuine Commons download and embedded HTML construction
+        run: python tools/gib_style_c_rc/photo_probe.py --strict
+      - name: Save genuine evidence even on failure (never publish)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gib-consolidated-image-QA-${{ github.run_id }}
+          path: qa_outputs/consolidated_photo_gate/
+          retention-days: 14
+# PR/Manual QA only. No schedule, EPUB, LINE, Gemini, Pages or release permissions.
