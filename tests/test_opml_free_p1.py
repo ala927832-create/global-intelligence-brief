@@ -15,35 +15,32 @@ class FreeOpmlTests(unittest.TestCase):
     def rss(self, title, link):
         return f'<rss version="2.0"><channel><item><title>{title}</title><link>{link}</link><pubDate>{self.published}</pubDate><description>Index only, no claim verification</description></item></channel></rss>'.encode()
 
-    def test_24_original_opml_plus_three_verified_taiwan_official_feeds(self):
-        self.assertEqual(len(self.feeds),27)
-        self.assertEqual(len({x["url"] for x in self.feeds}),27)
+    def test_original_24_user_opml_feeds_are_daily_source_of_truth(self):
+        self.assertEqual(len(self.feeds),24)
+        self.assertEqual(len({x["url"] for x in self.feeds}),24)
         self.assertEqual({l:sum(x["lane"]==l for x in self.feeds)
                           for l in ("global","macro","energy_commodities","taiwan")},
-                         {"global":9,"macro":6,"energy_commodities":3,"taiwan":9})
+                         {"global":9,"macro":6,"energy_commodities":3,"taiwan":6})
         self.assertTrue(all(x["url"].startswith("https://") for x in self.feeds))
         self.assertNotIn("Inoreader Pro",str(self.config))
-        self.assertEqual(sum(x.get("source_class")=="official_government_rss" for x in self.feeds),3)
-        self.assertTrue(all("www.ida.gov.tw" in x["url"] for x in self.feeds if x.get("source_class")=="official_government_rss"))
+        self.assertFalse(any(x["id"].startswith("taiwan_ida_") for x in self.feeds))
 
-    def test_official_industrial_policy_source_flag_not_merely_folder_label(self):
-        official=next(x for x in self.feeds if x["id"]=="taiwan_ida_press")
-        imported=next(x for x in self.feeds if x["id"]=="taiwan_01")
-        body=self.rss("工業政策公告","https://www.ida.gov.tw/ctlr?PRO=news.NewsView")
-        official_rows,_=parse_feed(body,official,self.now)
-        imported_rows,_=parse_feed(body,imported,self.now)
-        self.assertTrue(official_rows[0]["official"])
-        self.assertEqual(official_rows[0]["source_class"],"official_government_rss")
-        self.assertFalse(imported_rows[0]["official"])
+    def test_user_taiwan_folder_name_never_makes_sources_official(self):
+        original=next(x for x in self.feeds if x["id"]=="taiwan_01")
+        body=self.rss("Important world news","https://news.example/world-policy")
+        rows,_=parse_feed(body,original,self.now)
+        self.assertFalse(rows[0]["official"])
+        self.assertEqual(rows[0]["source_group"],"taiwan")
+        self.assertEqual(rows[0]["source_class"],"user_opml_public_rss")
 
     def test_full_four_group_probe_with_realistic_rss_fixtures(self):
         mapping={f["url"]:self.rss("Article "+f["id"],"https://public.example/news/"+f["id"])
                  for f in self.feeds}
         articles, health=collect(self.config,fetcher=lambda url:mapping[url],now=self.now)
         self.assertEqual(health["gate"],"PASS_DIRECT_RSS_DISCOVERY")
-        self.assertEqual(health["configured_sources"],27)
-        self.assertEqual(len(articles),27)
-        self.assertEqual(health["recent_7d_unique_article_urls"],27)
+        self.assertEqual(health["configured_sources"],24)
+        self.assertEqual(len(articles),24)
+        self.assertEqual(health["recent_7d_unique_article_urls"],24)
         self.assertFalse(health["release_approved"])
         self.assertEqual(health["editorial_claims_verified"],0)
         self.assertTrue(all(x["provider"]=="direct_opml_rss" for x in articles))
@@ -77,7 +74,7 @@ class FreeOpmlTests(unittest.TestCase):
             return duplicate
         articles, report=collect(self.config,fetcher=fake_fetch,now=self.now)
         self.assertEqual(len(articles),1)
-        self.assertEqual(len(articles[0]["source_ids"]),27)
+        self.assertEqual(len(articles[0]["source_ids"]),24)
         self.assertEqual(set(articles[0]["source_groups"]),
                          {"global","macro","energy_commodities","taiwan"})
         self.assertEqual(report["gate"],"PARTIAL_SOURCE_COVERAGE_REVIEW_REQUIRED")
