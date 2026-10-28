@@ -3,7 +3,7 @@ import datetime as dt
 import json
 import unittest
 from pathlib import Path
-from qa.opml_free_p1 import collect, parse_feed, validate_config, check_one
+from qa.opml_free_p1 import collect, parse_feed, validate_config, check_one, attach_opml_provenance
 
 class FreeOpmlTests(unittest.TestCase):
     def setUp(self):
@@ -78,6 +78,25 @@ class FreeOpmlTests(unittest.TestCase):
         self.assertEqual(report["gate"],"PARTIAL_SOURCE_COVERAGE_REVIEW_REQUIRED")
         self.assertEqual(report["coverage"]["energy_commodities"]["feeds_with_valid_articles"],0)
         self.assertEqual(report["coverage"]["energy_commodities"]["feed_errors"],3)
+
+    def test_selected_issue_citations_keep_opml_source_lineage(self):
+        raw = [{
+            "url": "https://news.example/report",
+            "source_group": "global", "source_groups": ["global","macro"],
+            "source_id": "global_01", "source_ids": ["global_01","macro_01"]
+        }]
+        issue = {"articles": [{"sources": [{
+            "url": "https://news.example/report",
+            "retrieval_status": "INDEX_ONLY"
+        }]}], "source_health": {}}
+        report={"gate":"PASS_DIRECT_RSS_DISCOVERY"}
+        attach_opml_provenance(issue,raw,report)
+        src=issue["articles"][0]["sources"][0]
+        self.assertEqual(src["discovery_provider"],"direct_opml_rss")
+        self.assertEqual(src["opml_source_groups"],["global","macro"])
+        self.assertEqual(src["opml_source_ids"],["global_01","macro_01"])
+        self.assertEqual(issue["articles"][0]["opml_source_groups"],["global","macro"])
+        self.assertEqual(issue["source_health"]["free_opml"],report)
 
     def test_parser_never_promotes_unreadable_response_to_valid_news(self):
         meta,rows=check_one(self.feeds[0],fetcher=lambda url:b'<!doctype html><html><body>Access denied</body></html>',now=self.now)
