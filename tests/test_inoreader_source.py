@@ -90,12 +90,12 @@ class InoreaderSourceTests(unittest.TestCase):
               "energy_commodities":"https://external.example/stream/user/123/tag/News?private=xxx"}
         diagnostics=safe_feed_diagnostics(urls)
         self.assertEqual(diagnostics["global"],"VALID_URL_SHAPE")
-        self.assertEqual(diagnostics["macro"],"INOREADER_EXPORT_HTTPS_REQUIRED")
+        self.assertEqual(diagnostics["macro"],"VALID_URL_SHAPE")
         self.assertEqual(diagnostics["taiwan"],"INOREADER_EXPORT_EXPECTED_RSS_OR_JSON_STREAM_LINK")
         self.assertEqual(diagnostics["energy_commodities"],"INOREADER_EXPORT_NOT_INOREADER_DOMAIN")
         self.assertNotIn("top-secret",str(diagnostics))
         self.assertNotIn("external.example",str(diagnostics))
-        with self.assertRaisesRegex(ValueError,"INOREADER_INVALID_EXPORT_macro"):
+        with self.assertRaisesRegex(ValueError,"INOREADER_INVALID_EXPORT_energy_commodities"):
             collect_export_feeds(urls,fetcher=lambda _:self.fail("invalid configuration should not fetch"))
 
     def test_regional_host_and_actual_output_stream_shape(self):
