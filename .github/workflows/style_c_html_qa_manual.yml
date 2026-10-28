@@ -7,6 +7,12 @@ on:
         type: choice
         required: true
         options: [morning, evening]
+      source_mode:
+        description: Pilot uses Inoreader exported Global and Industry feeds (no fallback)
+        type: choice
+        required: true
+        default: inoreader
+        options: [inoreader, legacy]
       morning_run_id:
         description: Same-day actual morning QA run ID required for evening
         type: string
@@ -25,9 +31,22 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install -r requirements.txt pillow
       - name: Syntax test
-        run: python -m py_compile tools/gib_style_c_rc/live_html_qa.py
+        run: python -m py_compile tools/gib_style_c_rc/live_html_qa.py tools/gib_style_c_rc/inoreader_source.py
       - name: Verify cutoff, delta and offline-only HTML behavior
         run: python tools/gib_style_c_rc/test_bridge.py
+      - name: Validate Inoreader source adapter on reproducible fixtures
+        run: python -m unittest discover -s tests -p 'test_inoreader_source.py' -v
+      - name: Check Inoreader connection without exposing export URLs
+        if: ${{ inputs.source_mode == 'inoreader' }}
+        env:
+          INOREADER_GLOBAL_FEED_URL: ${{ secrets.INOREADER_GLOBAL_FEED_URL }}
+          INOREADER_INDUSTRY_FEED_URL: ${{ secrets.INOREADER_INDUSTRY_FEED_URL }}
+        run: |
+          if [ -z "$INOREADER_GLOBAL_FEED_URL" ] || [ -z "$INOREADER_INDUSTRY_FEED_URL" ]; then
+            echo 'INOREADER_NOT_CONNECTED: Configure both global and industry output feed URLs in GitHub Actions Secrets.'
+            exit 1
+          fi
+          echo 'Inoreader lane secrets are configured; feed availability will be tested during collection.'
       - name: Fetch earlier actual morning issue for evening delta
         if: ${{ inputs.edition == 'evening' }}
         env:
@@ -41,9 +60,12 @@ jobs:
       - name: Collect current sources and generate source-attributed HTML QA
         env:
           FREENEWS_API_KEY: ${{ secrets.FREENEWS_API_KEY }}
+          INOREADER_GLOBAL_FEED_URL: ${{ secrets.INOREADER_GLOBAL_FEED_URL }}
+          INOREADER_INDUSTRY_FEED_URL: ${{ secrets.INOREADER_INDUSTRY_FEED_URL }}
+          SOURCE_MODE: ${{ inputs.source_mode }}
           EDITION: ${{ inputs.edition }}
         run: |
-          args=(--edition "$EDITION" --output qa_outputs/html_style_c --download-photos)
+          args=(--edition "$EDITION" --source-mode "$SOURCE_MODE" --output qa_outputs/html_style_c --download-photos)
           if [ "$EDITION" = evening ]; then args+=(--morning-issue qa_outputs/morning_reference/issue.json); fi
           python tools/gib_style_c_rc/live_html_qa.py "${args[@]}"
       - name: Check HTML offline and source hashes
