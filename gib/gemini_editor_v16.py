@@ -190,7 +190,7 @@ Deep Research 必須增加新的證據、反例、口徑、情境和觀察條件
         edits,warns=audit_model_output(first,issue)
         if not edits:return {'status':'NO_ACCEPTABLE_DRAFT','edits':[], 'warnings':warns}
         stage='SECOND_PASS'
-        second=_call(spec+'\n總編輯複核：你必須對第一輪稿件進行真正編修，而非原文重貼。每個核心事件要重新檢查並具體重寫至少兩個實質段落，優先刪除不可靠因果跳躍，清楚區分來源事實、可驗證假說及反證條件；在不改變已核對數字的前提下改善篇章結構與分析深度。不得憑空補加數據、歷史事件或來源；若根本缺乏證據，應留下清楚限制，而非填字數。保留 event_id 和 source_ids，嚴禁補造任何日期、數字及外部網址。\n證據：'+json.dumps(evidence,ensure_ascii=False)+'\n一輪稿件：'+json.dumps(
+        second=_call(spec+'\n總編輯第二輪（不是補字數或潤飾語氣）：請用第一輪草稿與原始證據逐段做編輯判斷。對每則有足夠來源的核心研究，至少在兩個分析欄位（background／why_it_matters／transmission／alternative／limitations）實質重組推理：刪除缺乏來源支持的因果跳躍、補充哪一步仍缺原始證據、明確列出一項能推翻推論的替代解釋及對應待查資料。若只得到新聞標題與摘要，請保留原有簡短、不確定敘述並承認第二輪無從實質深化，絕不可為了通過品質門檻虛構內容。對不能被來源支持的舊句應刪除而不是換句話重複。不得憑空補加數據、歷史事件或來源；若根本缺乏證據，應留下清楚限制，而非填字數。保留 event_id 和 source_ids，嚴禁補造任何日期、數字及外部網址。\n證據：'+json.dumps(evidence,ensure_ascii=False)+'\n一輪稿件：'+json.dumps(
             {'items':[e for e in edits if any(e.get('sections',{}).values())],
              'briefs':[e for e in edits if not any(e.get('sections',{}).values())]},
             ensure_ascii=False),model)
@@ -206,6 +206,7 @@ Deep Research 必須增加新的證據、反例、口徑、情境和觀察條件
             return {'status':'SECOND_PASS_LOST_CORE_RESEARCH','edits':[],
                     'warnings':warns+warns2}
         revisions={}
+        changed_sections={}
         for event_id in retained:
             old=narrative(first_core[event_id])
             new=narrative(final_core[event_id])
@@ -214,15 +215,33 @@ Deep Research 必須增加新的證據、反例、口徑、情境和觀察條件
             if len(new)<len(old)*0.55:
                 return {'status':'SECOND_PASS_LOST_SUBSTANCE','edits':[],
                         'warnings':warns+warns2}
-        if max(revisions.values(),default=0)<0.02:
+            before=first_core[event_id].get('sections') or {}
+            after=final_core[event_id].get('sections') or {}
+            changed_sections[event_id]=[
+                key for key in ALLOWED_SECTIONS
+                if len(str(before.get(key) or ''))>=50
+                and len(str(after.get(key) or ''))>=50
+                and 1-difflib.SequenceMatcher(
+                    None,str(before.get(key) or ''),str(after.get(key) or ''),
+                    autojunk=False).ratio()>=0.05
+            ]
+        # Do not mistake a few punctuation edits to one paragraph for a real
+        # second editorial pass. Preserve the existing 0.02 overall threshold.
+        materially_revised=any(
+            revisions.get(event_id,0)>=0.02 and len(changed_sections[event_id])>=2
+            for event_id in retained
+        )
+        if not materially_revised:
             return {'status':'SECOND_PASS_NO_MATERIAL_EDIT','edits':[],
                     'first_pass_drafts':edits,
                     'second_pass_rejected_drafts':revised,
                     'warnings':warns+warns2,
-                    'revision_ratio_by_event':revisions}
+                    'revision_ratio_by_event':revisions,
+                    'substantively_revised_sections_by_event':changed_sections}
         return {'status':'REVISED_DRAFT_PENDING_REVIEW','edits':revised,
                 'first_pass_drafts':edits,
                 'revision_ratio_by_event':revisions,
+                'substantively_revised_sections_by_event':changed_sections,
                 'warnings':warns+warns2,
                 'model':model, 'max_calls':2,
                 'word_count_cjk':sum(len(re.findall(r'[\u3400-\u9fff]',

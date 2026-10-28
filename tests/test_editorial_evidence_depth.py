@@ -78,6 +78,11 @@ class EditorialEvidenceTests(unittest.TestCase):
             "必須取得資料原文與發布者名稱，才能判定來源索引提供的說法。"
             "即使敘述令人信服，因果關係仍須逐項查證，並列出推翻條件。"
         )*12
+        second["items"][0]["why_it_matters"]=(
+            "來源索引只能提示政策可能引發預期變動，不能證明利率決策已受到影響。"
+            "請核對官方利率公告、統計觀察期間及相反市場數據；"
+            "若觀測結果不一致，就需要撤回因果推論。"
+        )*9
         with patch.dict(os.environ, {
             "ENABLE_GEMINI": "1",
             "GEMINI_FREE_TIER_CONFIRMED": "1",

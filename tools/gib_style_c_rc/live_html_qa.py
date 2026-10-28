@@ -25,11 +25,11 @@ def digest(b): return hashlib.sha256(b).hexdigest()
 def atutc(v): return dt.datetime.fromisoformat(str(v).replace("Z","+00:00")).astimezone(dt.timezone.utc)
 def bounds(date,edition):
     if edition=="morning":
-        start=dt.datetime.combine(date-dt.timedelta(days=1),dt.time(17),TPE)
-        end=dt.datetime.combine(date,dt.time(7),TPE)
+        start=dt.datetime.combine(date-dt.timedelta(days=1),dt.time(17,30),TPE)
+        end=dt.datetime.combine(date,dt.time(7,30),TPE)
     else:
-        start=dt.datetime.combine(date,dt.time(7),TPE)
-        end=dt.datetime.combine(date,dt.time(17),TPE)
+        start=dt.datetime.combine(date,dt.time(7,30),TPE)
+        end=dt.datetime.combine(date,dt.time(17,30),TPE)
     return start,end
 
 def filter_raw_before_ranking(raw,start,end):

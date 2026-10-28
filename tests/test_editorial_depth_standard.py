@@ -142,6 +142,11 @@ class DepthTests(unittest.TestCase):
             "下一階段應先找到對應官方公告，釐清適用範圍和發布日期。"
             "若後續正式數據與報導不一致，就需要改變原本的假設。"
         )*4
+        second_response["items"][0]["why_it_matters"]=(
+            "不能只憑來源標題推論供應鏈已受影響；必須先取得實際訂單、"
+            "跨境交易或企業申報的可追溯資料，再與其他政策因素比較。"
+            "若供應鏈數據未出現變化，應下修原有市場影響假說。"
+        )*4
         with patch.dict(os.environ,{"ENABLE_GEMINI":"1",
              "GEMINI_FREE_TIER_CONFIRMED":"1","GEMINI_API_KEY":"NOT_REAL"},
              clear=False),patch("gib.gemini_editor_v16._call",side_effect=[response,second_response]) as api:

@@ -6,8 +6,8 @@ from zoneinfo import ZoneInfo
 class BridgeTests(unittest.TestCase):
  def test_cutoff_windows(self):
   d=dt.date(2026,10,27)
-  a,b=bounds(d,"morning");self.assertEqual((a.hour,b.hour),(17,7))
-  a,b=bounds(d,"evening");self.assertEqual((a.hour,b.hour),(7,17))
+  a,b=bounds(d,"morning");self.assertEqual((a.hour,a.minute,b.hour,b.minute),(17,30,7,30))
+  a,b=bounds(d,"evening");self.assertEqual((a.hour,a.minute,b.hour,b.minute),(7,30,17,30))
  def test_evening_requires_new_source(self):
   def item(k,t,url):return {"event_id":k,"article_published_at":t,"sources":[{"url":url}],"title_original":k}
   morn={"articles":[item("old","2026-10-26T23:10:00+00:00","https://source.invalid/old")]}

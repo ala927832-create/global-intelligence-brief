@@ -45,8 +45,25 @@ MATERIAL_TOPIC=re.compile(
     r"technology|artificial intelligence|\bai\b|"
     r"geopolitic\w*|military conflict|war on|"
     r"climate|earthquake|pandemic|wildfire|global health|"
+    r"election|presidential|president|prime minister|parliament|"
+    r"government|cabinet|legislature|congress|senate|supreme court|"
+    r"diplomac\w*|ceasefire|peace talks|refugee\w*|humanitarian|"
+    r"united nations|security council|world health organization|"
+    r"protest\w*|migration|immigration|human rights|"
+    r"hurricane|typhoon|cyclone|flood\w*|drought|"
+    r"disease outbreak|public health|vaccine|"
+    r"space mission|satellite|cyberattack|cyber attack|"
     r"export|import|output|production|growth|freight)\b",
     flags=re.I)
+# World news can be published in Chinese; it is not restricted to English
+# economic/industrial terminology or the user's manufacturing interests.
+GLOBAL_CJK_MATERIAL=(
+    "選舉","總統","國會","內閣","政府政策","外交","國際協議","停火",
+    "戰爭","人道危機","難民","通膨","央行","貨幣政策","經濟成長",
+    "金融市場","人工智慧","半導體","能源安全","氣候變遷",
+    "公共衛生","重大疫情","地震","颱風","國際制裁","聯合國"
+)
+
 SPORTS_LEISURE=re.compile(
     r"\b(?:football|basketball|soccer|nfl|nba|nhl|"
     r"mlb|motogp|formula one|f1 race|grand prix|"
@@ -64,7 +81,8 @@ def material_news_candidate(a):
     """
     title=str(a.get('title',''))
     if SPORTS_LEISURE.search(title):return False
-    return bool(a.get('official') or MATERIAL_TOPIC.search(title))
+    return bool(a.get('official') or MATERIAL_TOPIC.search(title)
+                or any(term in title for term in GLOBAL_CJK_MATERIAL))
 
 def same_repeated_story_title(left,right):
     """Merge strong syndication variants without equating all oil/geopolitics news."""

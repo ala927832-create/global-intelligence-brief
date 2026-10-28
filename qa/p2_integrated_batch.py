@@ -30,7 +30,7 @@ def completed_report_date(now=None):
 
 def local_cutoff(day,edition):
     hour=7 if edition=="morning" else 17
-    return dt.datetime.combine(day,dt.time(hour,0),TZ).astimezone(dt.timezone.utc)
+    return dt.datetime.combine(day,dt.time(hour,30),TZ).astimezone(dt.timezone.utc)
 
 
 def digest(path):
@@ -81,6 +81,11 @@ def run_batch(report_date=None,gemini=False,source_fetcher=None,now=None):
             "deep_epub":editions["deep"]["epub"],
             "article_count":len(issue["articles"]),
             "distinct_domains":issue["source_health"]["distinct_domains"],
+            "window_diagnostics":issue["source_health"].get("window_diagnostics",{}),
+            "cutoff_snapshot":issue["source_health"].get("cutoff_snapshot",{}),
+            "p2_editorial_acceptance":issue.get("p2_editorial_acceptance",{}),
+            "lead_evidence_gaps":[{"event_id":z["event_id"],"gaps":z["gaps"]}
+                                  for z in issue.get("p2_editorial_acceptance",{}).get("lead_evidence",[])],
             "sources_with_identified_provenance":sum(
                 any(s.get("opml_source_ids") for s in a.get("sources",[]))
                 for a in issue["articles"]),
@@ -105,6 +110,10 @@ def run_batch(report_date=None,gemini=False,source_fetcher=None,now=None):
         "source_gate":source_health["gate"],
         "source_configured":source_health["configured_sources"],
         "news_discovered_recent_7d":source_health["recent_7d_unique_article_urls"],
+        "report_type":"RETROSPECTIVE_FEED_REPLAY_NOT_REAL_TIME_SCHEDULED_CAPTURE",
+        "per_edition_source_time_window_complete":False,
+        "paired_snapshot_model":"ONE_LATE_ARCHIVE_REPLAY_FOR_REPRODUCIBILITY_ONLY",
+        "not_equivalent_to":"TWO_ISSUE_TIMELY_CAPTURE_OR_PRIMARY_SOURCE_FACT_REVIEW",
         "canonical_model":"gib.newsroom_v16.canonical_issue",
         "style_c_and_dual_reading_source":"SAME_CANONICAL_ISSUE_PER_EDITION",
         "format_layout":"FROZEN_STYLE_C_AND_V16_ESSENTIAL_DEEP_QA",
