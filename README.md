@@ -1,5 +1,7 @@
 # Global Intelligence Brief V1.6 — Editorial Newsroom Integration QA
 
+> **編輯定位：** GIB 是獨立的全球新聞與深度研究刊物，不是台灣工業補助、鋅或鍍鋅產業專報。已批准的六章節／雙版本規格以 [frozen_contract.json](config/frozen_contract.json) 為準，不因 RSS 資料夾命名或專業查核來源變更。見 [2026-10-28 編輯定位校正](docs/GIB_EDITORIAL_RESTORE_20261028.md) 與 [AGENTS.md](AGENTS.md)。
+
 Separate from **Zinc Intelligence**, retaining existing Zinc 10:30/17:30 workflows completely untouched. Morning 07:30, evening 17:30 planned only after source and BOOX QA.
 
 **Read first:** [EDITORIAL_V16_IMPLEMENTATION.md](EDITORIAL_V16_IMPLEMENTATION.md).
