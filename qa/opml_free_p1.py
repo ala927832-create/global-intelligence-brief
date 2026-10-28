@@ -225,6 +225,31 @@ def collect(config, fetcher=None, now=None):
     return articles, report
 
 
+
+def attach_opml_provenance(issue, raw, report):
+    """Keep four group assignments and OPML source IDs on selected citations."""
+    refs = {}
+    for row in raw:
+        key = canon_url(row.get("url", "")) or row.get("url", "")
+        refs.setdefault(key, {"source_groups": set(), "source_ids": set()})
+        refs[key]["source_groups"].update(row.get("source_groups", [row.get("source_group")]))
+        refs[key]["source_ids"].update(row.get("source_ids", [row.get("source_id")]))
+    for article in issue.get("articles", []):
+        groups = set()
+        for item in article.get("sources", []):
+            key = canon_url(item.get("url", "")) or item.get("url", "")
+            provenance = refs.get(key)
+            if not provenance:
+                continue
+            item["discovery_provider"] = "direct_opml_rss"
+            item["opml_source_groups"] = sorted(x for x in provenance["source_groups"] if x)
+            item["opml_source_ids"] = sorted(x for x in provenance["source_ids"] if x)
+            groups.update(item["opml_source_groups"])
+        article["opml_source_groups"] = sorted(groups)
+    issue.setdefault("source_health", {})["free_opml"] = report
+    return issue
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", default=str(CONF))
