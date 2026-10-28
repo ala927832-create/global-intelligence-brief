@@ -113,6 +113,7 @@ def run(args):
                                        'draft_count':len(edits),
                                        'first_pass_draft_count':len(ai.get('first_pass_drafts',[])),
                                        'revision_ratio_by_event':ai.get('revision_ratio_by_event',{}),
+                                       'substantively_revised_sections_by_event':ai.get('substantively_revised_sections_by_event',{}),
                                        'failed_stage':ai.get('failed_stage'),
                                        'http_status':ai.get('http_status')}
     # Keep both editorial passages and their linked source identifiers in the
