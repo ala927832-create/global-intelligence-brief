@@ -8,11 +8,11 @@ on:
         required: true
         options: [morning, evening]
       source_mode:
-        description: Pilot uses the four configured Inoreader feeds (no fallback)
+        description: Free OPML direct publisher RSS by default; Pro Inoreader Export remains optional legacy
         type: choice
         required: true
-        default: inoreader
-        options: [inoreader, legacy]
+        default: opml
+        options: [opml, legacy, inoreader]
       morning_run_id:
         description: Same-day actual morning QA run ID required for evening
         type: string
