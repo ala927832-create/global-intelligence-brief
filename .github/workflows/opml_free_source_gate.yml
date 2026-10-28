@@ -6,6 +6,9 @@ on:
       - 'config/inoreader_free_feeds.json'
       - 'qa/opml_free_p1.py'
       - 'tests/test_opml_free_p1.py'
+      - 'qa/bls_official_v1.py'
+      - 'tests/test_bls_official_v1.py'
+      - 'config/specialist_official_references.json'
       - '.github/workflows/opml_free_source_gate.yml'
   push:
     branches: [main]
@@ -13,6 +16,9 @@ on:
       - 'config/inoreader_free_feeds.json'
       - 'qa/opml_free_p1.py'
       - 'tests/test_opml_free_p1.py'
+      - 'qa/bls_official_v1.py'
+      - 'tests/test_bls_official_v1.py'
+      - 'config/specialist_official_references.json'
       - '.github/workflows/opml_free_source_gate.yml'
   workflow_dispatch:
 permissions:
@@ -35,6 +41,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_opml_free_p1.py' -v
       - name: Verify legacy source parsing safety remains intact
         run: python -m unittest discover -s tests -p 'test_inoreader_source.py' -v
+      - name: Verify BLS official period-vs-release-date contract
+        run: python -m unittest discover -s tests -p 'test_bls_official_v1.py' -v
   live-public-feeds:
     name: P1 REAL 24 public RSS providers / issue HOLD
     needs: source-contract
@@ -51,6 +59,10 @@ jobs:
       - run: python -m pip install 'requests>=2.32,<3'
       - name: Fetch 24 real publisher RSS feeds and audit four-lane coverage
         run: python qa/opml_free_p1.py
+      - name: BLS official API v1 data diagnostic (separate from news RSS)
+        if: always()
+        continue-on-error: true
+        run: python qa/bls_official_v1.py
       - name: Upload real source coverage and original metadata even on partial failure
         if: always()
         uses: actions/upload-artifact@v4
