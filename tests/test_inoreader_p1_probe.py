@@ -66,6 +66,22 @@ class P1GateTests(unittest.TestCase):
         self.assertEqual(report["gate"],"BLOCKED_EMPTY_SOURCE_LANE")
         self.assertEqual(report["lanes"]["taiwan"]["readable_items"],0)
 
+    def test_xml_export_suspended_never_passes_real_source_gate(self):
+        suspended=b"""<rss version="2.0"><channel><title>Example output</title>
+        <item><title>Feed suspended! Please contact the owner.</title>
+        <description>Inoreader Pro plan is required to export RSS feeds.</description>
+        <pubDate>Fri, 01 Mar 2019 10:00:01 +0000</pubDate>
+        <link>https://www.inoreader.com/blog/2019/02/announcement.html</link>
+        </item></channel></rss>"""
+        def fetch(url):
+            return suspended,"application/rss+xml"
+        report=probe(self.urls,fetcher=fetch)
+        self.assertEqual(report["gate"],"BLOCKED_FEED_RETRIEVAL")
+        self.assertEqual(report["error_class"],
+                         "INOREADER_EXPORT_SUSPENDED_PRO_PLAN_REQUIRED:global")
+        self.assertNotIn("secret-",str(report))
+        self.assertFalse(report["release_approved"])
+
     def test_remote_error_does_not_leak_secret_or_claim_success(self):
         def fetch(url):
             raise RuntimeError("request failed to "+url)
