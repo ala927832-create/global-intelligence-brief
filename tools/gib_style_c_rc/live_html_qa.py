@@ -160,7 +160,7 @@ def main():
     prior=load_issue(a.morning_issue) if a.morning_issue else None
     scoped_raw,pre_rank_exclusions=filter_raw_before_ranking(raw,start,cutoff)
     issue=canonical_issue(scoped_raw,a.edition,cutoff.astimezone(dt.timezone.utc),config.get("section_weights"),prior,
-                          max_items=16,require_material_relevance=True)
+                          max_items=16,require_material_relevance=(a.source_mode!='inoreader'))
     issue["source_health"]["collector_errors"]=errors
     issue["source_mode"]=a.source_mode
     if inoreader_health is not None:
