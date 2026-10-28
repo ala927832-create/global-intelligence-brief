@@ -8,6 +8,7 @@ from PIL import Image
 from gib.collect import freenews, official_rss, gdelt
 from gib.newsroom_v16 import canonical_issue, save_issue, load_issue, audit_issue
 from gib.evidence_review import check_claim_lineage
+from tools.gib_style_c_rc.inoreader_source import collect_export_feeds, urls_from_environment, attach_provenance
 
 TPE=ZoneInfo("Asia/Taipei")
 ESC=lambda x: html.escape(str(x or ""),quote=True)
@@ -144,18 +145,26 @@ def main():
     ap.add_argument("--output",default="qa_outputs/html_style_c")
     ap.add_argument("--morning-issue")
     ap.add_argument("--download-photos",action="store_true")
+    ap.add_argument("--source-mode",choices=["legacy","inoreader"],default="legacy")
     a=ap.parse_args()
     now=dt.datetime.now(dt.timezone.utc);date=now.astimezone(TPE).date()
     start,cutoff=bounds(date,a.edition)
     config=json.loads(Path("config/sources.json").read_text(encoding="utf-8"))
     errors=[]
-    raw=freenews(config,now,errors)+official_rss(config,errors)+gdelt(config,errors)
+    inoreader_health=None
+    if a.source_mode=="inoreader":
+        raw,inoreader_health=collect_export_feeds(urls_from_environment())
+    else:
+        raw=freenews(config,now,errors)+official_rss(config,errors)+gdelt(config,errors)
     collected=dt.datetime.now(dt.timezone.utc)
     prior=load_issue(a.morning_issue) if a.morning_issue else None
     scoped_raw,pre_rank_exclusions=filter_raw_before_ranking(raw,start,cutoff)
     issue=canonical_issue(scoped_raw,a.edition,cutoff.astimezone(dt.timezone.utc),config.get("section_weights"),prior,
                           max_items=16,require_material_relevance=True)
     issue["source_health"]["collector_errors"]=errors
+    issue["source_mode"]=a.source_mode
+    if inoreader_health is not None:
+        attach_provenance(issue,scoped_raw,inoreader_health)
     issue["editorial_status"]="REVIEW_REQUIRED"
     issue["cutoff_tpe"]=cutoff.isoformat()
     issue["capture_started_utc"]=now.isoformat()
@@ -165,6 +174,11 @@ def main():
     issue["cutoff_exclusions"]=exclusions
     issue["source_health"]["claim_lineage_errors"]=check_claim_lineage(issue)
     blockers=audit_issue(issue,require_full=True)["reasons"]
+    if a.source_mode=="inoreader":
+        if any(inoreader_health["lane_stats"][lane]["readable_items"]==0 for lane in ("global","industry")):
+            blockers.append("INOREADER_EMPTY_GLOBAL_OR_INDUSTRY_LANE")
+        if any(not x.get("inoreader_lanes") for x in rows):
+            blockers.append("INOREADER_SELECTED_SOURCE_LINEAGE_MISSING")
     blockers+=["SOURCE_INDEX_NOT_CLAIM_VERIFIED","INDEPENDENT_COVERAGE_REVIEW_PENDING",
                 "HUMAN_REVIEW_PENDING","BOOX_REAL_DEVICE_PENDING","10_TRADING_DAY_TRIAL_NOT_STARTED"]
     offset=(now-cutoff.astimezone(dt.timezone.utc)).total_seconds()/60
@@ -185,6 +199,7 @@ def main():
     save_issue(issue,out/"issue.json")
     gate={"edition":a.edition,"report_date_tpe":date.isoformat(),"cutoff_tpe":cutoff.isoformat(),"capture_utc":now.isoformat(),
           "capture_finished_utc":collected.isoformat(),"release_approved":False,
+          "source_mode":a.source_mode,"inoreader":inoreader_health,
           "source_index_candidates":len(raw),"window_eligible_before_rank":len(scoped_raw),"pre_rank_exclusions":pre_rank_exclusions,"selected":len(rows),
           "capture_lag_minutes":round(offset,1),"image_count":len(photos),
           "photo_audit":photo_audit,"excluded":exclusions,"collector_errors":errors,
