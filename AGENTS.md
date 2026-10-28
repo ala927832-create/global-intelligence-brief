@@ -2,6 +2,18 @@
 
 These rules are binding for all GIB changes and reviews.
 
+## OWNER-APPROVED AMENDMENT — 2026-10-28 v2 (SUPERSEDES V1 CONFLICTS)
+
+The owner explicitly revised ONLY GIB's editorial selection/reading targets on 2026-10-28. The **current authoritative** contract is `config/frozen_contract.json` (`2026-10-28-owner-approved-v2`), and its SHA256 lock in `gib/contract.py` must match. Historical V1 statements below about systemic-global-importance thresholds, Essential 10–15 min, Deep 30–45 min, and 2–3 deep studies are superseded *for the morning edition and deep-study count as stated here*. Preserve all unaffected provisions.
+
+- **Headline-first selection:** prioritize the leading headlines and top stories of reputable major news publishers available from already-approved free feeds. Individual stories need not be globally systemic shocks. Headlines are *signals for discovery*, never proof; verify substantive claims independently and avoid duplicate syndication, sensationalism, propaganda, trivial filler, geographic blind spots or any manufacturing/zinc bias. The World in Brief retains its 8–12 quality target.
+- **Morning length:** Essential morning 30–40 min; Deep Research morning 40–50 min. **Evening reading targets remain unchanged** (Essential 10–15, Deep 30–45) pending any separate owner instruction. These are editorial depth targets, not a license to manufacture text or bypass human review.
+- **Depth-over-count:** Deep Research is 1–2 independently evidenced, substantially more detailed studies, not 2–3 shallow essays. Retain dated primary research, historical comparison, competing explanations, mechanisms, falsification and human signoff. Never weaken the facts/evidence release gates.
+- **Execution order:** first observe the exact six previously authorized source snapshots (2026-10-29, 10-30, 11-02 at 07:30/17:30 Taipei), then use their real evidence to revise global selection, headline corroboration, depth and Gemini. Re-run complete P2 editorial acceptance; only after P2 passes propose P3 and eventual owner's separate publication authorization.
+- **No extra authorization:** do not add or prolong source capture schedules, increase cost, start Gemini in the temporary capture, enable Pages/LINE/EPUB publishing, change frozen Style C, affect Zinc Intelligence, or auto-mark any QA gate PASS. The temporary six-slot workflow remains byte-for-byte unchanged.
+
+This amendment's implementation and rollout are documented in `docs/GIB_OWNER_APPROVED_AMENDMENT_20261028.md`. Updating the editorial contract and its integrity lock does not constitute P2 content acceptance or scheduled publication.
+
 ## 0. Non-negotiable original editorial charter (2026-10-23-approved-v1)
 
 **Authoritative owner-approved specification:** `config/frozen_contract.json`. This governs GLOBAL INTELLIGENCE BRIEF; no later assistant-created source list, ranking priority, vertical watchlist or OPML folder label may override it.
