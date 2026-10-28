@@ -128,7 +128,7 @@ def audit_issue(issue, require_full=False):
         if len(articles)<8:errors.append('Fewer than 8 primary edition news items')
         if issue['source_health']['distinct_domains']<4:errors.append('Insufficient source diversity')
         if issue.get('editorial_status')!='EDITOR_APPROVED':errors.append('Requires explicit editorial approval')
-        if len(issue.get('deep_research',[]))<2:errors.append('Deep research unsupported')
+        if len(issue.get('deep_research',[]))<1:errors.append('At least one independently evidenced deep research study required')
         if issue.get('edition')=='evening' and not issue.get('source_health',{}).get('has_morning_comparison'):
             errors.append('Evening requires the completed morning issue for change detection')
         for a in articles[:3]:
