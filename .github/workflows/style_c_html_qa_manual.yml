@@ -23,6 +23,8 @@ permissions:
 jobs:
   generate-html-qa:
     runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
@@ -32,6 +34,10 @@ jobs:
       - run: python -m pip install -r requirements.txt pillow
       - name: Syntax test
         run: python -m py_compile tools/gib_style_c_rc/live_html_qa.py tools/gib_style_c_rc/inoreader_source.py
+      - name: Verify Python project imports in the same environment as real QA
+        run: |
+          python -c 'import gib.collect; import tools.gib_style_c_rc.live_html_qa; import tools.gib_style_c_rc.inoreader_source'
+          python tools/gib_style_c_rc/live_html_qa.py --help > /dev/null
       - name: Verify cutoff, delta and offline-only HTML behavior
         run: python tools/gib_style_c_rc/test_bridge.py
       - name: Validate Inoreader source adapter on reproducible fixtures
