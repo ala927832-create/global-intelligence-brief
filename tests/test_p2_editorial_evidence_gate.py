@@ -61,7 +61,7 @@ class P2EditorialEvidenceGateTests(unittest.TestCase):
         self.assertFalse(report["automatic_release_approved"])
         self.assertIn("NO_MANUALLY_SIGNED_VERIFIED_CLAIM",report["lead_evidence"][0]["gaps"])
         self.assertIn("EVENT_OCCURRENCE_TIME_UNCONFIRMED",report["lead_evidence"][0]["gaps"])
-        self.assertIn("TWO_EVIDENCED_DEEP_STUDIES_MISSING",report["blockers"])
+        self.assertIn("ONE_EVIDENCED_DEEP_STUDY_MISSING",report["blockers"])
         self.assertIn("PER_EDITION_REAL_TIME_SOURCE_COVERAGE_UNPROVEN",report["blockers"])
 
     def test_official_exact_excerpt_is_not_verified(self):

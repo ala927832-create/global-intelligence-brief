@@ -15,6 +15,43 @@ CSS=ROOT/'assets'/'editorial'/'newsroom-v16.css'
 
 def h(v):return html.escape(str(v or ''),quote=True)
 def paras(v):return ''.join(f'<p>{h(s)}</p>' for s in re.split(r'\n\s*\n',str(v or '')) if s.strip())
+def source_grounded_digest(article):
+    """Only quote-or-paraphrase text already bound to this source record.
+
+    A headline/snippet is never a complete article or independent fact proof.
+    Editorial source summaries and attributed key points may supplement it,
+    but only with a matching source_id to block invented provenance.
+    """
+    sources={x.get('source_id') for x in article.get('sources',[]) if x.get('source_id')}
+    digest=article.get('source_digest') or {}
+    details=[]
+    for row in digest.get('points',[]) if isinstance(digest,dict) else []:
+        if isinstance(row,dict) and row.get('source_id') in sources and row.get('text'):
+            details.append(str(row['text']).strip())
+    for row in article.get('reported_key_points',[]):
+        if isinstance(row,dict) and row.get('source_id') in sources and row.get('text'):
+            details.append(str(row['text']).strip())
+    if not details and article.get('headline_summary'):
+        details=[str(article['headline_summary']).strip()]
+    # Remove exact repeats, and never combine headlines into invented conclusions.
+    return list(dict.fromkeys(x for x in details if x))
+
+def source_grounded_fallback(article):
+    """Readable evidence-bound digest when no model edit was produced."""
+    points=source_grounded_digest(article)
+    if not points:
+        return ('<div class="context"><h4>來源目前公開的資訊</h4>'
+                '<p>來源索引只有新聞標題，沒有可供可靠整理的正文或摘要；'
+                '請透過下方原文來源閱讀，系統不會自行補寫事實。</p></div>')
+    source=(article.get('sources') or [{}])[0]
+    link='<a href="'+h(source.get('url'))+'">閱讀原始報導</a>' if source.get('url') else ''
+    return ('<div class="context"><h4>來源報導重點（尚未獨立完成查核）</h4><ul>'+
+            ''.join('<li>'+h(x)+'</li>' for x in points)+'</ul>'+
+            ('<p class="source-note">'+link+' · '+h(source.get('publisher'))+
+             ' · '+h(article.get('article_published_at'))+'</p>' if link else '')+
+            '<p class="source-note">整理範圍止於來源現有的摘要與附帶資料；'
+            '沒有全文的事件不能冒稱已完成全文重點整理。</p></div>')
+
 def heading(num,name,title):
     return f'<p class="section-number">{num}｜{h(name)}</p><h2>{h(title)}</h2>'
 
@@ -63,11 +100,16 @@ def issue_body(issue, edits=None, level='essential'):
                      if topic.get('event_id'))
     isdeep=(level=='deep')
     period='晨報' if issue['edition']=='morning' else '晚報'
+    targets=contract.get('versions') or []
+    idx=1 if isdeep else 0
+    active_target=(targets[idx].get('minutes') if issue['edition']=='morning'
+                   else targets[idx].get('evening_minutes',targets[idx].get('minutes'))) if len(targets)>idx else None
+    reading_target=(' · '+h(active_target)+' 分鐘目標（人工閱讀未驗收）' if active_target else '')
     qa=issue.get('editorial_status')!='EDITOR_APPROVED'
     result=['''<header class="issue-header" id="cover">
      <p class="overline">GLOBAL INTELLIGENCE BRIEF · LAYOUT 01</p>
      <div class="brand">Global<br/>Intelligence Brief</div>
-     <p class="brand-sub">全球財經'''+period+((' · 深讀研究草稿／閱讀時間未驗收' if qa else ' · 30–45 分鐘深讀') if isdeep else (' · 速讀 QA／閱讀時間未驗收' if qa else ' · 10–15 分鐘速讀'))+'''</p>
+     <p class="brand-sub">全球財經'''+period+((' · 深讀研究 QA' if qa else ' · 深讀研究') if isdeep else (' · 新聞閱讀 QA' if qa else ' · 新聞閱讀'))+reading_target+'''</p>
      <div class="issue-meta">'''+h(issue['report_date'])+' · Asia/Taipei · '+h(issue['as_of_utc'])+'''</div>
      <div class="topic-nav"><span>國際政經</span><span>全球經濟</span><span>科技產業</span><span>市場觀察</span></div>
      </header>''']
@@ -79,6 +121,16 @@ def issue_body(issue, edits=None, level='essential'):
                 '本書所見的研究文字僅供人工比對。第二輪沒有提供足夠的實質修訂，'+
                 '不能認定完成深度研究，也不得作為正式發布內容。</p>')
     result.append(reading_index(items,isdeep,draft_ids))
+    if isdeep:
+        topic_count=len(issue.get('deep_research') or [])
+        if topic_count:
+            links='　'.join('<a href="#research-topic-'+str(i+1)+'">專題 '+str(i+1)+'</a>'
+                           for i in range(topic_count))
+            result.append('<div class="in-book-link"><strong>直接閱讀深度研究：</strong> '+
+                          links+' · <a href="#deep-research">進入專題章節</a></div>')
+        else:
+            result.append('<p class="quality-label">本次尚未建立通過來源證據審查的獨立研究專題；'
+                          '下方保留來源導讀，不以重複摘要冒稱 40–50 分鐘深讀。</p>')
     # 01. Executive Brief
     result.append('<section class="opening" id="executive">'+heading('01','Executive Brief','本期三個最值得追蹤的主題'))
     result.append('<p class="intro">本期挑選重要的世界動態，呈現來源、背景及不確定性。'+
@@ -123,7 +175,8 @@ def issue_body(issue, edits=None, level='essential'):
             if s.get(key):result.append(f'<div class="context"><h4>{title}</h4>{paras(s[key])}</div>')
         if s.get('alternative'):result.append('<div class="evidence"><strong>替代解釋</strong>'+paras(s['alternative'])+'</div>')
         if s.get('limitations'):result.append('<div class="evidence"><strong>證據限制</strong>'+paras(s['limitations'])+'</div>')
-        if not edit:result.append('<div class="evidence"><strong>缺少完整研究證據</strong><p>僅有來源索引摘要，不應據此推定市場因果或撰寫長篇研究。</p></div>')
+        if not edit or not any(s.get(key) for key in ('background','why_it_matters','transmission')):
+            result.append(source_grounded_fallback(x))
         first=x["sources"][0]
         follow=(f'　·　<a href="#research-{anchor_id(x)}">閱讀本書深入研究</a>'
                 if isdeep and x['event_id'] in draft_ids else '')
@@ -137,8 +190,13 @@ def issue_body(issue, edits=None, level='essential'):
         result.append('<p>此章節的完整研究僅在同一期 Deep Research EPUB 展開。速讀版不以重複文字或未經驗證推論填充篇幅。</p>')
     elif issue.get('deep_research'):
         for i,topic in enumerate(issue['deep_research'],1):
-            topic_anchor=(f' id="research-{anchor_id(topic)}"' if topic.get("event_id") else '')
-            result.append(f'<div class="dossier"><p class="eyebrow">RESEARCH {i:02d} · 待人工簽核</p><h3{topic_anchor}>{h(topic["title"])}</h3>')
+            topic_anchor=f' id="research-topic-{i}"'
+            extra_anchor=('<span id="research-'+anchor_id(topic)+'"></span>' if topic.get('event_id') else '')
+            result.append(f'<div class="dossier"><p class="eyebrow">RESEARCH {i:02d} · 待人工簽核</p>'+extra_anchor+f'<h3{topic_anchor}>{h(topic["title"])}</h3>')
+            if topic.get('question'):
+                result.append('<p class="lead">'+h(topic['question'])+'</p>')
+            if topic.get('source_ids'):
+                result.append('<p class="source-note">研究來源識別碼：'+h(', '.join(topic['source_ids']))+'</p>')
             for sec in topic.get('sections',[]):
                 result.append(f'<div class="dossier-section"><h4>{h(sec["heading"])}</h4>{paras(sec.get("body",""))}')
                 fig=sec.get('figure') or {}
@@ -146,6 +204,12 @@ def issue_body(issue, edits=None, level='essential'):
                     path=ROOT/'assets'/'editorial'/fig['file']
                     if path.is_file():result.append(f'<figure class="research-figure"><img src="{h(path.as_uri())}" alt="{h(fig.get("title") or "數據圖")} "/><figcaption>{h(fig.get("caption") or "")}</figcaption></figure>')
                 result.append('</div>')
+            if topic.get('conclusions'):
+                result.append('<div class="evidence"><h4>研究結論（待人工簽核）</h4><ul>'+
+                              ''.join('<li>'+h(x)+'</li>' for x in topic['conclusions'])+'</ul></div>')
+            if topic.get('falsifiers'):
+                result.append('<div class="watch"><h4>可推翻條件與觀察項目</h4><ul>'+
+                              ''.join('<li>'+h(x)+'</li>' for x in topic['falsifiers'])+'</ul></div>')
             result.append('</div>')
     else:
         # Helpful offline long-form draft navigation, with strict attribution:
@@ -155,7 +219,7 @@ def issue_body(issue, edits=None, level='essential'):
             if e and len(''.join(str(z) for z in e.get('sections',{}).values()))>=120]
         if draft_items:
             result.append('<p class="quality-label">下列是依新聞來源整理的 AI 延伸研究草稿，未取得完整一手證據；'
-                          '不得冒稱已完成的 30–45 分鐘正式深度研究。</p>')
+                          '不得冒稱已完成正式深度研究。</p>')
             for i,(x,e) in enumerate(draft_items,1):
                 headline=e.get('headline_zh') or x['title_original']
                 result.append(f'<div class="dossier">'
@@ -179,7 +243,23 @@ def issue_body(issue, edits=None, level='essential'):
                 result.append(f'<p class="source-note"><a href="#{source_anchor(x["sources"][0])}">'
                               '回看本書來源與證據</a>　·　<a href="#reading-index">返回索引</a></p></div>')
         else:
-            result.append('<p class="quality-label">本期尚無 2–3 項具備原始證據、歷史資料與反方材料的深入研究，不能標示為完成的 30–45 分鐘深度刊物。</p>')
+            result.append('<p class="quality-label">本期尚無通過審查的獨立研究專題。以下是原始新聞來源的延伸閱讀導引，'
+                          '不能假裝是完整深度研究，也不憑空新增事件或影響。</p>')
+            for i,x in enumerate(items[:2],1):
+                source=(x.get('sources') or [{}])[0]
+                result.append(f'<div class="dossier"><p class="eyebrow">SOURCE READING {i:02d} · 資料摘錄（非深度研究）</p>'
+                              f'<h3 id="research-source-{i}">{h(x.get("title_original"))}</h3>')
+                points=source_grounded_digest(x)
+                if points:
+                    result.append('<ul>'+''.join('<li>'+h(point)+'</li>' for point in points)+'</ul>')
+                else:
+                    result.append('<p>目前來源沒有提供足以整理的正文或摘要，'
+                                  '僅能保留原始新聞標題和來源網址。</p>')
+                if source.get('url'):
+                    result.append('<p><a href="'+h(source['url'])+'">查看來源原文</a> '
+                                  '· '+h(source.get('publisher'))+' · '
+                                  +h(x.get('article_published_at'))+'</p>')
+                result.append('</div>')
     result.append('</section>')
     # 05. What Changed & What to Watch
     result.append('<section class="follow" id="watch">'+heading('05','What Changed & What to Watch','新證據、判斷變化與未來一週'))
