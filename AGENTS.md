@@ -12,6 +12,8 @@ For Inoreader P1: (a) four secret values exist, (b) each is a safely validated r
 
 A missing original URL, timestamp or an empty feed is a reportable defect; never invent news or record a mocked article as real. Export URLs and access tokens stay in GitHub Secrets, never in logs, artifacts, code or chat.
 
+**Important:** XML/JSON syntax validity, HTTP 200 and a publication timestamp are **not sufficient**. Inoreader may respond with a syntactically valid RSS item titled "Feed suspended!" containing a Pro-plan requirement. Treat such a response as `INOREADER_EXPORT_SUSPENDED_PRO_PLAN_REQUIRED`, never count it as news or let the P1 gate pass. If the user's paid plan appears active, verify the exact account/subscription and ask Inoreader support rather than guessing, upgrading twice or circumventing export restrictions.
+
 ## 3. Frozen release order
 P1 Inoreader sources → P2 independently verified AI editorial + frozen Style C HTML → P3 genuine BOOX hardware/human long-read and 10-trading-day / 20-edition acceptance.
 
