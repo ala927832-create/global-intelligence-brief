@@ -21,6 +21,20 @@ class ThreeDayQA(unittest.TestCase):
     def ts(self,date,time):
         return dt.datetime.fromisoformat(date+"T"+time+"+08:00").astimezone(UTC)
 
+    def test_workflow_can_import_source_modules_and_only_self_disable(self):
+        workflow=Path(".github/workflows/gib_p2_three_day_source_capture.yml").read_text(encoding="utf-8")
+        guard=workflow.split("  guard:",1)[1].split("  capture:",1)[0]
+        self.assertIn("Install source QA import dependencies before guard",guard)
+        self.assertIn("pip install 'requests>=2.32,<3'",guard)
+        self.assertIn("GIB_SCHEDULE_CRON: ",guard)
+        self.assertIn("github.event.schedule",guard)
+        self.assertIn("qa/p2_three_day_snapshot.py plan",guard)
+        finalizer=workflow.split("  finalizer:",1)[1]
+        self.assertIn("actions: write",finalizer)
+        self.assertIn("qa/p2_three_day_snapshot.py disable",finalizer)
+        self.assertNotIn("workflow_dispatch:",workflow)
+        self.assertNotIn("publish",workflow.split("  capture:",1)[1].split("  finalizer:",1)[0].split("steps:",1)[1].lower())
+
     def test_only_six_workday_slots_authorized(self):
         self.assertEqual(ALLOWED_DATES,{"2026-10-29","2026-10-30","2026-11-02"})
         for day in sorted(ALLOWED_DATES):
