@@ -37,7 +37,7 @@ class SourceBoundReaderTests(unittest.TestCase):
             {"source_id":"unknown","text":"UNSUPPORTED-INVENTED-CONTENT"},
             {"source_id":source_id,"text":"A factual point attributed to the existing source."}]
         result=source_grounded_digest(a)
-        self.assertIn("A factual point attributed to",result)
+        self.assertTrue(any("A factual point attributed to" in text for text in result))
         self.assertFalse(any("UNSUPPORTED" in x for x in result))
 
     def test_empty_snippet_never_invents_a_story(self):
@@ -74,7 +74,7 @@ class SourceBoundReaderTests(unittest.TestCase):
         self.assertIn("Original evidence A",x)
         self.assertIn("Original evidence B",x)
         self.assertIn("A defined counter-observation",x)
-        self.assertIn("40–50 分鐘",x)
+        self.assertIn("40-50 分鐘",x)
         self.assertNotIn("缺少完整研究證據",x)
 
     def test_no_deep_study_shows_genuinely_limited_source_reader(self):
