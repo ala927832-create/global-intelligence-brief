@@ -21,6 +21,12 @@ jobs:
           python-version: '3.12'
       - name: Install bounded offline QA dependencies
         run: python -m pip install -r requirements.txt pillow
+      - name: Reproduce manual QA module imports from nested scripts
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          python tools/gib_style_c_rc/test_bridge.py
+          python tools/gib_style_c_rc/live_html_qa.py --help > /dev/null
       - name: Cutoff, source and photo regression tests
         run: python -m unittest discover -s tests -p 'test_style_c_consolidated.py' -v
       - name: Verify Inoreader source adapter (offline fixtures, no credentials)
