@@ -2,6 +2,7 @@
 from __future__ import annotations
 import datetime as dt
 import json
+import hashlib
 import tempfile
 import unittest
 from pathlib import Path
@@ -56,7 +57,7 @@ class ThreeDayQA(unittest.TestCase):
     def test_fixture_save_genuine_index_metadata_and_no_publish(self):
         now=self.ts("2026-10-29","07:35")
         def feed(url):
-            sid=url.split("/")[-1].split("?")[0]
+            sid=hashlib.sha256(url.encode()).hexdigest()[:16]
             stamp=format_datetime(now-dt.timedelta(minutes=30))
             return ('<rss><channel><item><title>Policy news '+escape(sid)+
                     '</title><link>https://publisher.example/report/'+escape(sid)+
