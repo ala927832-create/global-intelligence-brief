@@ -59,6 +59,21 @@ class InoreaderSourceTests(unittest.TestCase):
         self.assertEqual(rows[0]["snippet"],"Original announcement")
         self.assertEqual(rows[0]["provider"],"inoreader_export")
 
+    def test_native_inoreader_json_article_shape(self):
+        published=int((dt.datetime.now(dt.timezone.utc)-dt.timedelta(hours=1)).timestamp())
+        source={"id":"tag:google.com,2005:reader/item/1",
+                "title":"鋅市場公告",
+                "alternate":[{"href":"https://metals.example.tw/news/zinc"}],
+                "published":published,
+                "summary":{"content":"<p>官方公告摘要，不代表已核實。</p>"}}
+        rows,rejected=normalize_items(
+            self._json([source]),"application/json","energy_commodities")
+        self.assertEqual(len(rows),1)
+        self.assertEqual(rows[0]["url"],"https://metals.example.tw/news/zinc")
+        self.assertEqual(rows[0]["snippet"],"官方公告摘要，不代表已核實。")
+        self.assertTrue(rows[0]["published_at"].endswith("+00:00"))
+        self.assertEqual(sum(rejected.values()),0)
+
     def test_missing_or_invalid_source_fails_closed(self):
         with self.assertRaisesRegex(RuntimeError,"INOREADER_NOT_CONNECTED"):
             collect_export_feeds({**self.urls,"taiwan":""})
