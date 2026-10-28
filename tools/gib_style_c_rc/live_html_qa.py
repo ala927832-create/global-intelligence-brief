@@ -101,8 +101,10 @@ def filter_window(issue,morning,start,end):
         keep.append(x)
     return keep,excluded
 
-def render(issue,stories,photos,photo_status,gate):
+def render(issue,stories,photos,photo_status,gate,edits=None):
+    """Frozen Style C layout, sharing canonical newsroom evidence and QA-only drafts."""
     cards=[];articles=[];packet=[]
+    by_event={e.get('event_id'):e for e in (edits or []) if isinstance(e,dict)}
     for idx,x in enumerate(stories):
         sid="item-"+ESC(x.get("event_id") or idx)
         title=ESC(x.get("title_original"));desc=ESC(x.get("headline_summary") or "Only source headline available; details require verification.")
@@ -118,7 +120,47 @@ def render(issue,stories,photos,photo_status,gate):
                            "published_at":x.get("article_published_at"),"url":url,
                            "source_id":s.get("source_id"),"retrieval_status":s.get("retrieval_status"),
                            "claim_review":"ATTRIBUTED_UNVERIFIED"})
-        articles.append(f'<article class="full" id="{sid}"><div class="kicker">{desk.upper()} · {stamp}</div><h2>{title}</h2><p class="deck">{desc}</p><h3>What the source index reports</h3><p>{desc}</p><h3>Evidence boundaries</h3><p>This is a sourced index summary, not an independently checked or licensed full original. Background and counter-evidence require editor review.</p><h3>Difference from the morning issue</h3><p>{ESC(x.get("update_type"))}</p><h3>Source packet</h3><ul>{"".join(li)}</ul><a href="#front">Back to front page ↑</a></article>')
+        edit=by_event.get(x.get('event_id'),{})
+        draft_note='<p><strong>AI EDITORIAL DRAFT · UNVERIFIED · NOT SIGNED OFF</strong></p>' if edit else ''
+        # Content upgrade only: frozen Style C colors/grid/type remain unchanged.
+        paragraphs=[]
+        headings={'background':'Background / 背景','why_it_matters':'Why it matters / 重要性',
+                  'transmission':'Transmission / 影響機制','history':'Historical context / 歷史比較',
+                  'alternative':'Competing explanations / 不同觀點',
+                  'watch':'What to watch / 後續觀察','limitations':'Evidence limits / 證據限制'}
+        for key,label in headings.items():
+            value=str((edit.get('sections') or {}).get(key) or '').strip()
+            if value: paragraphs.append('<h3>'+ESC(label)+'</h3><p>'+ESC(value)+'</p>')
+        brief=str(edit.get('brief_zh') or '').strip()
+        if brief: draft_note+='<p>'+ESC(brief)+'</p>'
+        analysis_html=draft_note+''.join(paragraphs)
+        articles.append(f'<article class="full" id="{sid}"><div class="kicker">{desk.upper()} · {stamp}</div><h2>{title}</h2><p class="deck">{desc}</p><h3>What the source index reports</h3><p>{desc}</p>{analysis_html}<h3>Evidence boundaries</h3><p>This is a sourced index summary, not an independently checked or licensed full original. Background and counter-evidence require editor review.</p><h3>Difference from the morning issue</h3><p>{ESC(x.get("update_type") or issue.get("editorial_delta_status") or "UNVERIFIED")}</p><h3>Source packet</h3><ul>{"".join(li)}</ul><a href="#front">Back to front page ↑</a></article>')
+    # Six owner-approved newsroom sections rendered as content inside frozen
+    # Style C layout: no new section weights, color or CSS system.
+    executive_items=stories[:3]
+    executive_list=''.join(
+        '<li><a href="#item-'+ESC(x.get('event_id'))+'">'+ESC(x.get('title_original'))+
+        '</a> · <small>INDEXED; FACT CHECK OPEN</small></li>' for x in executive_items)
+    executive_html='<section id="executive"><h2>01 Executive Brief</h2><p>Three lead candidates, not independently signed-off judgments.</p><ol>'+executive_list+'</ol></section>'
+    essential_items=stories[:5]
+    essential_list=''.join(
+        '<li><a href="#item-'+ESC(x.get('event_id'))+'">'+ESC(x.get('title_original'))+
+        '</a> — <small>Mechanism, impact and counterevidence under review</small></li>'
+        for x in essential_items)
+    essential_html='<section id="analysis"><h2>03 Essential Analysis</h2><p>Research candidates pending primary evidence; no causal claim is verified by an RSS summary.</p><ol>'+essential_list+'</ol></section>'
+    depth_ok=[x for x in issue.get('deep_research',[]) if x.get('verification')=='EDITOR_REVIEWED']
+    deep_html=('<section id="deep"><h2>04 Deep Research</h2><p>'
+               +('Research topics require publication signoff.' if len(depth_ok)>=2
+                 else 'HOLD: no 2–3 independently evidenced, editor-reviewed deep studies established.')
+               +'</p></section>')
+    delta_status=issue.get('editorial_delta_status') or (
+        'MORNING_BASELINE_OR_REPORTED_CHANGE_REQUIRES_VERIFICATION' if issue['edition']=='morning'
+        else 'EVENING_DELTA_NOT_CONFIRMED')
+    delta_html=('<section id="changes"><h2>05 What Changed &amp; What to Watch</h2><p>'
+                +ESC(delta_status)+'. Material changes and forward watch conditions require primary-source confirmation.</p></section>')
+    source_links=''.join('<li><a href="'+ESC(s.get('url'))+'" target="_blank" rel="noopener noreferrer">'+
+                          ESC(s.get('title'))+'</a> · '+ESC(s.get('published_at'))+
+                          ' · INDEX ONLY</li>' for s in packet[:80])
     selected=stories[:5]
     day5="".join(f'<li><a href="#item-{ESC(x.get("event_id"))}">{ESC(x.get("title_original"))}</a></li>' for x in selected)
     lead=stories[0] if stories else None
@@ -138,7 +180,7 @@ def render(issue,stories,photos,photo_status,gate):
     coverage_text=" · ".join(f'{ESC(k)}: {v}' for k,v in sorted(coverage.items()))
     css="""*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#f5f2ea;color:#1a3043;font:16px/1.7 Georgia,'Noto Serif TC',serif}body.boox{background:#f0eee4;color:#153647}a{color:inherit}header,main,footer{max-width:1220px;margin:auto}header{border-top:5px solid #123b57;border-bottom:1px solid #bcc9c9;padding:12px 24px;background:#fffdf7}.mast{font-size:clamp(29px,4vw,52px);font-weight:bold}.micro,.kicker,nav,.flag,figcaption{font:700 11px Arial,sans-serif;letter-spacing:.5px}.kicker{color:#95713e}nav{display:flex;gap:17px;border-top:1px solid #cad1d0;padding-top:12px;flex-wrap:wrap}nav button{margin-left:auto;background:transparent;border:1px solid #a9bdb8;color:inherit;padding:6px}main{padding:20px 24px}.flag{background:#eee0c9;padding:11px 14px;color:#63431d}.hero{display:grid;grid-template-columns:1.3fr 1fr .76fr;gap:24px;margin-top:24px;padding-bottom:24px;border-bottom:2px solid #163d55}.hero h1{font-size:clamp(34px,3.4vw,53px);line-height:1.12;margin:8px 0}.deck{font-size:19px}.hero aside{border-left:1px solid #c6d0cf;padding-left:14px}.hero li{border-bottom:1px solid #b9c6c7;padding:8px 0}figure{margin:0}img{width:100%;max-height:330px;object-fit:cover}figcaption{font-weight:400;font-size:10px;color:#516773}.placeholder{background:#dfe8e5;padding:50px 15px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}.card{border-top:1px solid #bcc9c9;padding-top:11px}.card h3{font-size:21px;line-height:1.26}.card p{font-size:15px}h2{font-size:29px;margin-top:36px;border-bottom:2px solid #163d55;padding-bottom:8px}.full{max-width:780px;margin:55px auto 0;border-top:3px solid #163d55;padding-top:24px}.full h2{border:0;font-size:36px;margin:8px 0}.full h3{font-size:19px}.full p{font-size:18px}.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}.qa{background:#fffdf7;padding:15px;margin-top:26px}footer{font:12px Arial,sans-serif;color:#536876;padding:20px}@media(max-width:900px){.hero{grid-template-columns:1fr 1fr}.hero aside{grid-column:1/-1;border-left:0;border-top:1px solid #bdd0cf}.cards{grid-template-columns:repeat(2,1fr)}}@media(max-width:630px){header,main{padding:14px}.hero,.cards,.gallery{grid-template-columns:1fr}.hero aside{grid-column:auto}.mast{font-size:28px}}"""
     label="MORNING" if issue["edition"]=="morning" else "EVENING"
-    return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GIB {label} HTML QA · {ESC(issue["report_date"])}</title><style>{css}</style></head><body><header><div class="micro">GLOBAL INTELLIGENCE BRIEF · INDEPENDENT HTML QA</div><div class="mast">Global Intelligence Brief</div><nav><a href="#front">Overview</a><a href="#news">World</a><a href="#sources">Sources</a><a href="#qa">QA</a><button id="boox" type="button">BOOX Color</button></nav></header><main><div class="flag">QA HOLD · {label} · cutoff {ESC(gate["cutoff_tpe"])} · source captured {ESC(gate["capture_utc"])} · Not signed journalism; not a published edition.</div><section class="hero" id="front"><div><div class="kicker">GLOBAL LEAD · SOURCE CANDIDATE</div><h1>{lead_title}</h1><p class="deck">{lead_desc}</p><a href="#news">Read attributed briefing ↓</a></div><div>{hero_visual}</div><aside><div class="kicker">THE DAY IN FIVE</div><ol>{day5}</ol></aside></section><section id="news"><h2>World in Brief</h2><div class="cards">{"".join(cards)}</div></section><section><h2>Real photo archive</h2><div class="gallery">{"".join(photo_cards) or "<p>No successfully decoded and embedded licensed photo in this edition.</p>"}</div></section><section id="sources"><h2>Source packet</h2><p>Source URLs, publication timestamps and source verification labels are saved in source_packet.json. Newsroom-index results are not independently confirmed.</p><p>{coverage_text}</p></section><section id="archive"><h2>Research archive</h2><p>Historical research is kept outside the dated world-news list. Old EIA/BLS reports are not presented as today's new events.</p></section><section id="articles">{"".join(articles)}</section><section class="qa" id="qa"><h2>Editorial / Offline QA</h2><p>Release HOLD: human fact-check, cross-publisher coverage, photo rights, real BOOX reader review and 10-day trial remain open.</p><p>Images in this file: {len(photos)}/3; only embedded data:image content is displayed. EPUB OFF · LINE OFF · Pages OFF · Schedule OFF.</p></section></main><footer>GIB Style C · Internal source-index QA, not a licensed newspaper or formal issue.</footer><script>document.getElementById('boox').onclick=()=>document.body.classList.toggle('boox')</script></body></html>''',packet,dict(coverage)
+    return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GIB {label} HTML QA · {ESC(issue["report_date"])}</title><style>{css}</style></head><body><header><div class="micro">GLOBAL INTELLIGENCE BRIEF · INDEPENDENT HTML QA</div><div class="mast">Global Intelligence Brief</div><nav><a href="#front">Overview</a><a href="#news">World</a><a href="#sources">Sources</a><a href="#qa">QA</a><button id="boox" type="button">BOOX Color</button></nav></header><main><div class="flag">QA HOLD · {label} · cutoff {ESC(gate["cutoff_tpe"])} · source captured {ESC(gate["capture_utc"])} · Not signed journalism; not a published edition.</div><section class="hero" id="front"><div><div class="kicker">GLOBAL LEAD · SOURCE CANDIDATE</div><h1>{lead_title}</h1><p class="deck">{lead_desc}</p><a href="#news">Read attributed briefing ↓</a></div><div>{hero_visual}</div><aside><div class="kicker">THE DAY IN FIVE</div><ol>{day5}</ol></aside></section>{executive_html}<section id="news"><h2>02 The World in Brief</h2><div class="cards">{"".join(cards)}</div></section>{essential_html}{deep_html}{delta_html}<section><h2>Real photo archive</h2><div class="gallery">{"".join(photo_cards) or "<p>No successfully decoded and embedded licensed photo in this edition.</p>"}</div></section><section id="sources"><h2>06 Sources &amp; Evidence</h2><p>Source URLs, publication timestamps and source verification labels are saved in source_packet.json. Newsroom-index results are not independently confirmed.</p><p>{coverage_text}</p><ol>{source_links}</ol></section><section id="archive"><h2>Research archive</h2><p>Historical research is kept outside the dated world-news list. Old EIA/BLS reports are not presented as today's new events.</p></section><section id="articles">{"".join(articles)}</section><section class="qa" id="qa"><h2>Editorial / Offline QA</h2><p>Release HOLD: human fact-check, cross-publisher coverage, photo rights, real BOOX reader review and 10-day trial remain open.</p><p>Images in this file: {len(photos)}/3; only embedded data:image content is displayed. EPUB OFF · LINE OFF · Pages OFF · Schedule OFF.</p></section></main><footer>GIB Style C · Internal source-index QA, not a licensed newspaper or formal issue.</footer><script>document.getElementById('boox').onclick=()=>document.body.classList.toggle('boox')</script></body></html>''',packet,dict(coverage)
 
 def main():
     ap=argparse.ArgumentParser()

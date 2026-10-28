@@ -3,6 +3,20 @@
 **Status: Engineering QA — not approved for publication.** Two products are independent:
 this repo is Global Intelligence Brief; `zinc-intelligence-v26` is unchanged.
 
+## 2026-10-28 owner-approved integrated P2 QA execution rules (v1)
+
+The owner explicitly authorized a **single integrated implementation and QA milestone** and requested **no fragmented manual GitHub runs**. The original `config/frozen_contract.json` (2026-10-23-approved-v1) remains immutable; the existing six sections and dual reading lengths are not renegotiated. These implementation rules are subordinate to the original approved editorial contract.
+
+- **P2 data contract:** use the original 24 Inoreader Free OPML publisher RSS feeds (already proven live in P1); join their original URLs, timestamps, source groups and evidence into `canonical_issue` of `gib/newsroom_v16.py`. Retain existing external free providers only within the approved data-source boundary. Do not invent specialist industry priorities.
+- **One newsroom, two reading routes:** the SAME canonical issue and real morning snapshot feed source-attributed Style C internal HTML and V1.6 Essential/Deep editorial QA. Avoid a third disconnected newsroom or duplicated event identities. Both must carry prominent HOLD labels until independently approved.
+- **News judgment and evidence:** independently meaningful international significance governs headlines; do not force quotas without sufficient verified news. Highlight three leading developments, world briefs, substantial analysis, source dates, counterevidence and invalidation/monitoring. RSS snippets cannot validate deep causal claims. Facts without primary/source-location proof stay `ATTRIBUTED_UNVERIFIED`.
+- **Gemini optional/free-only two-pass:** run through the existing controlled `gib/gemini_editor_v16.py`; report actual status, model, pass outcomes and rejected invented facts, without asserting subscriptions are API keys. Never incur paid fallback, silently loosen validation or promote model prose to VERIFIED.
+- **Evening:** use a persisted and completed same-day morning issue. Distinguish factual/material updates from syndication. Absent baseline = marked HOLD, not a delta edition.
+- **Self-test, one deliverable:** perform CI, actual publisher RSS run, end-to-end evidence/link/Style C and dual-version QA before asking the owner to do anything. Provide one concise acceptance report with real run IDs, pass/fail evidence, preview artifact links and unresolved human/BOOX limitations.
+- **Nonnegotiable change control:** any modification beyond approved P2 integration—contract, sections, source/editorial priority, CSS redesign, costs, new integrations, scheduled publication, LINE, public Pages, BOOX/P3 release—requires separate affirmative owner approval **before** the edit. Keep publication OFF.
+
+This document describes implementation and verification authority, **not** permission to publish. P3 remains genuine BOOX NeoReader review plus 10 trading days/20 issues and explicit owner signoff.
+
 ## Decision from the editorial reference review
 
 - **WSJ:** copy the information-hierarchy *principle* — dominant main story, secondary briefs, clearly separated analysis. Do not reuse their layout assets or copyrighted text.
