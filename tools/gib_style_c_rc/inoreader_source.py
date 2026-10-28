@@ -13,11 +13,11 @@ import json
 import os
 import re
 import xml.etree.ElementTree as ET
+from email.utils import parsedate_to_datetime
 from html.parser import HTMLParser
 from urllib.parse import urlsplit
 
 import requests
-from gib.collect import timestamp
 from gib.editorial import canon_url
 
 LANES = {
@@ -118,6 +118,25 @@ def _parse(raw: bytes, content_type: str):
         }
 
 
+def strict_timestamp(value):
+    """Published-time attribution must include a real timezone, never assume UTC."""
+    if not value:
+        return None
+    if isinstance(value, (int,float)):
+        return dt.datetime.fromtimestamp(value,dt.timezone.utc).isoformat()
+    raw=str(value).strip()
+    try:
+        parsed=dt.datetime.fromisoformat(raw.replace('Z','+00:00'))
+    except ValueError:
+        try:
+            parsed=parsedate_to_datetime(raw)
+        except (ValueError,TypeError):
+            return None
+    if not parsed.tzinfo:
+        return None
+    return parsed.astimezone(dt.timezone.utc).isoformat()
+
+
 def normalize_items(raw: bytes, content_type: str, lane: str):
     if lane not in LANES:
         raise ValueError("INVALID_LANE")
@@ -139,7 +158,7 @@ def normalize_items(raw: bytes, content_type: str, lane: str):
             # No canonical source yet; do not index Inoreader's reader URL as an original.
             rejected["invalid_article_link"] += 1
             continue
-        stamp = timestamp(item["published"])
+        stamp = strict_timestamp(item["published"])
         if not stamp:
             rejected["missing_publication_time"] += 1
             continue
