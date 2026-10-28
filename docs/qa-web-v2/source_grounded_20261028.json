@@ -1,0 +1,195 @@
+{
+  "schema": "GIB_EDITORIAL_QA_EVIDENCE_BOUND_NEWS_20261028_v1",
+  "snapshot": "GitHub run 40656990999, 2026-10-28 16:28:15–16:29:39 Asia/Taipei, 24 original direct RSS feeds, 423 unique original URLs",
+  "qa_only": true,
+  "editorial_approved": false,
+  "source_limits": "Source excerpts and original newsroom articles are summarized, not reproduced. A listed source alone does not imply independently checked original full-text facts.",
+  "articles": [
+    {
+      "key": "israel",
+      "area": "中東政治",
+      "title": "以色列國會選舉無明確多數，組閣協商成為關鍵",
+      "summary": "10 月 27 日投票後的出口民調與 28 日部分開票都沒有顯示任何一個陣營握有國會過半席位。內塔尼亞胡所屬利庫德黨可能仍是最大單一政黨，但不等於已有 61 席執政多數。",
+      "points": [
+        "國會共有 120 席，需要至少 61 席組閣；兩大陣營都未確立多數。",
+        "阿拉伯政黨的席次可能影響協商，但政黨之間對合作有重大分歧。",
+        "出口民調、部分計票、最終組閣必須分開，不能提前公布勝方。"
+      ],
+      "status": "跨媒體相互參照；最終席次／組閣尚未定案",
+      "links": [
+        [
+          "The Guardian",
+          "https://www.theguardian.com/world/2026/oct/28/israel-election-exit-polls-suggest-netanyahu-eisenkot-blocs-tied-ntwnfb"
+        ],
+        [
+          "AP",
+          "https://apnews.com/article/52c6f5a0a720a4ffc08633229e796415"
+        ]
+      ]
+    },
+    {
+      "key": "saudi-oil",
+      "area": "中東／能源",
+      "title": "胡塞組織宣稱襲擊沙國煉油廠，原油上漲但供應中斷尚無證據",
+      "summary": "胡塞組織聲稱攻擊沙烏地阿拉伯煉油設施；路透報導國際油價於 10 月 28 日早盤上升。攻擊者的聲明與沙國官方證實的損害是兩回事。",
+      "points": [
+        "路透報導當時沙國官方尚未確認該次襲擊，不能將「聲稱擊中」寫成設備已損壞。",
+        "10 月 28 日 04:35 UTC 左右，Brent 約 115.47 美元／桶、WTI 約 101.33 美元／桶，均為特定時間報價。",
+        "後續須確認實際產能、停工或出口是否受到影響，不能只由價格反推供應減少。"
+      ],
+      "status": "油價有時間戳；設施實際損失未獨立確認",
+      "links": [
+        [
+          "Reuters",
+          "https://live.euronext.com/en/financial-news/oil-rises-over-1-after-saudi-arabian-refinery-attack-reignites-supply-risk"
+        ],
+        [
+          "WSJ",
+          "https://www.wsj.com/world/middle-east/oil-prices-rise-as-houthi-militants-target-saudi-energy-45c38fe0"
+        ]
+      ]
+    },
+    {
+      "key": "india-cyclone",
+      "area": "南亞／天災",
+      "title": "氣旋 Arnab 影響印度安得拉邦，官方持續發布風雨警報",
+      "summary": "印度氣象局 10 月 28 日公報記載安得拉邦沿岸風速與氣旋移動資訊；AP 報導已有居民疏散及交通受影響。",
+      "points": [
+        "印度氣象局公報的風速預測與有效時段必須一起呈現，不能寫成全區實測風速。",
+        "AP 指出地方政府已疏散至少 8.9 萬人，並採取庇護與交通管制措施。",
+        "災情與傷亡數字會持續更新，不把來源採樣時的數據冒充最終官方統計。"
+      ],
+      "status": "氣象局官方公報與 AP 報導交叉閱讀",
+      "links": [
+        [
+          "IMD 官方警報",
+          "https://mausam.imd.gov.in/Forecast/seaarea_bulletin_new.php"
+        ],
+        [
+          "AP",
+          "https://apnews.com/article/96277efc4371cf379c24b7694dfa9f62"
+        ]
+      ]
+    },
+    {
+      "key": "us-methane",
+      "area": "美國／能源政策",
+      "title": "EPA 提出放寬甲烷排放規範，政府經濟估算仍屬政策主張",
+      "summary": "美國環保署 10 月 27 日公布油氣甲烷排放標準修訂提案，主張減輕產業成本；媒體同時呈現環境效益與污染風險的不同看法。",
+      "points": [
+        "EPA 對 450 億美元成本節省的估算是政策當局提出的數字，不是已發生的成果。",
+        "修訂案涉及既有油氣設施甲烷洩漏監測與排放管制，環保團體提出反對意見。",
+        "「提出修正」「正式生效」「實際結果」三者不可混為一談。"
+      ],
+      "status": "EPA 官方公告可核對；經濟與環境效果仍有爭議",
+      "links": [
+        [
+          "EPA 公告",
+          "https://www.epa.gov/newsreleases/epa-proposes-major-new-revisions-burdensome-unworkable-biden-era-oil-and-natural-gas"
+        ],
+        [
+          "AP",
+          "https://apnews.com/article/257f28c07cda5146a40dbf7a2c8ba790"
+        ]
+      ]
+    },
+    {
+      "key": "german-confidence",
+      "area": "歐洲／經濟",
+      "title": "德國消費信心指標微降至 -30.8，通膨與家庭收入仍是壓力",
+      "summary": "NIM／GfK 的 11 月消費氣候預測值為 -30.8，低於 10 月的 -30.6；研究機構指家庭對通膨與收入前景仍保持審慎。",
+      "points": [
+        "由 -30.6 降至 -30.8 是小幅轉弱，不應誇大為消費信心崩跌。",
+        "德國官方 9 月通膨率為年增 3.3%，能源上漲是重要因素。",
+        "調查顯示對整體經濟的看法與個人購買力感受可能不同，不能直接等同實際支出。"
+      ],
+      "status": "Reuters 調查報導 + 德國統計局 CPI 原文",
+      "links": [
+        [
+          "Reuters",
+          "https://wtvbam.com/2026/10/28/german-consumer-sentiment-slips-on-inflation-fears-survey-shows/"
+        ],
+        [
+          "Destatis",
+          "https://www.destatis.de/EN/Press/2026/10/PE26_364_611.html"
+        ]
+      ]
+    },
+    {
+      "key": "ai-analysts",
+      "area": "科技／AI",
+      "title": "研究發現特定實驗中分析師易受 AI 引導，86% 不能直接外推所有工作",
+      "summary": "Al Jazeera 報導 Anthropic 的一項研究：50 名分析師在虛構合作社決策情境中，與 AI 助理偏好一致的選擇占 86%。",
+      "points": [
+        "實驗中的 AI 被刻意設定偏好；這與日常工作中未刻意引導的模型不同。",
+        "參與者的任務及樣本有限，不能宣稱所有專業人士都會以同樣比例依賴 AI。",
+        "報導指出研究者希望改善決策過程的透明度，原始研究方法仍須專門審閱。"
+      ],
+      "status": "研究成果目前根據媒體報導；未代替原始研究審稿",
+      "links": [
+        [
+          "Al Jazeera",
+          "https://www.aljazeera.com/economy/2026/10/28/experts-defer-to-ai-in-decision-making-anthropic-study-finds"
+        ]
+      ]
+    },
+    {
+      "key": "canada-cbam",
+      "area": "加拿大／貿易",
+      "title": "CBC 報導加拿大可能面對歐盟 CBAM 壓力，產業衝擊數字尚未查明",
+      "summary": "CBC 引述內部文件報導，歐盟碳邊境調整制度的實施可能為加拿大出口帶來合規與成本壓力。",
+      "points": [
+        "本批只取得 CBC 原文標題與摘要，尚無完整內部文件。",
+        "不能在未核對適用產品、日期和計算規定前寫出出口損失金額。",
+        "「可能面臨風險」不等於已對所有加拿大出口品全面徵收新關稅。"
+      ],
+      "status": "單一原始媒體報導；需補官方條文與文件，禁補造數字",
+      "links": [
+        [
+          "CBC",
+          "https://www.cbc.ca/news/politics/cbam-carbon-tariff-canada-european-union-9.7398807"
+        ]
+      ]
+    },
+    {
+      "key": "uk-budget",
+      "area": "英國／財政",
+      "title": "英國新預算公布前夕，市場關注稅制與財政空間",
+      "summary": "BBC 與 WSJ 的 10 月 28 日消息，集中討論預算公布前的生活成本、財政壓力以及可能的課稅調整。",
+      "points": [
+        "BBC 條目主要是預算「可能包含什麼」的前瞻，不是已通過的措施。",
+        "WSJ 的報導提出市場關注的部分稅務選項，不能把這些選項寫成已實施政策。",
+        "應等正式預算文件公開，再比較財政數字與受益或負擔對象。"
+      ],
+      "status": "正式政策公告前的媒體預覽，政策細節尚未確認",
+      "links": [
+        [
+          "BBC",
+          "https://www.bbc.co.uk/news/articles/c6x2zrjl7kjno"
+        ],
+        [
+          "WSJ",
+          "https://www.wsj.com/economy/central-banking/u-k-fiscal-discipline-in-focus-ahead-of-burnham-governments-first-budget-5fa7e2a9"
+        ]
+      ]
+    },
+    {
+      "key": "boj-schedule",
+      "area": "日本／央行",
+      "title": "日本銀行 10 月 29–30 日會議將公布新展望，決議尚未出爐",
+      "summary": "日本銀行官方公布 10 月 29–30 日貨幣政策會議時程，預定 30 日發布政策決定與經濟物價展望。",
+      "points": [
+        "會議日期和公告安排可由日本銀行正式行程確認。",
+        "截至 10/28 新聞採集，30 日決策尚未公布，不能自行填入利率變化。",
+        "應在會後對照官方聲明、物價展望及前次資料再形成研究結論。"
+      ],
+      "status": "日本銀行官方排程，並非未來決議事先確認",
+      "links": [
+        [
+          "BOJ 正式日程",
+          "https://www.boj.or.jp/en/about/calendar/index.htm"
+        ]
+      ]
+    }
+  ]
+}
