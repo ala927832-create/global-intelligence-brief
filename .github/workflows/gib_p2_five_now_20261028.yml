@@ -1,0 +1,83 @@
+# One-time owner-requested 2026-10-28 five real captures then P3 technical-only preflight.
+# No schedule or dispatch. Previous six scheduled capture workflow untouched.
+name: GIB five real RSS snapshots then P3 offline preflight (HOLD)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/gib_p2_five_now_20261028.yml'
+permissions:
+  contents: read
+jobs:
+  source-five:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      PYTHONPATH: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install original public RSS dependency
+        run: python -m pip install 'requests>=2.32,<3'
+      - name: Five genuine same-day snapshots, not designated cutoff times
+        run: python qa/p2_five_now_20261028.py
+      - name: Preserve real source snapshot indexes, times and health
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gib-20261028-five-real-rss-snapshots
+          path: qa_out/p2_five_now_20261028/
+          retention-days: 14
+          if-no-files-found: warn
+
+  p3-offline-preflight:
+    needs: source-five
+    if: "${{ needs.source-five.result == 'success' }}"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHONPATH: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install existing open-source EPUB tools
+        run: |
+          python -m pip install -r requirements.txt
+          sudo apt-get update -qq
+          sudo apt-get install -y pandoc fonts-noto-cjk default-jre unzip
+      - name: Build offline HISTORICAL QA book only
+        run: python -m scripts.build_historical_offline_sample
+      - name: Inspect embedded images and internal navigation
+        run: python scripts/check_offline_package.py qa_outputs/historical-offline-reader-demo/morning-deep.epub
+      - name: Run official EPUBCheck on historical preview
+        run: bash scripts/run_epubcheck_qa.sh qa_outputs/historical-offline-reader-demo
+      - name: Record P3 device and 20 live issues remain untested
+        if: always()
+        run: |
+          mkdir -p qa_out/p3_technical_preflight
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          Path('qa_out/p3_technical_preflight/status.json').write_text(json.dumps({
+             'scope':'HISTORICAL_EPUB_TECHNICAL_PREFLIGHT_ONLY',
+             'P2_EDITORIAL':'HOLD',
+             'P3_REAL_BOOX_NEOREADER':'NOT_TESTED',
+             'P3_TEN_TRADING_DAYS_TWENTY_ISSUES':'NOT_TESTED',
+             'release_approved':False
+          },ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          PY
+      - name: Preserve technical preview, not P3 acceptance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gib-p3-technical-preflight-not-final-acceptance
+          path: |
+            qa_outputs/historical-offline-reader-demo/
+            qa_out/p3_technical_preflight/
+          retention-days: 14
+          if-no-files-found: warn
+# No new cron, Gemini, LINE, Pages, production EPUB or Zinc modification.
