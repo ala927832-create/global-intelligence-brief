@@ -1,7 +1,7 @@
 {
-  "schema": "gib_specialist_watchlist_v1",
+  "schema": "gib_specialist_reference_library_v2",
   "as_of": "2026-10-28",
-  "policy": "All reference URLs verified at index/landing-page level. No claim of live RSS availability; these are NOT automatically collected into daily news unless a tested adapter exists. Titles/date require publisher verification.",
+  "policy": "REFERENCE LIBRARY ONLY, NOT A RANKING OR HEADLINE PRIORITY CONFIG. Previous P0/P1 labels and calendar frequencies were assistant-introduced, not approved editorial priorities, and have been removed. Use when a major global event requires a specific official technical or government source. GIB six-section frozen contract controls editorial output.",
   "sources": [
     {
       "id": "moea_subsidy_portal",
@@ -9,9 +9,9 @@
       "topic": "taiwan_subsidies",
       "url": "https://service.moea.gov.tw/EE502/NewPortal/",
       "mode": "official_manual_review",
-      "priority": "P0",
-      "frequency": "daily_review",
-      "notes": "Verify eligibility, deadlines, budgets and revision dates from individual project notices; never infer grant eligibility."
+      "notes": "Verify eligibility, deadlines, budgets and revision dates from individual project notices; never infer grant eligibility.",
+      "editorial_role": "SPECIALIST_EVIDENCE_REFERENCE_ONLY",
+      "selection_rule": "GLOBAL_NEWSWORTHINESS_NOT_PERSONAL_BUSINESS_RELEVANCE"
     },
     {
       "id": "ida_official_announcements",
@@ -19,9 +19,9 @@
       "topic": "taiwan_industry",
       "url": "https://www.ida.gov.tw/ctlr?PRO=news.NewsList&type=eBulletin",
       "mode": "official_manual_review",
-      "priority": "P0",
-      "frequency": "daily_review",
-      "notes": "Policy notices, subsidy deadline changes; current direct RSS entries handled separately."
+      "notes": "Policy notices, subsidy deadline changes; current direct RSS entries handled separately.",
+      "editorial_role": "SPECIALIST_EVIDENCE_REFERENCE_ONLY",
+      "selection_rule": "GLOBAL_NEWSWORTHINESS_NOT_PERSONAL_BUSINESS_RELEVANCE"
     },
     {
       "id": "moenv_open_environment",
@@ -29,9 +29,9 @@
       "topic": "environment_regulations",
       "url": "https://data.moenv.gov.tw/dataset/detail/MNEWS_P_01",
       "mode": "official_open_dataset_review",
-      "priority": "P0",
-      "frequency": "every_3_days",
-      "notes": "Dataset updated ~3 days; formal notices must be confirmed on official press release page."
+      "notes": "Dataset updated ~3 days; formal notices must be confirmed on official press release page.",
+      "editorial_role": "SPECIALIST_EVIDENCE_REFERENCE_ONLY",
+      "selection_rule": "GLOBAL_NEWSWORTHINESS_NOT_PERSONAL_BUSINESS_RELEVANCE"
     },
     {
       "id": "moenv_water",
@@ -39,9 +39,9 @@
       "topic": "industrial_wastewater",
       "url": "https://water.moenv.gov.tw/Public/CHT/NewsLaw/newslist.aspx",
       "mode": "official_manual_review",
-      "priority": "P0",
-      "frequency": "weekly_review",
-      "notes": "Water and effluent permits, legislation; official dates require manual verification."
+      "notes": "Water and effluent permits, legislation; official dates require manual verification.",
+      "editorial_role": "SPECIALIST_EVIDENCE_REFERENCE_ONLY",
+      "selection_rule": "GLOBAL_NEWSWORTHINESS_NOT_PERSONAL_BUSINESS_RELEVANCE"
     },
     {
       "id": "ilzsg_zinc",
@@ -49,9 +49,9 @@
       "topic": "zinc_fundamentals",
       "url": "https://www.ilzsg.org/press-releases/",
       "mode": "official_association_release_review",
-      "priority": "P0",
-      "frequency": "monthly_on_release",
-      "notes": "Free press releases only; detailed Bulletin/database may require subscription."
+      "notes": "Free press releases only; detailed Bulletin/database may require subscription.",
+      "editorial_role": "SPECIALIST_EVIDENCE_REFERENCE_ONLY",
+      "selection_rule": "GLOBAL_NEWSWORTHINESS_NOT_PERSONAL_BUSINESS_RELEVANCE"
     },
     {
       "id": "ilzsg_free_data",
@@ -59,9 +59,9 @@
       "topic": "zinc_prices_stocks",
       "url": "https://www.ilzsg.org/free-access-data/",
       "mode": "official_free_reference",
-      "priority": "P1",
-      "frequency": "monthly_review",
-      "notes": "Check page chart ranges and observation dates; no assumption that data are daily or comprehensive."
+      "notes": "Check page chart ranges and observation dates; no assumption that data are daily or comprehensive.",
+      "editorial_role": "SPECIALIST_EVIDENCE_REFERENCE_ONLY",
+      "selection_rule": "GLOBAL_NEWSWORTHINESS_NOT_PERSONAL_BUSINESS_RELEVANCE"
     },
     {
       "id": "lme_zinc_prices",
@@ -69,9 +69,9 @@
       "topic": "zinc_price_inventory",
       "url": "https://www.lme.com/en/metals/non-ferrous/lme-zinc",
       "mode": "official_dated_market_reference",
-      "priority": "P0",
-      "frequency": "daily_review",
-      "notes": "Separate LME Official vs Closing prices, cash/3M and warehouse stock; respect site rights and display delays."
+      "notes": "Separate LME Official vs Closing prices, cash/3M and warehouse stock; respect site rights and display delays.",
+      "editorial_role": "SPECIALIST_EVIDENCE_REFERENCE_ONLY",
+      "selection_rule": "GLOBAL_NEWSWORTHINESS_NOT_PERSONAL_BUSINESS_RELEVANCE"
     },
     {
       "id": "worldsteel_press",
@@ -79,9 +79,9 @@
       "topic": "global_steel",
       "url": "https://worldsteel.org/media/press-releases/2026/",
       "mode": "official_association_release_review",
-      "priority": "P0",
-      "frequency": "monthly_on_release",
-      "notes": "Monthly crude steel production and periodic steel demand outlook; not equivalent to Taiwan steel order volume."
+      "notes": "Monthly crude steel production and periodic steel demand outlook; not equivalent to Taiwan steel order volume.",
+      "editorial_role": "SPECIALIST_EVIDENCE_REFERENCE_ONLY",
+      "selection_rule": "GLOBAL_NEWSWORTHINESS_NOT_PERSONAL_BUSINESS_RELEVANCE"
     },
     {
       "id": "worldsteel_data",
@@ -89,9 +89,9 @@
       "topic": "global_steel_stats",
       "url": "https://worldsteel.org/data/steel-data-viewer/",
       "mode": "official_dated_statistical_reference",
-      "priority": "P1",
-      "frequency": "monthly_on_release",
-      "notes": "Capture exact release date, reported month and scope."
+      "notes": "Capture exact release date, reported month and scope.",
+      "editorial_role": "SPECIALIST_EVIDENCE_REFERENCE_ONLY",
+      "selection_rule": "GLOBAL_NEWSWORTHINESS_NOT_PERSONAL_BUSINESS_RELEVANCE"
     },
     {
       "id": "usgs_zinc",
@@ -99,9 +99,9 @@
       "topic": "zinc_long_term",
       "url": "https://pubs.usgs.gov/publication/mcs2026",
       "mode": "official_annual_research",
-      "priority": "P1",
-      "frequency": "annual_release",
-      "notes": "Annual mining and reserves backdrop, not current zinc price."
+      "notes": "Annual mining and reserves backdrop, not current zinc price.",
+      "editorial_role": "SPECIALIST_EVIDENCE_REFERENCE_ONLY",
+      "selection_rule": "GLOBAL_NEWSWORTHINESS_NOT_PERSONAL_BUSINESS_RELEVANCE"
     },
     {
       "id": "aga_galvanizing",
@@ -109,9 +109,9 @@
       "topic": "hot_dip_galvanizing",
       "url": "https://galvanizeit.org/education-and-resources/publications",
       "mode": "professional_technical_reference",
-      "priority": "P0",
-      "frequency": "monthly_review",
-      "notes": "Reference for coating, design, inspection and corrosion technical education, not daily news feed."
+      "notes": "Reference for coating, design, inspection and corrosion technical education, not daily news feed.",
+      "editorial_role": "SPECIALIST_EVIDENCE_REFERENCE_ONLY",
+      "selection_rule": "GLOBAL_NEWSWORTHINESS_NOT_PERSONAL_BUSINESS_RELEVANCE"
     },
     {
       "id": "bls_api_documentation",
@@ -119,9 +119,39 @@
       "topic": "us_macro_statistics",
       "url": "https://www.bls.gov/developers/api_signature.htm",
       "mode": "official_numeric_api",
-      "priority": "P0",
-      "frequency": "daily_data_check",
-      "notes": "Numeric observation period is not release timestamp; implemented in qa/bls_official_v1.py; BLS publication sources remain separate."
+      "notes": "Numeric observation period is not release timestamp; implemented in qa/bls_official_v1.py; BLS publication sources remain separate.",
+      "editorial_role": "SPECIALIST_EVIDENCE_REFERENCE_ONLY",
+      "selection_rule": "GLOBAL_NEWSWORTHINESS_NOT_PERSONAL_BUSINESS_RELEVANCE"
+    },
+    {
+      "id": "ida_press_reference",
+      "name": "經濟部產業發展署｜新聞發布",
+      "url": "https://www.ida.gov.tw/ctlr?PRO=rss.RSSView&t=1",
+      "topic": "taiwan_industry_reference",
+      "mode": "official_rss_reference",
+      "notes": "Useful official source for globally material policy events or focused research; not a guaranteed daily GIB article.",
+      "editorial_role": "SPECIALIST_EVIDENCE_REFERENCE_ONLY",
+      "selection_rule": "GLOBAL_NEWSWORTHINESS_NOT_PERSONAL_BUSINESS_RELEVANCE"
+    },
+    {
+      "id": "ida_regulations_reference",
+      "name": "經濟部產業發展署｜產業發展法規",
+      "url": "https://www.ida.gov.tw/ctlr?PRO=rss.RSSView&t=2",
+      "topic": "taiwan_regulatory_reference",
+      "mode": "official_rss_reference",
+      "notes": "For evidence verification on globally material developments; no automatic newsroom priority.",
+      "editorial_role": "SPECIALIST_EVIDENCE_REFERENCE_ONLY",
+      "selection_rule": "GLOBAL_NEWSWORTHINESS_NOT_PERSONAL_BUSINESS_RELEVANCE"
+    },
+    {
+      "id": "ida_policy_reference",
+      "name": "經濟部產業發展署｜施政措施",
+      "url": "https://www.ida.gov.tw/ctlr?PRO=rss.RSSView&t=8",
+      "topic": "taiwan_policy_reference",
+      "mode": "official_rss_reference",
+      "notes": "Previously yielded no usable article in one run; reference-only pending specific verification.",
+      "editorial_role": "SPECIALIST_EVIDENCE_REFERENCE_ONLY",
+      "selection_rule": "GLOBAL_NEWSWORTHINESS_NOT_PERSONAL_BUSINESS_RELEVANCE"
     }
   ]
 }

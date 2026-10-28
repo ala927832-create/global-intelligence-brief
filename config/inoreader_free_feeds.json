@@ -1,9 +1,9 @@
 {
-  "schema": "gib_free_opml_sources_v2_with_verified_official_rss",
+  "schema": "gib_free_opml_sources_v1",
   "imported_from": "Inoreader Feeds 20261028.xml",
   "import_date": "2026-10-28",
   "mode": "direct_publisher_rss_no_inoreader_export_or_pro",
-  "notes": "24 user OPML RSS sources plus three publicly listed official Taiwan Industrial Development Administration RSS services. Four original OPML folder groupings preserved; official additions marked separately. Not all sources guarantee current content.",
+  "notes": "Only 24 feeds imported from the user's Inoreader OPML. OPML folder names identify source groups, not editorial topic priorities. Supplemental policy, zinc/steel and HDG references are outside this daily feed config and never receive automatic front-page promotion.",
   "feeds": [
     {
       "id": "global_01",
@@ -172,45 +172,6 @@
       "original_folder": "04_TAIWAN_POLICY｜台灣工業法規補助",
       "name": "公視新聞網",
       "url": "https://news.pts.org.tw/xml/newsfeed.xml"
-    },
-    {
-      "id": "taiwan_ida_press",
-      "lane": "taiwan",
-      "original_folder": "GIB_OFFICIAL_POLICY_ADDITIONS",
-      "name": "經濟部產業發展署｜新聞發布",
-      "url": "https://www.ida.gov.tw/ctlr?PRO=rss.RSSView&t=1",
-      "source_class": "official_government_rss",
-      "editorial_tags": [
-        "industry",
-        "manufacturing",
-        "policy"
-      ]
-    },
-    {
-      "id": "taiwan_ida_regulations",
-      "lane": "taiwan",
-      "original_folder": "GIB_OFFICIAL_POLICY_ADDITIONS",
-      "name": "經濟部產業發展署｜產業發展法令規章",
-      "url": "https://www.ida.gov.tw/ctlr?PRO=rss.RSSView&t=2",
-      "source_class": "official_government_rss",
-      "editorial_tags": [
-        "regulations",
-        "manufacturing",
-        "industry"
-      ]
-    },
-    {
-      "id": "taiwan_ida_policy",
-      "lane": "taiwan",
-      "original_folder": "GIB_OFFICIAL_POLICY_ADDITIONS",
-      "name": "經濟部產業發展署｜施政措施",
-      "url": "https://www.ida.gov.tw/ctlr?PRO=rss.RSSView&t=8",
-      "source_class": "official_government_rss",
-      "editorial_tags": [
-        "subsidies",
-        "industry_policy",
-        "manufacturing"
-      ]
     }
   ]
 }
