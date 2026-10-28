@@ -101,8 +101,10 @@ def filter_window(issue,morning,start,end):
         keep.append(x)
     return keep,excluded
 
-def render(issue,stories,photos,photo_status,gate):
+def render(issue,stories,photos,photo_status,gate,edits=None):
+    """Frozen Style C layout, sharing canonical newsroom evidence and QA-only drafts."""
     cards=[];articles=[];packet=[]
+    by_event={e.get('event_id'):e for e in (edits or []) if isinstance(e,dict)}
     for idx,x in enumerate(stories):
         sid="item-"+ESC(x.get("event_id") or idx)
         title=ESC(x.get("title_original"));desc=ESC(x.get("headline_summary") or "Only source headline available; details require verification.")
@@ -118,7 +120,21 @@ def render(issue,stories,photos,photo_status,gate):
                            "published_at":x.get("article_published_at"),"url":url,
                            "source_id":s.get("source_id"),"retrieval_status":s.get("retrieval_status"),
                            "claim_review":"ATTRIBUTED_UNVERIFIED"})
-        articles.append(f'<article class="full" id="{sid}"><div class="kicker">{desk.upper()} · {stamp}</div><h2>{title}</h2><p class="deck">{desc}</p><h3>What the source index reports</h3><p>{desc}</p><h3>Evidence boundaries</h3><p>This is a sourced index summary, not an independently checked or licensed full original. Background and counter-evidence require editor review.</p><h3>Difference from the morning issue</h3><p>{ESC(x.get("update_type"))}</p><h3>Source packet</h3><ul>{"".join(li)}</ul><a href="#front">Back to front page ↑</a></article>')
+        edit=by_event.get(x.get('event_id'),{})
+        draft_note='<p><strong>AI EDITORIAL DRAFT · UNVERIFIED · NOT SIGNED OFF</strong></p>' if edit else ''
+        # Content upgrade only: frozen Style C colors/grid/type remain unchanged.
+        paragraphs=[]
+        headings={'background':'Background / 背景','why_it_matters':'Why it matters / 重要性',
+                  'transmission':'Transmission / 影響機制','history':'Historical context / 歷史比較',
+                  'alternative':'Competing explanations / 不同觀點',
+                  'watch':'What to watch / 後續觀察','limitations':'Evidence limits / 證據限制'}
+        for key,label in headings.items():
+            value=str((edit.get('sections') or {}).get(key) or '').strip()
+            if value: paragraphs.append('<h3>'+ESC(label)+'</h3><p>'+ESC(value)+'</p>')
+        brief=str(edit.get('brief_zh') or '').strip()
+        if brief: draft_note+='<p>'+ESC(brief)+'</p>'
+        analysis_html=draft_note+''.join(paragraphs)
+        articles.append(f'<article class="full" id="{sid}"><div class="kicker">{desk.upper()} · {stamp}</div><h2>{title}</h2><p class="deck">{desc}</p><h3>What the source index reports</h3><p>{desc}</p>{analysis_html}<h3>Evidence boundaries</h3><p>This is a sourced index summary, not an independently checked or licensed full original. Background and counter-evidence require editor review.</p><h3>Difference from the morning issue</h3><p>{ESC(x.get("update_type") or issue.get("editorial_delta_status") or "UNVERIFIED")}</p><h3>Source packet</h3><ul>{"".join(li)}</ul><a href="#front">Back to front page ↑</a></article>')
     selected=stories[:5]
     day5="".join(f'<li><a href="#item-{ESC(x.get("event_id"))}">{ESC(x.get("title_original"))}</a></li>' for x in selected)
     lead=stories[0] if stories else None
