@@ -13,6 +13,7 @@ from gib.evidence_review import review_official_excerpts, check_claim_lineage
 from gib.editorial_depth import audit_editorial_depth
 from gib.research_dossier import make_dossiers, write_review_workbook, progress
 from gib.qa_tracker import build_record, persist_record
+from gib.p2_editorial_acceptance import assess_snapshot, p2_readiness
 from gib.publish_v16 import export
 from qa.opml_free_p1 import collect as collect_free_opml_rss, attach_opml_provenance
 from tools.gib_style_c_rc.live_html_qa import bounds, filter_raw_before_ranking, render as render_style_c
@@ -57,10 +58,24 @@ def run(args):
         else:
             raw=freenews(config,now,errors)+official_rss(config,errors)+gdelt(config,errors)
         prior=load_issue(args.morning_issue) if args.morning_issue else None
+        if prior and args.edition=='evening':
+            local_date=now.astimezone(ZoneInfo('Asia/Taipei')).date().isoformat()
+            if prior.get('edition')!='morning' or prior.get('report_date')!=local_date:
+                raise ValueError('EVENING_REQUIRES_SAME_DATE_COMPLETED_MORNING_ISSUE')
+        window_health=None
         if source_health is not None:
-            # The original OPML folder names are source provenance, never news desks.
+            # OPML group names are provenance, not editorial desks or quotas.
             start,end=bounds(now.astimezone(ZoneInfo('Asia/Taipei')).date(),args.edition)
+            indexed_count=len(raw)
             raw,window_exclusions=filter_raw_before_ranking(raw,start,end)
+            window_health={
+                'index_candidate_count':indexed_count,
+                'inside_edition_window':len(raw),
+                'outside_or_invalid_timestamp':len(window_exclusions),
+                'window_start_tpe':start.isoformat(),
+                'window_end_tpe':end.isoformat(),
+                'cutoff_snapshot':assess_snapshot(source_health,end.astimezone(dt.timezone.utc))
+            }
             now=end.astimezone(dt.timezone.utc)
             errors.extend(['OPML_WINDOW_EXCLUSIONS_'+str(len(window_exclusions))]
                          if window_exclusions else [])
@@ -71,6 +86,9 @@ def run(args):
             issue['source_health']['source_snapshot_origin']=source_health.get('data_origin')
             issue['source_health']['global_editorial_contract']='2026-10-23-approved-v1'
             issue['source_health']['p2_rss_gate']=source_health.get('gate')
+            issue['source_health']['window_diagnostics']={
+                k:v for k,v in window_health.items() if k!='cutoff_snapshot'}
+            issue['source_health']['cutoff_snapshot']=window_health['cutoff_snapshot']
     issue['source_health']['collector_errors']=errors
     if not issue.get('source_health',{}).get('has_morning_comparison') and args.edition=='evening':
         issue['editorial_delta_status']='HOLD_NO_COMPLETED_SAME_DAY_MORNING'
@@ -104,6 +122,7 @@ def run(args):
     issue['editorial_depth_audit']=audit_editorial_depth(issue,edits)
     issue['editorial_status']='REVIEW_REQUIRED'
     issue['release_approved']=False
+    issue['p2_editorial_acceptance']=p2_readiness(issue)
     audit=audit_issue(issue,require_full=True)
     # QA previews are generated despite release hold and prominently labeled.
     folder=issues/issue['issue_id']; folder.mkdir(parents=True,exist_ok=True)
@@ -141,7 +160,9 @@ def run(args):
             'source_snapshot_origin':issue.get('source_health',{}).get('source_snapshot_origin'),
             'qa_record':str(record_file),'release_approved':False,
             'release_hold_reasons':audit['reasons']+
-            issue['editorial_depth_audit']['release_blockers'],
+            issue['editorial_depth_audit']['release_blockers']+
+            issue['p2_editorial_acceptance']['blockers'],
+            'p2_editorial_acceptance':issue['p2_editorial_acceptance'],
             'editorial_depth_audit':issue['editorial_depth_audit'],
             'primary_evidence_review':review,
             'primary_evidence_progress':progress(issue),
