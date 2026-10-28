@@ -79,8 +79,12 @@ class IntegratedP2BatchTests(unittest.TestCase):
                 self.assertIn("QA HOLD",html)
                 self.assertIn("SOURCE CANDIDATE",html)
                 self.assertNotIn("EDITOR_APPROVED",html)
-                self.assertIn("Sources",html)
+                for heading in ("01 Executive Brief", "02 The World in Brief",
+                                "03 Essential Analysis", "04 Deep Research",
+                                "05 What Changed", "06 Sources"):
+                    self.assertIn(heading,html)
                 self.assertIn("What the source index reports",html)
+                self.assertIn("HOLD: no 2–3 independently evidenced",html)
                 self.assertNotIn("http://news.example",html)
                 align=json.loads((Path(episode["issue_json"]).parent/"style_c_alignment.json").read_text(encoding="utf-8"))
                 self.assertEqual(align["canonical_issue_sha256"],episode["issue_sha256"])
