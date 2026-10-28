@@ -1,0 +1,62 @@
+# P1/QA only. This feed workflow needs no Inoreader Pro secrets.
+name: GIB P1 - Free OPML direct publisher RSS QA
+on:
+  pull_request:
+    paths:
+      - 'config/inoreader_free_feeds.json'
+      - 'qa/opml_free_p1.py'
+      - 'tests/test_opml_free_p1.py'
+      - '.github/workflows/opml_free_source_gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'config/inoreader_free_feeds.json'
+      - 'qa/opml_free_p1.py'
+      - 'tests/test_opml_free_p1.py'
+      - '.github/workflows/opml_free_source_gate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-contract:
+    name: P1 24-source + RSS/Atom source contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install bounded public RSS fetch dependencies
+        run: python -m pip install 'requests>=2.32,<3'
+      - name: Verify source list and four-lane metadata/parser gates
+        run: python -m unittest discover -s tests -p 'test_opml_free_p1.py' -v
+      - name: Verify legacy source parsing safety remains intact
+        run: python -m unittest discover -s tests -p 'test_inoreader_source.py' -v
+  live-public-feeds:
+    name: P1 REAL 24 public RSS providers / issue HOLD
+    needs: source-contract
+    if: ${{ github.event_name != 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install 'requests>=2.32,<3'
+      - name: Fetch 24 real publisher RSS feeds and audit four-lane coverage
+        run: python qa/opml_free_p1.py
+      - name: Upload real source coverage and original metadata even on partial failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gib-p1-free-opml-source-evidence-${{ github.run_id }}
+          path: qa_out/inoreader_free_opml/
+          retention-days: 14
+          if-no-files-found: warn
+# No Gemini, HTML publication, EPUB, LINE, schedule or editorial approval.

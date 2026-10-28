@@ -1,0 +1,177 @@
+{
+  "schema": "gib_free_opml_sources_v1",
+  "imported_from": "Inoreader Feeds 20261028.xml",
+  "import_date": "2026-10-28",
+  "mode": "direct_publisher_rss_no_inoreader_export_or_pro",
+  "notes": "Preserves the user's four OPML folder assignments; category labels do not guarantee editorial relevance. Manual Inoreader tags/read states are not synchronized.",
+  "feeds": [
+    {
+      "id": "global_01",
+      "lane": "global",
+      "original_folder": "01_GLOBAL_NEWS｜全球重要新聞",
+      "name": "WSJ: World News",
+      "url": "https://feeds.content.dowjones.io/public/rss/RSSWorldNews"
+    },
+    {
+      "id": "global_02",
+      "lane": "global",
+      "original_folder": "01_GLOBAL_NEWS｜全球重要新聞",
+      "name": "CBC | Top Stories News",
+      "url": "https://rss.cbc.ca/lineup/topstories.xml"
+    },
+    {
+      "id": "global_03",
+      "lane": "global",
+      "original_folder": "01_GLOBAL_NEWS｜全球重要新聞",
+      "name": "BBC World",
+      "url": "https://feeds.bbci.co.uk/news/world/rss.xml"
+    },
+    {
+      "id": "global_04",
+      "lane": "global",
+      "original_folder": "01_GLOBAL_NEWS｜全球重要新聞",
+      "name": "The Guardian World",
+      "url": "https://feeds.theguardian.com/theguardian/world/rss"
+    },
+    {
+      "id": "global_05",
+      "lane": "global",
+      "original_folder": "01_GLOBAL_NEWS｜全球重要新聞",
+      "name": "BBC News - China",
+      "url": "https://feeds.bbci.co.uk/news/world/asia/china/rss.xml"
+    },
+    {
+      "id": "global_06",
+      "lane": "global",
+      "original_folder": "01_GLOBAL_NEWS｜全球重要新聞",
+      "name": "Al Jazeera English",
+      "url": "https://www.aljazeera.com/xml/rss/all.xml"
+    },
+    {
+      "id": "global_07",
+      "lane": "global",
+      "original_folder": "01_GLOBAL_NEWS｜全球重要新聞",
+      "name": "NPR News",
+      "url": "https://feeds.npr.org/1002/rss.xml"
+    },
+    {
+      "id": "global_08",
+      "lane": "global",
+      "original_folder": "01_GLOBAL_NEWS｜全球重要新聞",
+      "name": "The New York Times",
+      "url": "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"
+    },
+    {
+      "id": "global_09",
+      "lane": "global",
+      "original_folder": "01_GLOBAL_NEWS｜全球重要新聞",
+      "name": "BBC News",
+      "url": "https://feeds.bbci.co.uk/news/rss.xml"
+    },
+    {
+      "id": "macro_01",
+      "lane": "macro",
+      "original_folder": "02_MACRO_MARKETS_TECH｜總體金融科技",
+      "name": "BBC Business",
+      "url": "https://feeds.bbci.co.uk/news/business/rss.xml"
+    },
+    {
+      "id": "macro_02",
+      "lane": "macro",
+      "original_folder": "02_MACRO_MARKETS_TECH｜總體金融科技",
+      "name": "BBC Technology",
+      "url": "https://feeds.bbci.co.uk/news/technology/rss.xml"
+    },
+    {
+      "id": "macro_03",
+      "lane": "macro",
+      "original_folder": "02_MACRO_MARKETS_TECH｜總體金融科技",
+      "name": "Federal Reserve Monetary Policy Releases",
+      "url": "https://www.federalreserve.gov/feeds/press_monetary.xml"
+    },
+    {
+      "id": "macro_04",
+      "lane": "macro",
+      "original_folder": "02_MACRO_MARKETS_TECH｜總體金融科技",
+      "name": "BLS Employment Situation",
+      "url": "https://www.bls.gov/feed/empsit.rss"
+    },
+    {
+      "id": "macro_05",
+      "lane": "macro",
+      "original_folder": "02_MACRO_MARKETS_TECH｜總體金融科技",
+      "name": "BLS Consumer Price Index",
+      "url": "https://www.bls.gov/feed/cpi.rss"
+    },
+    {
+      "id": "macro_06",
+      "lane": "macro",
+      "original_folder": "02_MACRO_MARKETS_TECH｜總體金融科技",
+      "name": "BLS Producer Price Index",
+      "url": "https://www.bls.gov/feed/ppi.rss"
+    },
+    {
+      "id": "energy_commodities_01",
+      "lane": "energy_commodities",
+      "original_folder": "03_ENERGY_COMMODITIES｜能源與原料",
+      "name": "EIA Today in Energy",
+      "url": "https://www.eia.gov/rss/todayinenergy.xml"
+    },
+    {
+      "id": "energy_commodities_02",
+      "lane": "energy_commodities",
+      "original_folder": "03_ENERGY_COMMODITIES｜能源與原料",
+      "name": "EIA Press Releases",
+      "url": "https://www.eia.gov/rss/press_rss.xml"
+    },
+    {
+      "id": "energy_commodities_03",
+      "lane": "energy_commodities",
+      "original_folder": "03_ENERGY_COMMODITIES｜能源與原料",
+      "name": "EIA Gasoline and Diesel Fuel Update",
+      "url": "https://www.eia.gov/petroleum/gasdiesel/includes/gas_diesel_rss.xml"
+    },
+    {
+      "id": "taiwan_01",
+      "lane": "taiwan",
+      "original_folder": "04_TAIWAN_POLICY｜台灣工業法規補助",
+      "name": "纽约时报中文网 国际纵览",
+      "url": "https://cn.nytimes.com/rss.html"
+    },
+    {
+      "id": "taiwan_02",
+      "lane": "taiwan",
+      "original_folder": "04_TAIWAN_POLICY｜台灣工業法規補助",
+      "name": "Engadget",
+      "url": "https://www.engadget.com/rss.xml"
+    },
+    {
+      "id": "taiwan_03",
+      "lane": "taiwan",
+      "original_folder": "04_TAIWAN_POLICY｜台灣工業法規補助",
+      "name": "即時列表 - 聯合新聞網",
+      "url": "https://rsshub.umzzz.com/udn/news/breakingnews/01"
+    },
+    {
+      "id": "taiwan_04",
+      "lane": "taiwan",
+      "original_folder": "04_TAIWAN_POLICY｜台灣工業法規補助",
+      "name": "udn科技玩家 | 聯合新聞網",
+      "url": "https://tech.udn.com/tech/rssfeed"
+    },
+    {
+      "id": "taiwan_05",
+      "lane": "taiwan",
+      "original_folder": "04_TAIWAN_POLICY｜台灣工業法規補助",
+      "name": "鉅亨網 cnYES.com",
+      "url": "https://news.cnyes.com/rss/v1/news/category/headline"
+    },
+    {
+      "id": "taiwan_06",
+      "lane": "taiwan",
+      "original_folder": "04_TAIWAN_POLICY｜台灣工業法規補助",
+      "name": "公視新聞網",
+      "url": "https://news.pts.org.tw/xml/newsfeed.xml"
+    }
+  ]
+}

@@ -9,6 +9,7 @@ from gib.collect import freenews, official_rss, gdelt
 from gib.newsroom_v16 import canonical_issue, save_issue, load_issue, audit_issue
 from gib.evidence_review import check_claim_lineage
 from tools.gib_style_c_rc.inoreader_source import collect_export_feeds, urls_from_environment, attach_provenance
+from qa.opml_free_p1 import collect as collect_free_opml_rss, attach_opml_provenance
 
 TPE=ZoneInfo("Asia/Taipei")
 ESC=lambda x: html.escape(str(x or ""),quote=True)
@@ -145,15 +146,19 @@ def main():
     ap.add_argument("--output",default="qa_outputs/html_style_c")
     ap.add_argument("--morning-issue")
     ap.add_argument("--download-photos",action="store_true")
-    ap.add_argument("--source-mode",choices=["legacy","inoreader"],default="legacy")
+    ap.add_argument("--source-mode",choices=["opml","legacy","inoreader"],default="opml")
     a=ap.parse_args()
     now=dt.datetime.now(dt.timezone.utc);date=now.astimezone(TPE).date()
     start,cutoff=bounds(date,a.edition)
     config=json.loads(Path("config/sources.json").read_text(encoding="utf-8"))
     errors=[]
     inoreader_health=None
+    opml_health=None
     if a.source_mode=="inoreader":
         raw,inoreader_health=collect_export_feeds(urls_from_environment())
+    elif a.source_mode=="opml":
+        opml_config=json.loads(Path("config/inoreader_free_feeds.json").read_text(encoding="utf-8"))
+        raw,opml_health=collect_free_opml_rss(opml_config,now=now)
     else:
         raw=freenews(config,now,errors)+official_rss(config,errors)+gdelt(config,errors)
     collected=dt.datetime.now(dt.timezone.utc)
@@ -165,6 +170,8 @@ def main():
     issue["source_mode"]=a.source_mode
     if inoreader_health is not None:
         attach_provenance(issue,scoped_raw,inoreader_health)
+    if opml_health is not None:
+        attach_opml_provenance(issue,scoped_raw,opml_health)
     issue["editorial_status"]="REVIEW_REQUIRED"
     issue["cutoff_tpe"]=cutoff.isoformat()
     issue["capture_started_utc"]=now.isoformat()
@@ -181,6 +188,11 @@ def main():
             blockers.append("INOREADER_EMPTY_SOURCE_LANES:"+",".join(empty_lanes))
         if any(not x.get("inoreader_lanes") for x in rows):
             blockers.append("INOREADER_SELECTED_SOURCE_LINEAGE_MISSING")
+    if opml_health is not None:
+        if opml_health["gate"]!="PASS_DIRECT_RSS_DISCOVERY":
+            blockers.append("OPML_FOUR_LANE_LIVE_SOURCE_GATE_NOT_PASSED")
+        if any(not x.get("opml_source_groups") for x in rows):
+            blockers.append("OPML_SOURCE_PROVENANCE_MISSING")
     blockers+=["SOURCE_INDEX_NOT_CLAIM_VERIFIED","INDEPENDENT_COVERAGE_REVIEW_PENDING",
                 "HUMAN_REVIEW_PENDING","BOOX_REAL_DEVICE_PENDING","10_TRADING_DAY_TRIAL_NOT_STARTED"]
     offset=(now-cutoff.astimezone(dt.timezone.utc)).total_seconds()/60
@@ -201,7 +213,7 @@ def main():
     save_issue(issue,out/"issue.json")
     gate={"edition":a.edition,"report_date_tpe":date.isoformat(),"cutoff_tpe":cutoff.isoformat(),"capture_utc":now.isoformat(),
           "capture_finished_utc":collected.isoformat(),"release_approved":False,
-          "source_mode":a.source_mode,"inoreader":inoreader_health,
+          "source_mode":a.source_mode,"inoreader":inoreader_health,"free_opml":opml_health,
           "source_index_candidates":len(raw),"window_eligible_before_rank":len(scoped_raw),"pre_rank_exclusions":pre_rank_exclusions,"selected":len(rows),
           "capture_lag_minutes":round(offset,1),"image_count":len(photos),
           "photo_audit":photo_audit,"excluded":exclusions,"collector_errors":errors,
