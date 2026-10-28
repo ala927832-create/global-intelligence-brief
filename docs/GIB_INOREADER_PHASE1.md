@@ -59,3 +59,17 @@ Inoreader 保留你的訂閱、監測、Rules 與標籤。轉接器只讀四路 
 GitHub Actions 檢查時只顯示 global / macro / energy_commodities / taiwan 四個來源名稱與上述分類，不輸出任何私人網址、查詢參數、存取識別碼。若四路都顯示 VALID_URL_SHAPE 才執行真實下載。
 
 官方做法：於 Inoreader 左側對資料夾／標籤右鍵開啟資訊，啟用 Export，從 RSS 或 JSON 的選項複製生成的完整網址，不要使用 OPML、HTML clip 或頁面網址。
+
+## 2026-10-28 verified P1 status — blocker, no further manual reruns
+
+**Run:** https://github.com/ala927832-create/global-intelligence-brief/actions/runs/40618450918
+
+Main commit: `1cacec304113a7a3e1e0c0d6c9a4ed7632bb3fd1`.
+- Offline four-lane parser/normalization/fail-closed tests: **PASS**.
+- Live P1 gate executed inside main-branch GitHub Actions with the **actual four existing repository Secrets**: **BLOCKED_INVALID_FEED_VALUES**.
+- Global, macro, energy_commodities and taiwan: all **INOREADER_EXPORT_NOT_A_URL**, even after safe normalisation of recognised Inoreader HTTP or scheme-less links.
+- Live news downloaded: **none**. Publication / editorial: **HOLD**.
+
+Do **NOT** ask the owner to run the same QA again or describe it as a code defect. The only unsolved P1 dependency is that all four GitHub Secret **values** must be replaced with actual RSS or JSON **Export URLs** from the corresponding Inoreader folder/tag property panel (not folder labels, news-site RSS, home-page addresses, or Secret names). The owner's one consolidated correction must be completed before the next live test. Afterwards an agent may make a narrowly scoped main-branch change to trigger the automatic `GIB P1 - Live Inoreader source gate` once; it must inspect that live run and its safe report before asking the owner to do anything else. Never request or print private feed URLs in chat.
+
+The source adapter and P1 test suite are validated; end-to-end Inoreader connection is **NOT** validated. Do not progress to P2 until all four real input feeds are fetched and original URLs/timestamps prove ingestion.
