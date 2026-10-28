@@ -1,0 +1,127 @@
+{
+  "schema": "gib_specialist_watchlist_v1",
+  "as_of": "2026-10-28",
+  "policy": "All reference URLs verified at index/landing-page level. No claim of live RSS availability; these are NOT automatically collected into daily news unless a tested adapter exists. Titles/date require publisher verification.",
+  "sources": [
+    {
+      "id": "moea_subsidy_portal",
+      "name": "經濟部補助計畫入口網",
+      "topic": "taiwan_subsidies",
+      "url": "https://service.moea.gov.tw/EE502/NewPortal/",
+      "mode": "official_manual_review",
+      "priority": "P0",
+      "frequency": "daily_review",
+      "notes": "Verify eligibility, deadlines, budgets and revision dates from individual project notices; never infer grant eligibility."
+    },
+    {
+      "id": "ida_official_announcements",
+      "name": "經濟部產業發展署電子公告",
+      "topic": "taiwan_industry",
+      "url": "https://www.ida.gov.tw/ctlr?PRO=news.NewsList&type=eBulletin",
+      "mode": "official_manual_review",
+      "priority": "P0",
+      "frequency": "daily_review",
+      "notes": "Policy notices, subsidy deadline changes; current direct RSS entries handled separately."
+    },
+    {
+      "id": "moenv_open_environment",
+      "name": "環境部環保新聞開放資料",
+      "topic": "environment_regulations",
+      "url": "https://data.moenv.gov.tw/dataset/detail/MNEWS_P_01",
+      "mode": "official_open_dataset_review",
+      "priority": "P0",
+      "frequency": "every_3_days",
+      "notes": "Dataset updated ~3 days; formal notices must be confirmed on official press release page."
+    },
+    {
+      "id": "moenv_water",
+      "name": "環境部水質相關公告",
+      "topic": "industrial_wastewater",
+      "url": "https://water.moenv.gov.tw/Public/CHT/NewsLaw/newslist.aspx",
+      "mode": "official_manual_review",
+      "priority": "P0",
+      "frequency": "weekly_review",
+      "notes": "Water and effluent permits, legislation; official dates require manual verification."
+    },
+    {
+      "id": "ilzsg_zinc",
+      "name": "ILZSG zinc supply demand press releases",
+      "topic": "zinc_fundamentals",
+      "url": "https://www.ilzsg.org/press-releases/",
+      "mode": "official_association_release_review",
+      "priority": "P0",
+      "frequency": "monthly_on_release",
+      "notes": "Free press releases only; detailed Bulletin/database may require subscription."
+    },
+    {
+      "id": "ilzsg_free_data",
+      "name": "ILZSG free access data",
+      "topic": "zinc_prices_stocks",
+      "url": "https://www.ilzsg.org/free-access-data/",
+      "mode": "official_free_reference",
+      "priority": "P1",
+      "frequency": "monthly_review",
+      "notes": "Check page chart ranges and observation dates; no assumption that data are daily or comprehensive."
+    },
+    {
+      "id": "lme_zinc_prices",
+      "name": "London Metal Exchange official Zinc",
+      "topic": "zinc_price_inventory",
+      "url": "https://www.lme.com/en/metals/non-ferrous/lme-zinc",
+      "mode": "official_dated_market_reference",
+      "priority": "P0",
+      "frequency": "daily_review",
+      "notes": "Separate LME Official vs Closing prices, cash/3M and warehouse stock; respect site rights and display delays."
+    },
+    {
+      "id": "worldsteel_press",
+      "name": "World Steel Association press releases 2026",
+      "topic": "global_steel",
+      "url": "https://worldsteel.org/media/press-releases/2026/",
+      "mode": "official_association_release_review",
+      "priority": "P0",
+      "frequency": "monthly_on_release",
+      "notes": "Monthly crude steel production and periodic steel demand outlook; not equivalent to Taiwan steel order volume."
+    },
+    {
+      "id": "worldsteel_data",
+      "name": "worldsteel Steel Data Viewer",
+      "topic": "global_steel_stats",
+      "url": "https://worldsteel.org/data/steel-data-viewer/",
+      "mode": "official_dated_statistical_reference",
+      "priority": "P1",
+      "frequency": "monthly_on_release",
+      "notes": "Capture exact release date, reported month and scope."
+    },
+    {
+      "id": "usgs_zinc",
+      "name": "USGS Mineral Commodity Summaries 2026",
+      "topic": "zinc_long_term",
+      "url": "https://pubs.usgs.gov/publication/mcs2026",
+      "mode": "official_annual_research",
+      "priority": "P1",
+      "frequency": "annual_release",
+      "notes": "Annual mining and reserves backdrop, not current zinc price."
+    },
+    {
+      "id": "aga_galvanizing",
+      "name": "American Galvanizers Association technical publications",
+      "topic": "hot_dip_galvanizing",
+      "url": "https://galvanizeit.org/education-and-resources/publications",
+      "mode": "professional_technical_reference",
+      "priority": "P0",
+      "frequency": "monthly_review",
+      "notes": "Reference for coating, design, inspection and corrosion technical education, not daily news feed."
+    },
+    {
+      "id": "bls_api_documentation",
+      "name": "BLS unregistered API v1",
+      "topic": "us_macro_statistics",
+      "url": "https://www.bls.gov/developers/api_signature.htm",
+      "mode": "official_numeric_api",
+      "priority": "P0",
+      "frequency": "daily_data_check",
+      "notes": "Numeric observation period is not release timestamp; implemented in qa/bls_official_v1.py; BLS publication sources remain separate."
+    }
+  ]
+}
