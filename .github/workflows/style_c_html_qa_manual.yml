@@ -8,7 +8,7 @@ on:
         required: true
         options: [morning, evening]
       source_mode:
-        description: Pilot uses Inoreader exported Global and Industry feeds (no fallback)
+        description: Pilot uses the four configured Inoreader feeds (no fallback)
         type: choice
         required: true
         default: inoreader
@@ -46,13 +46,19 @@ jobs:
         if: ${{ inputs.source_mode == 'inoreader' }}
         env:
           INOREADER_GLOBAL_FEED_URL: ${{ secrets.INOREADER_GLOBAL_FEED_URL }}
-          INOREADER_INDUSTRY_FEED_URL: ${{ secrets.INOREADER_INDUSTRY_FEED_URL }}
+          INOREADER_MACRO_FEED_URL: ${{ secrets.INOREADER_MACRO_FEED_URL }}
+          INOREADER_ENERGY_COMMODITIES_FEED_URL: ${{ secrets.INOREADER_ENERGY_COMMODITIES_FEED_URL }}
+          INOREADER_TAIWAN_FEED_URL: ${{ secrets.INOREADER_TAIWAN_FEED_URL }}
         run: |
-          if [ -z "$INOREADER_GLOBAL_FEED_URL" ] || [ -z "$INOREADER_INDUSTRY_FEED_URL" ]; then
-            echo 'INOREADER_NOT_CONNECTED: Configure both global and industry output feed URLs in GitHub Actions Secrets.'
+          missing=()
+          for name in INOREADER_GLOBAL_FEED_URL INOREADER_MACRO_FEED_URL INOREADER_ENERGY_COMMODITIES_FEED_URL INOREADER_TAIWAN_FEED_URL; do
+            if [ -z "${!name}" ]; then missing+=("$name"); fi
+          done
+          if [ "${#missing[@]}" -gt 0 ]; then
+            printf 'INOREADER_NOT_CONNECTED: missing GitHub Secrets: %s\n' "${missing[*]}"
             exit 1
           fi
-          echo 'Inoreader lane secrets are configured; feed availability will be tested during collection.'
+          echo 'All four Inoreader feed secrets are configured; checking remote feed content next.'
       - name: Fetch earlier actual morning issue for evening delta
         if: ${{ inputs.edition == 'evening' }}
         env:
@@ -67,7 +73,9 @@ jobs:
         env:
           FREENEWS_API_KEY: ${{ secrets.FREENEWS_API_KEY }}
           INOREADER_GLOBAL_FEED_URL: ${{ secrets.INOREADER_GLOBAL_FEED_URL }}
-          INOREADER_INDUSTRY_FEED_URL: ${{ secrets.INOREADER_INDUSTRY_FEED_URL }}
+          INOREADER_MACRO_FEED_URL: ${{ secrets.INOREADER_MACRO_FEED_URL }}
+          INOREADER_ENERGY_COMMODITIES_FEED_URL: ${{ secrets.INOREADER_ENERGY_COMMODITIES_FEED_URL }}
+          INOREADER_TAIWAN_FEED_URL: ${{ secrets.INOREADER_TAIWAN_FEED_URL }}
           SOURCE_MODE: ${{ inputs.source_mode }}
           EDITION: ${{ inputs.edition }}
         run: |

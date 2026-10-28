@@ -175,8 +175,10 @@ def main():
     issue["source_health"]["claim_lineage_errors"]=check_claim_lineage(issue)
     blockers=audit_issue(issue,require_full=True)["reasons"]
     if a.source_mode=="inoreader":
-        if any(inoreader_health["lane_stats"][lane]["readable_items"]==0 for lane in ("global","industry")):
-            blockers.append("INOREADER_EMPTY_GLOBAL_OR_INDUSTRY_LANE")
+        empty_lanes=[lane for lane,stats in inoreader_health["lane_stats"].items()
+                     if stats["readable_items"]==0]
+        if empty_lanes:
+            blockers.append("INOREADER_EMPTY_SOURCE_LANES:"+",".join(empty_lanes))
         if any(not x.get("inoreader_lanes") for x in rows):
             blockers.append("INOREADER_SELECTED_SOURCE_LINEAGE_MISSING")
     blockers+=["SOURCE_INDEX_NOT_CLAIM_VERIFIED","INDEPENDENT_COVERAGE_REVIEW_PENDING",
