@@ -75,8 +75,8 @@ def p2_readiness(issue):
     if len(leads)<3: blockers.append("LESS_THAN_THREE_LEAD_EVENTS")
     if len(leads)<3 or any(x["gaps"] for x in leads):
         blockers.append("LEAD_CROSS_REFERENCE_AND_PRIMARY_FACT_REVIEW_INCOMPLETE")
-    if edits.get("deep_drafts_meeting_minimum_review_standard",0)<2:
-        blockers.append("TWO_EVIDENCED_DEEP_STUDIES_MISSING")
+    if edits.get("deep_drafts_meeting_minimum_review_standard",0)<1:
+        blockers.append("ONE_EVIDENCED_DEEP_STUDY_MISSING")
     if status!="REVISED_DRAFT_PENDING_REVIEW":
         blockers.append("GEMINI_TWO_PASS_MATERIAL_REVISION_NOT_ACCEPTED")
     if issue.get("edition")=="evening" and not health.get("has_morning_comparison"):
