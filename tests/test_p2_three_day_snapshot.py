@@ -33,7 +33,10 @@ class ThreeDayQA(unittest.TestCase):
         self.assertIn("actions: write",finalizer)
         self.assertIn("qa/p2_three_day_snapshot.py disable",finalizer)
         self.assertNotIn("workflow_dispatch:",workflow)
-        self.assertNotIn("publish",workflow.split("  capture:",1)[1].split("  finalizer:",1)[0].split("steps:",1)[1].lower())
+        capture_steps=workflow.split("  capture:",1)[1].split("  finalizer:",1)[0]
+        self.assertNotIn("ENABLE_GEMINI:",capture_steps)
+        self.assertNotIn("python run_newsroom_v16.py",capture_steps)
+        self.assertNotIn("LINE_CHANNEL_ACCESS_TOKEN",capture_steps)
 
     def test_only_six_workday_slots_authorized(self):
         self.assertEqual(ALLOWED_DATES,{"2026-10-29","2026-10-30","2026-11-02"})
