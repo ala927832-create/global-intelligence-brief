@@ -42,3 +42,19 @@
 - LME Zinc：https://www.lme.com/en/metals/non-ferrous/lme-zinc
 - worldsteel：https://worldsteel.org/media/press-releases/2026/
 - AGA：https://galvanizeit.org/education-and-resources/publications
+
+## GitHub 真實來源驗收結果（2026-10-28 台北時間）
+
+**實際 Run：** https://github.com/ala927832-create/global-intelligence-brief/actions/runs/40624847579
+
+- `P1_GATE PASS_DIRECT_RSS_DISCOVERY`，共 **27** 路（原始 OPML 24＋產業發展署 3），近 7 日去重 **355** 個原始文章網址。
+- 全球 9 路中近 7 日有新聞的 9 路；總經 6 路中 2 路；能源 3 路中 2 路；台灣 9 路中 7 路。
+- 產發署新聞 `taiwan_ida_press`：OK，20 個有效項目，近 7 日 2 則。
+- 產發署法令 `taiwan_ida_regulations`：OK，20 個有效項目，近 7 日 1 則。
+- 產發署施政措施 `taiwan_ida_policy`：NO_USABLE_ARTICLES，0 個可用項目。保留來源，但未證明有有效新聞，不可誤報成功。
+- BLS Public Data API v1：**OFFICIAL_SERIES_OK**，四序列皆回傳有效資料；最新觀測月份都是 **2026-09**（CPI CUSR0000SA0、失業率 LNS14000000、非農 CES0000000001、PPI WPUFD4）。這些觀測數據不是 2026-10-28 當日發布的新聞。
+- 原有 BLS RSS 三路仍 HTTP 403；不是 BLS API 的失敗，不能混淆。這次可用的數值查核替代管線已完成。
+- 總專案 smoke QA Run：https://github.com/ala927832-create/global-intelligence-brief/actions/runs/40624847546 → Success。
+- 真實證據 artifact：https://github.com/ala927832-create/global-intelligence-brief/actions/runs/40624847579/artifacts/12788443725 。
+
+**嚴格結論：** 台灣官方 RSS 與 BLS 數值管線已取得真實成功證據；ILZSG、LME、worldsteel、AGA 等專業入口屬於已核對但**尚未自動化**的查核來源。無權限的完整月報與技術標準不可宣稱可免費採集。P2／P3 發行驗收仍 HOLD。
