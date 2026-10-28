@@ -190,10 +190,9 @@ def issue_body(issue, edits=None, level='essential'):
         result.append('<p>此章節的完整研究僅在同一期 Deep Research EPUB 展開。速讀版不以重複文字或未經驗證推論填充篇幅。</p>')
     elif issue.get('deep_research'):
         for i,topic in enumerate(issue['deep_research'],1):
-            topic_anchor=(f' id="research-topic-{i}"')
-            if topic.get('event_id'):
-                topic_anchor=topic_anchor[:-1]+'><span id="research-'+anchor_id(topic)+'"></span'
-            result.append(f'<div class="dossier"><p class="eyebrow">RESEARCH {i:02d} · 待人工簽核</p><h3{topic_anchor}>{h(topic["title"])}</h3>')
+            topic_anchor=f' id="research-topic-{i}"'
+            extra_anchor=('<span id="research-'+anchor_id(topic)+'"></span>' if topic.get('event_id') else '')
+            result.append(f'<div class="dossier"><p class="eyebrow">RESEARCH {i:02d} · 待人工簽核</p>'+extra_anchor+f'<h3{topic_anchor}>{h(topic["title"])}</h3>')
             if topic.get('question'):
                 result.append('<p class="lead">'+h(topic['question'])+'</p>')
             if topic.get('source_ids'):
