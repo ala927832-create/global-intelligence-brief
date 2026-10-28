@@ -83,22 +83,40 @@ def _original_link(item):
 
 
 def _validate_feed_url(url):
-    """Accept *only* Inoreader HTTPS exported RSS/JSON feeds.
+    """Return a safe HTTPS Inoreader output URL, never log the secret value.
 
-    Never include the incoming URL (it may hold an access token) in errors.
-    Each error is a stable non-sensitive code for repository Actions logs.
+    Normalize only documented/recognizable Inoreader hostnames and a full
+    output-stream path. No arbitrary URL/redirect or non-HTTPS requests.
     """
-    if not isinstance(url, str) or not url.strip():
+    if not isinstance(url,str) or not url.strip():
         raise ValueError("INOREADER_EXPORT_URL_MISSING")
-    if url.strip() in LANES.values():
+    value=url.strip()
+    if len(value)>4096 or "\\n" in value or "\\r" in value:
+        raise ValueError("INOREADER_EXPORT_VALUE_NOT_SINGLE_URL")
+    if len(value)>=2 and value[0]==value[-1] and value[0] in ("'",'"'):
+        value=value[1:-1].strip()
+    if value in LANES.values():
         raise ValueError("INOREADER_EXPORT_SECRET_CONTAINS_NAME_NOT_URL")
+    if value.lower() in ("rss","json","export","on","url","inoreader","inoreader.com"):
+        raise ValueError("INOREADER_EXPORT_PLACEHOLDER_NOT_URL")
+    # Some UIs copy an http or scheme-less address. Upgrade to HTTPS
+    # locally only; verify the hostname and /stream/user/ path afterward.
+    if value.lower().startswith("http://"):
+        value="https://"+value[7:]
+    elif not value.lower().startswith("https://"):
+        short=value.lstrip("/")
+        host=short.split("/",1)[0].lower()
+        if host in ALLOWED_HOSTS:
+            value="https://"+short
+        else:
+            raise ValueError("INOREADER_EXPORT_NOT_A_URL")
     try:
-        parsed = urlsplit(url.strip())
-        hostname = parsed.hostname
-        port = parsed.port
+        parsed=urlsplit(value)
+        hostname=parsed.hostname
+        port=parsed.port
     except ValueError:
         raise ValueError("INOREADER_EXPORT_URL_MALFORMED") from None
-    if parsed.scheme.lower() != "https":
+    if parsed.scheme.lower()!="https":
         raise ValueError("INOREADER_EXPORT_HTTPS_REQUIRED")
     if parsed.username or parsed.password or parsed.fragment or port is not None:
         raise ValueError("INOREADER_EXPORT_URL_UNSAFE")
@@ -110,7 +128,7 @@ def _validate_feed_url(url):
         raise ValueError("INOREADER_EXPORT_EXPECTED_RSS_OR_JSON_STREAM_LINK")
     if parsed.path.rstrip("/").endswith("/view/html"):
         raise ValueError("INOREADER_EXPORT_HTML_VIEW_NOT_SUPPORTED")
-    return url.strip()
+    return value
 
 
 def safe_feed_diagnostics(urls):
@@ -242,9 +260,10 @@ def collect_export_feeds(urls, fetcher=None):
     missing = [lane for lane in LANES if not urls.get(lane)]
     if missing:
         raise RuntimeError("INOREADER_NOT_CONNECTED:" + ",".join(missing))
+    normalized_urls={}
     for lane in LANES:
         try:
-            _validate_feed_url(urls[lane])
+            normalized_urls[lane]=_validate_feed_url(urls[lane])
         except ValueError as exc:
             # Print only safe lane name and stable validation code.
             raise ValueError(f"INOREADER_INVALID_EXPORT_{lane}:{exc}") from None
@@ -266,7 +285,7 @@ def collect_export_feeds(urls, fetcher=None):
     by_url = {}
     fetched_at = dt.datetime.now(dt.timezone.utc).isoformat()
     for lane in LANES:
-        url = urls[lane]
+        url = normalized_urls[lane]
         try:
             content, content_type = fetch(url)
             if len(content) > MAX_FEED_BYTES:
