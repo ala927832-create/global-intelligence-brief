@@ -36,7 +36,10 @@ def article_sources(item):
              'publisher': (urlsplit(url).hostname or 'unknown'),
              'article_published_at': item.get('published_at'),
              'kind':'OFFICIAL_FEED' if item.get('official') and url==item.get('url') else 'NEWS_ARTICLE',
-             'retrieval_status':'INDEX_ONLY'} for url in uniq]
+             'retrieval_status':'INDEX_ONLY',
+             'discovery_provider':item.get('provider','UNKNOWN_SOURCE_INDEX'),
+             'discovery_providers':list(item.get('discovery_providers') or [item.get('provider','UNKNOWN_SOURCE_INDEX')]),
+             'evidence_status':'ATTRIBUTED_NOT_INDEPENDENTLY_VERIFIED'} for url in uniq]
 
 def canonical_issue(raw, edition, now, weights=None, prior=None, max_items=12, require_material_relevance=False):
     if now.tzinfo is None: raise ValueError('now must be timezone-aware')
