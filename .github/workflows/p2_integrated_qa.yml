@@ -6,6 +6,11 @@ on:
       - 'run_newsroom_v16.py'
       - 'qa/p2_integrated_batch.py'
       - 'tests/test_p2_integrated_batch.py'
+      - 'tests/test_p2_editorial_evidence_gate.py'
+      - 'gib/p2_editorial_acceptance.py'
+      - 'gib/editorial.py'
+      - 'gib/gemini_editor_v16.py'
+      - 'tools/gib_style_c_rc/test_bridge.py'
       - 'tools/gib_style_c_rc/live_html_qa.py'
       - 'AGENTS.md'
       - 'EDITORIAL_V16_IMPLEMENTATION.md'
@@ -16,6 +21,11 @@ on:
       - 'run_newsroom_v16.py'
       - 'qa/p2_integrated_batch.py'
       - 'tests/test_p2_integrated_batch.py'
+      - 'tests/test_p2_editorial_evidence_gate.py'
+      - 'gib/p2_editorial_acceptance.py'
+      - 'gib/editorial.py'
+      - 'gib/gemini_editor_v16.py'
+      - 'tools/gib_style_c_rc/test_bridge.py'
       - 'tools/gib_style_c_rc/live_html_qa.py'
       - '.github/workflows/p2_integrated_qa.yml'
   workflow_dispatch:
@@ -43,7 +53,8 @@ jobs:
       - name: Owner charter, existing modules and paired P2 integration regression
         run: |
           python -m unittest discover -s tests -q
-          python -m py_compile qa/p2_integrated_batch.py run_newsroom_v16.py tools/gib_style_c_rc/live_html_qa.py
+          python -m py_compile qa/p2_integrated_batch.py run_newsroom_v16.py tools/gib_style_c_rc/live_html_qa.py gib/p2_editorial_acceptance.py
+          python tools/gib_style_c_rc/test_bridge.py
   real-paired-qa:
     name: P2 real 24-feed snapshot, one editorial pipeline, 2 QA editions (no publication)
     needs: offline-integration
