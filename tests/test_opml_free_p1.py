@@ -26,6 +26,16 @@ class FreeOpmlTests(unittest.TestCase):
         self.assertEqual(sum(x.get("source_class")=="official_government_rss" for x in self.feeds),3)
         self.assertTrue(all("www.ida.gov.tw" in x["url"] for x in self.feeds if x.get("source_class")=="official_government_rss"))
 
+    def test_official_industrial_policy_source_flag_not_merely_folder_label(self):
+        official=next(x for x in self.feeds if x["id"]=="taiwan_ida_press")
+        imported=next(x for x in self.feeds if x["id"]=="taiwan_01")
+        body=self.rss("工業政策公告","https://www.ida.gov.tw/ctlr?PRO=news.NewsView")
+        official_rows,_=parse_feed(body,official,self.now)
+        imported_rows,_=parse_feed(body,imported,self.now)
+        self.assertTrue(official_rows[0]["official"])
+        self.assertEqual(official_rows[0]["source_class"],"official_government_rss")
+        self.assertFalse(imported_rows[0]["official"])
+
     def test_full_four_group_probe_with_realistic_rss_fixtures(self):
         mapping={f["url"]:self.rss("Article "+f["id"],"https://public.example/news/"+f["id"])
                  for f in self.feeds}
