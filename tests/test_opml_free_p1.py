@@ -15,23 +15,25 @@ class FreeOpmlTests(unittest.TestCase):
     def rss(self, title, link):
         return f'<rss version="2.0"><channel><item><title>{title}</title><link>{link}</link><pubDate>{self.published}</pubDate><description>Index only, no claim verification</description></item></channel></rss>'.encode()
 
-    def test_user_opml_has_24_unique_original_sources_in_four_groups(self):
-        self.assertEqual(len(self.feeds),24)
-        self.assertEqual(len({x["url"] for x in self.feeds}),24)
+    def test_24_original_opml_plus_three_verified_taiwan_official_feeds(self):
+        self.assertEqual(len(self.feeds),27)
+        self.assertEqual(len({x["url"] for x in self.feeds}),27)
         self.assertEqual({l:sum(x["lane"]==l for x in self.feeds)
                           for l in ("global","macro","energy_commodities","taiwan")},
-                         {"global":9,"macro":6,"energy_commodities":3,"taiwan":6})
+                         {"global":9,"macro":6,"energy_commodities":3,"taiwan":9})
         self.assertTrue(all(x["url"].startswith("https://") for x in self.feeds))
         self.assertNotIn("Inoreader Pro",str(self.config))
+        self.assertEqual(sum(x.get("source_class")=="official_government_rss" for x in self.feeds),3)
+        self.assertTrue(all("www.ida.gov.tw" in x["url"] for x in self.feeds if x.get("source_class")=="official_government_rss"))
 
     def test_full_four_group_probe_with_realistic_rss_fixtures(self):
         mapping={f["url"]:self.rss("Article "+f["id"],"https://public.example/news/"+f["id"])
                  for f in self.feeds}
         articles, health=collect(self.config,fetcher=lambda url:mapping[url],now=self.now)
         self.assertEqual(health["gate"],"PASS_DIRECT_RSS_DISCOVERY")
-        self.assertEqual(health["configured_sources"],24)
-        self.assertEqual(len(articles),24)
-        self.assertEqual(health["recent_7d_unique_article_urls"],24)
+        self.assertEqual(health["configured_sources"],27)
+        self.assertEqual(len(articles),27)
+        self.assertEqual(health["recent_7d_unique_article_urls"],27)
         self.assertFalse(health["release_approved"])
         self.assertEqual(health["editorial_claims_verified"],0)
         self.assertTrue(all(x["provider"]=="direct_opml_rss" for x in articles))
@@ -65,7 +67,7 @@ class FreeOpmlTests(unittest.TestCase):
             return duplicate
         articles, report=collect(self.config,fetcher=fake_fetch,now=self.now)
         self.assertEqual(len(articles),1)
-        self.assertEqual(len(articles[0]["source_ids"]),24)
+        self.assertEqual(len(articles[0]["source_ids"]),27)
         self.assertEqual(set(articles[0]["source_groups"]),
                          {"global","macro","energy_commodities","taiwan"})
         self.assertEqual(report["gate"],"PARTIAL_SOURCE_COVERAGE_REVIEW_REQUIRED")
