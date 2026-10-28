@@ -131,7 +131,7 @@
 - 新增唯一允許的臨時 workflow：`.github/workflows/gib_p2_three_day_source_capture.yml`。原始 24 個 OPML 與既有免費公開來源不變；每次只收集去重後的原始網址、發布時間、來源健康狀態、實際擷取時間及晨晚差異索引。不叫 Gemini、不發 LINE、不產製／發布正式 EPUB。
 - 三個工作日六次預計時間：10/29 07:30、17:30；10/30 07:30、17:30；11/02 07:30、17:30（均 Asia/Taipei）。任何其他日期與時段在程式碼中受到硬性白名單拒絕。
 - 11/02 最後晚間將嘗試**自動停用這個 QA workflow**。GitHub Token 若拒絕停用操作，程式仍禁止 11/03 起的新來源擷取；實際停用必須依 11/02 finalizer 日誌確認，不得提前宣稱已成功。
-- 每次來源資料與健康狀態存於 GitHub Actions 的私人 artifact 14 日。最後晚間嘗試生成六時段彙整，漏採、延遲和對比缺失必須揭露。GitHub schedule 可能延遲或跳過，實際時戳優先於理論排程時間。
+- 每次來源資料與健康狀態存於公開 GitHub repository 的 Actions artifact 14 日，**該 artifact 可能可由外部人士取得，因而只准保存已公開的新聞來源索引及非機密 QA 資料，不存帳戶秘密或尚未發布的編輯正文**。最後晚間嘗試生成六時段彙整，漏採、延遲和對比缺失必須揭露。GitHub schedule 可能延遲或跳過，實際時戳優先於理論排程時間。
 - 已通過 **PR #16 與 #17 的硬性時段、六次限制、模擬來源、發布鎖定與停止機制的離線 CI 測試**，並合併至 main。PR #16：https://github.com/ala927832-create/global-intelligence-brief/pull/16；PR #17：https://github.com/ala927832-create/global-intelligence-brief/pull/17。
 - 完整核准範圍及紀錄：https://github.com/ala927832-create/global-intelligence-brief/blob/main/docs/GIB_P2_THREE_DAY_QA_APPROVAL_20261028.md
 
