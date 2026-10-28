@@ -35,6 +35,24 @@ MAX_FEED_BYTES = 2_000_000
 MAX_ENTRIES_PER_LANE = 200
 MAX_SNIPPET_CHARS = 450
 
+class InoreaderExportSuspended(ValueError):
+    """Export endpoint responds with a synthetic billing/permission notice."""
+
+
+def is_suspended_export_item(item):
+    """Catch Inoreader's syntactically valid RSS/JSON access-error article."""
+    title = str(item.get("title") or "").casefold().strip()
+    snippet = str(item.get("summary") or "").casefold()
+    link = str(item.get("url") or "").casefold()
+    return (
+        title.startswith("feed suspended!")
+        and (
+            "inoreader pro plan is required to export rss feeds" in snippet
+            or "inoreader.com/upgrade/feature/rss_common" in link
+        )
+    )
+
+
 
 class _Text(HTMLParser):
     def __init__(self):
@@ -221,6 +239,8 @@ def normalize_items(raw: bytes, content_type: str, lane: str):
                 "missing_publication_time": 0, "future_publication_time": 0}
     future_bound = dt.datetime.now(dt.timezone.utc) + dt.timedelta(minutes=10)
     for item in _parse(raw, content_type):
+        if is_suspended_export_item(item):
+            raise InoreaderExportSuspended("INOREADER_EXPORT_SUSPENDED_PRO_PLAN_REQUIRED")
         title = plain_text(item["title"])[:280]
         url = str(item["url"] or "").strip()
         parsed = urlsplit(url)
@@ -291,6 +311,8 @@ def collect_export_feeds(urls, fetcher=None):
             if len(content) > MAX_FEED_BYTES:
                 raise ValueError("INOREADER_EXPORT_TOO_LARGE")
             rows, rejected = normalize_items(content, content_type, lane)
+        except InoreaderExportSuspended:
+            raise RuntimeError("INOREADER_EXPORT_SUSPENDED_PRO_PLAN_REQUIRED:" + lane) from None
         except Exception as exc:
             # Never include Inoreader feed address or raw exception text in logs/artifacts.
             raise RuntimeError("INOREADER_FEED_UNAVAILABLE:" + lane + ":" + type(exc).__name__) from None
