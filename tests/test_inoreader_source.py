@@ -75,6 +75,33 @@ class InoreaderSourceTests(unittest.TestCase):
         self.assertTrue(rows[0]["published_at"].endswith("+00:00"))
         self.assertEqual(sum(rejected.values()),0)
 
+    def test_inoreader_pro_suspended_rss_never_becomes_news(self):
+        xml=b"""<?xml version="1.0" encoding="UTF-8"?>
+        <rss version="2.0"><channel>
+        <title>Example global output</title>
+        <item>
+        <title>Feed suspended! Please contact the owner.</title>
+        <description><![CDATA[<p>Inoreader Pro plan is required to export RSS feeds.</p>]]></description>
+        <pubDate>Fri, 01 Mar 2019 10:00:01 +0000</pubDate>
+        <link>https://www.inoreader.com/blog/2019/02/example.html</link>
+        </item></channel></rss>"""
+        with self.assertRaisesRegex(ValueError, "INOREADER_EXPORT_SUSPENDED_PRO_PLAN_REQUIRED"):
+            normalize_items(xml,"application/rss+xml","global")
+        def fetch(_):
+            return xml,"application/rss+xml"
+        with self.assertRaisesRegex(RuntimeError,"INOREADER_EXPORT_SUSPENDED_PRO_PLAN_REQUIRED:global") as err:
+            collect_export_feeds(self.urls,fetcher=fetch)
+        for token in ("private-one","private-two"):
+            self.assertNotIn(token,str(err.exception))
+
+    def test_inoreader_pro_suspended_json_never_becomes_news(self):
+        body={"items":[{"title":"Feed suspended! Please contact the owner.",
+                        "url":"https://www.inoreader.com/upgrade/feature/rss_common?post",
+                        "date_published":self.now,
+                        "summary":"Inoreader Pro plan is required to export RSS feeds."}]}
+        with self.assertRaisesRegex(ValueError,"INOREADER_EXPORT_SUSPENDED_PRO_PLAN_REQUIRED"):
+            normalize_items(json.dumps(body).encode(),"application/feed+json","macro")
+
     def test_missing_or_invalid_source_fails_closed(self):
         with self.assertRaisesRegex(RuntimeError,"INOREADER_NOT_CONNECTED"):
             collect_export_feeds({**self.urls,"taiwan":""})
