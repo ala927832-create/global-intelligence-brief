@@ -34,6 +34,12 @@ The owner explicitly approved **GIB integrated plan v1** on 2026-10-28, scoped t
 6. **One report and minimal user actions.** Deliver a consolidated acceptance table, exact tested revision/run, sample Essential/Deep and morning/evening output locations, unresolved blockers, and *at most one truly necessary owner action*. P3 BOOX/human test and ten real trading days (20 editions) follow only after P2 acceptance; external publication remains owner-locked.
 7. **Scope change requires permission first.** If a change affects subject priorities, frozen contract, costs/keys, audience, output design, future delivery, connected accounts or release settings, stop and present the proposed difference for owner approval. PRs and change logs must make all deviations reviewable.
 
+## 0B. Owner-approved EXCEPTION: exactly three P2 source-snapshot workdays (2026-10-28)
+
+The owner additionally approved **only** a 3-workday read-only internal QA schedule, on **2026-10-29, 2026-10-30 and 2026-11-02**, exactly **07:30 and 17:30 Asia/Taipei**. GitHub source snapshots must record actual capture timing, original links, RSS/provider health, same-day morning-to-evening index changes, missing slots and delayed starts. No implicit permission to increase dates, change editorial priority, invoke Gemini, generate production editions, send LINE, expose Pages, publish EPUB, or modify other scheduled jobs. No P2 or P3 editorial approval is inferred from an indexed source.
+
+The **only authorized temporary scheduled workflow** is `.github/workflows/gib_p2_three_day_source_capture.yml`. The source script enforces the six dates/times, and after the 2026-11-02 evening run it will attempt to disable this workflow through GitHub Actions API. If that GitHub operation fails or scheduled runs are dropped, the date whitelist still forbids out-of-window news collection; report any cleanup error honestly. No changes to `config/frozen_contract.json` are authorized. Review instructions and validation evidence are in `docs/GIB_P2_THREE_DAY_QA_APPROVAL_20261028.md`.
+
 ## 1. One integrated milestone, no fragmented user testing
 Do not repeatedly ask the owner to run GitHub Actions after small changes. Diagnose reported failure from the **actual job logs** first. Fix identified code issues and run both fixture tests and available real GitHub Actions checks **ourselves**, then report evidence. The owner performs one consolidated configuration action only when GitHub Secrets or connected account privileges make it unavoidable.
 

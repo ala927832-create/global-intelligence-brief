@@ -1,0 +1,114 @@
+# Explicitly approved 2026-10-28: ONLY 3 Taiwan workdays of nonpublishing P2 source QA.
+# 2026-10-29, 2026-10-30, 2026-11-02 at 07:30 and 17:30 Asia/Taipei.
+# UTC: 23:30 prior day (morning Taipei), 09:30 same day (evening Taipei).
+# The date/slot whitelist lives in qa/p2_three_day_snapshot.py and cannot be overridden.
+# Automatically disables THIS workflow after the final 2026-11-02 evening.
+name: GIB P2 - 3-workday source QA snapshots only (auto-disable)
+on:
+  pull_request:
+    paths:
+      - 'qa/p2_three_day_snapshot.py'
+      - 'tests/test_p2_three_day_snapshot.py'
+      - '.github/workflows/gib_p2_three_day_source_capture.yml'
+  schedule:
+    - cron: '30 23 * * 0-4'
+    - cron: '30 9 * * 1-5'
+permissions:
+  contents: read
+concurrency:
+  group: gib-p2-approved-3day-source-qa
+  cancel-in-progress: false
+jobs:
+  contract-tests:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Enforce six slots, source attribution, no publishing and expiry
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          python -m pip install 'requests>=2.32,<3'
+          python -m unittest discover -s tests -p 'test_p2_three_day_snapshot.py' -v
+          python -m py_compile qa/p2_three_day_snapshot.py
+  guard:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      active: ${{ steps.allow.outputs.active }}
+      day: ${{ steps.allow.outputs.date }}
+      slot: ${{ steps.allow.outputs.slot }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - id: allow
+        name: Verify current Taipei date and exact approved source slot
+        env:
+          GIB_SCHEDULE_CRON: ${{ github.event.schedule }}
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          python qa/p2_three_day_snapshot.py plan | tee p2_plan.txt
+          grep -E '^(active|terminal|date|slot|at_cutoff)=' p2_plan.txt >> "$GITHUB_OUTPUT"
+  capture:
+    name: One real public-source snapshot ONLY, no Gemini or publication
+    needs: guard
+    if: github.event_name == 'schedule' && needs.guard.outputs.active == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+      GIB_SCHEDULE_CRON: ${{ github.event.schedule }}
+      GH_TOKEN: ${{ github.token }}
+      FREENEWS_API_KEY: ${{ secrets.FREENEWS_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install bounded read-only public news-source dependencies
+        run: python -m pip install 'requests>=2.32,<3'
+      - name: Capture original publisher indexes and source health, actual timestamps
+        run: python qa/p2_three_day_snapshot.py capture
+      - name: Keep dated QA evidence only for 14 days, never publish
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gib-p2-source-qa-${{ needs.guard.outputs.day }}-${{ needs.guard.outputs.slot }}
+          path: |
+            qa_out/p2_three_day/
+          retention-days: 14
+          if-no-files-found: warn
+  finalizer:
+    name: Stop the temporary QA schedule after 3rd workday evening
+    needs: [guard, capture]
+    if: always() && github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: write
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+      GIB_SCHEDULE_CRON: ${{ github.event.schedule }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Disable only this test workflow on/after 2026-11-02 17:30 TPE
+        run: |
+          python -m pip install 'requests>=2.32,<3'
+          python qa/p2_three_day_snapshot.py disable
+# Never touch existing global-intelligence-brief production schedules,
+# Zinc Intelligence, Gemini paid models, LINE, Pages, Style C or frozen_contract.
