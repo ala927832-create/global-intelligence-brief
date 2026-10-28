@@ -50,8 +50,13 @@ def run(args):
             if not getattr(args,'source_health',None):
                 raise ValueError('Real-source index requires a corresponding source-health report')
             source_health=json.loads(Path(args.source_health).read_text(encoding='utf-8'))
-            if source_health.get('data_origin')!='USER_OPML_DIRECT_PUBLISHER_RSS':
-                raise ValueError('Source-health report is not the validated original publisher RSS feed')
+            if source_health.get('data_origin') not in (
+                'USER_OPML_DIRECT_PUBLISHER_RSS',
+                'USER_OPML_PLUS_EXISTING_FREE_PUBLIC_INDEXES'):
+                raise ValueError('Source-health report is not an approved public RSS/news-index provenance')
+            if source_health.get('data_origin')=='USER_OPML_PLUS_EXISTING_FREE_PUBLIC_INDEXES':
+                if source_health.get('configured_sources')!=24 or source_health.get('original_opml_p1_gate')!=source_health.get('gate'):
+                    raise ValueError('Original 24-feed OPML source gate and provenance missing')
         elif source_mode=='opml':
             opml_config=json.loads((ROOT/'config'/'inoreader_free_feeds.json').read_text(encoding='utf-8'))
             raw,source_health=collect_free_opml_rss(opml_config,now=now)
@@ -86,6 +91,11 @@ def run(args):
             issue['source_health']['source_snapshot_origin']=source_health.get('data_origin')
             issue['source_health']['global_editorial_contract']='2026-10-23-approved-v1'
             issue['source_health']['p2_rss_gate']=source_health.get('gate')
+            issue['source_health']['p2_source_mix']={
+                'opml':source_health.get('p2_original_opml_index_items'),
+                'additional':source_health.get('p2_external_net_new_index_items'),
+                'existing_free_providers':source_health.get('p2_external_source_fusion',{}),
+                'index_claims_fact_checked':False}
             issue['source_health']['window_diagnostics']={
                 k:v for k,v in window_health.items() if k!='cutoff_snapshot'}
             issue['source_health']['cutoff_snapshot']=window_health['cutoff_snapshot']

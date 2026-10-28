@@ -5,6 +5,10 @@ on:
     paths:
       - 'run_newsroom_v16.py'
       - 'qa/p2_integrated_batch.py'
+      - 'qa/p2_source_fusion.py'
+      - 'tests/test_p2_source_fusion.py'
+      - 'qa/opml_free_p1.py'
+      - 'gib/newsroom_v16.py'
       - 'tests/test_p2_integrated_batch.py'
       - 'tests/test_p2_editorial_evidence_gate.py'
       - 'tests/test_editorial_depth_standard.py'
@@ -22,6 +26,10 @@ on:
     paths:
       - 'run_newsroom_v16.py'
       - 'qa/p2_integrated_batch.py'
+      - 'qa/p2_source_fusion.py'
+      - 'tests/test_p2_source_fusion.py'
+      - 'qa/opml_free_p1.py'
+      - 'gib/newsroom_v16.py'
       - 'tests/test_p2_integrated_batch.py'
       - 'tests/test_p2_editorial_evidence_gate.py'
       - 'tests/test_editorial_depth_standard.py'
@@ -68,6 +76,8 @@ jobs:
     env:
       PYTHONPATH: ${{ github.workspace }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      # Already part of the owner-approved original free source stack.
+      FREENEWS_API_KEY: ${{ secrets.FREENEWS_API_KEY }}
       GEMINI_FREE_TIER_CONFIRMED: ${{ vars.GEMINI_FREE_TIER_CONFIRMED || '0' }}
       # P2 QA free-only compatibility: 2.5 Flash-Lite returned HTTP 404 for this project.
       # P2-only model, not a change to existing user GEMINI_MODEL variable or production.
@@ -96,6 +106,9 @@ jobs:
           assert len(paths)==1, 'No single integrated P2 QA report'
           report=json.loads(pathlib.Path(paths[0]).read_text(encoding='utf-8'))
           assert report['source_configured']==24
+          assert report['p2_original_opml_source_gate']==report['source_gate']
+          assert report['p2_source_index_total'] >= report['p2_source_index_opml_count']
+          assert set(report['p2_existing_free_sources'])=={'freenews','gdelt','official_rss'}
           assert not report['release_approved']
           assert not report['p2_content_accepted']
           assert set(report['editions'])=={'morning','evening'}

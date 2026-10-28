@@ -233,6 +233,10 @@ def attach_opml_provenance(issue, raw, report):
     """Keep four group assignments and OPML source IDs on selected citations."""
     refs = {}
     for row in raw:
+        # Non-OPML publisher feeds from the existing free research adapters
+        # must never inherit the user's Inoreader folder/source ID.
+        if row.get("provider") != "direct_opml_rss":
+            continue
         key = canon_url(row.get("url", "")) or row.get("url", "")
         refs.setdefault(key, {"source_groups": set(), "source_ids": set()})
         refs[key]["source_groups"].update(row.get("source_groups", [row.get("source_group")]))

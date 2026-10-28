@@ -13,6 +13,7 @@ from zoneinfo import ZoneInfo
 from types import SimpleNamespace
 
 from qa.opml_free_p1 import collect
+from qa.p2_source_fusion import collect_existing_free_sources, fuse_with_original_opml
 from run_newsroom_v16 import run
 
 TZ=ZoneInfo("Asia/Taipei")
@@ -37,7 +38,7 @@ def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def run_batch(report_date=None,gemini=False,source_fetcher=None,now=None):
+def run_batch(report_date=None,gemini=False,source_fetcher=None,now=None,extra_fetchers=None):
     now=now or dt.datetime.now(dt.timezone.utc)
     date=report_date or completed_report_date(now)
     if isinstance(date,str):
@@ -47,7 +48,16 @@ def run_batch(report_date=None,gemini=False,source_fetcher=None,now=None):
     out=OUTPUT/date.isoformat()
     out.mkdir(parents=True,exist_ok=True)
     cfg=json.loads(CONFIG.read_text(encoding="utf-8"))
-    articles,source_health=collect(cfg,fetcher=source_fetcher,now=now)
+    opml_articles,opml_health=collect(cfg,fetcher=source_fetcher,now=now)
+    # Synthetic fixture tests never make real network calls unless a controlled
+    # supplementary fetcher is explicitly supplied. Main QA uses already
+    # approved original free providers (official RSS, GDELT, FreeNewsApi).
+    providers=(collect_existing_free_sources(
+        json.loads((ROOT/"config/sources.json").read_text(encoding="utf-8")),
+        now,fetchers=extra_fetchers)
+        if source_fetcher is None or extra_fetchers is not None else {})
+    articles,source_health=fuse_with_original_opml(
+        opml_articles,opml_health,providers,now)
     source_index=out/"source_index.json"
     source_report=out/"source_health.json"
     source_index.write_text(json.dumps(articles,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
@@ -108,6 +118,11 @@ def run_batch(report_date=None,gemini=False,source_fetcher=None,now=None):
         "run_mode":"LIVE_PUBLIC_RSS_SNAPSHOT_BACKFILL_NOT_TIMELY_SCHEDULE_DELIVERY",
         "source_index_sha256":snapshot_hash,
         "source_gate":source_health["gate"],
+        "p2_original_opml_source_gate":source_health.get("original_opml_p1_gate"),
+        "p2_existing_free_sources":source_health.get("p2_external_source_fusion",{}),
+        "p2_source_index_total":source_health.get("p2_total_source_index_items"),
+        "p2_source_index_opml_count":source_health.get("p2_original_opml_index_items"),
+        "p2_source_index_additional_count":source_health.get("p2_external_net_new_index_items"),
         "source_configured":source_health["configured_sources"],
         "news_discovered_recent_7d":source_health["recent_7d_unique_article_urls"],
         "report_type":"RETROSPECTIVE_FEED_REPLAY_NOT_REAL_TIME_SCHEDULED_CAPTURE",

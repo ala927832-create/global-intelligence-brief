@@ -91,6 +91,7 @@ class FreeOpmlTests(unittest.TestCase):
     def test_selected_issue_citations_keep_opml_source_lineage(self):
         raw = [{
             "url": "https://news.example/report",
+            "provider":"direct_opml_rss",
             "source_group": "global", "source_groups": ["global","macro"],
             "source_id": "global_01", "source_ids": ["global_01","macro_01"]
         }]
