@@ -22,7 +22,9 @@ from gib.editorial import canon_url
 
 LANES = {
     "global": "INOREADER_GLOBAL_FEED_URL",
-    "industry": "INOREADER_INDUSTRY_FEED_URL",
+    "macro": "INOREADER_MACRO_FEED_URL",
+    "energy_commodities": "INOREADER_ENERGY_COMMODITIES_FEED_URL",
+    "taiwan": "INOREADER_TAIWAN_FEED_URL",
 }
 ALLOWED_HOSTS = frozenset({"inoreader.com", "www.inoreader.com",
                            "innoreader.com", "www.innoreader.com"})
@@ -180,7 +182,7 @@ def normalize_items(raw: bytes, content_type: str, lane: str):
 
 
 def collect_export_feeds(urls, fetcher=None):
-    """Fail closed if either lane is not connected; no legacy-source fallback."""
+    """Fail closed if any configured lane is missing; no legacy-source fallback."""
     missing = [lane for lane in LANES if not urls.get(lane)]
     if missing:
         raise RuntimeError("INOREADER_NOT_CONNECTED:" + ",".join(missing))
