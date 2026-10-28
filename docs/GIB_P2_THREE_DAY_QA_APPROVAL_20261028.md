@@ -16,7 +16,7 @@ GitHub UTC cron 分別是 23:30（台灣隔日早上）與 09:30（台灣同日�
 
 每次僅抓取已核准的 24 個公開 RSS 加上原系統已存在的 FreeNewsApi、GDELT、官方 RSS。FreeNewsApi 每次查詢最多 8 筆新聞詳情，不另開付費來源。保存原始文章網址、標題、來源、帶時區的日期、取得時間、每路來源健康狀態與失敗原因；不抓取或發行出版社文章全文。
 
-GitHub Actions artifacts 私有保存 14 日，包括：
+**注意：此 GitHub repository 為 Public。Actions artifact 不應視為私人儲存空間，可能由有權存取公開 workflow 的人士下載。** 本測試只留存已公開來源的新聞網址、標題、時間、來源健康及索引，嚴禁保存帳戶權杖、機密資料、未發布的 Gemini 稿件或受保護的新聞全文。Artifacts 保留 14 日，包括：
 - source_index_all.json：當次已發現的去重新聞索引及來源
 - snapshot_window.json：實際截稿時段的候選索引，實際起訖時間與編輯 HOLD
 - source_health.json：24 路 RSS 與其他免費資料來源的診斷
