@@ -58,7 +58,9 @@ jobs:
             printf 'INOREADER_NOT_CONNECTED: missing GitHub Secrets: %s\n' "${missing[*]}"
             exit 1
           fi
-          echo 'All four Inoreader feed secrets are configured; checking remote feed content next.'
+          echo 'All four Inoreader feed secrets are configured; validating export address format next.'
+          python -m tools.gib_style_c_rc.inoreader_source
+          echo 'All four Inoreader export addresses pass shape checks; remote retrieval will be tested during collection.'
       - name: Fetch earlier actual morning issue for evening delta
         if: ${{ inputs.edition == 'evening' }}
         env:
