@@ -110,8 +110,11 @@ def parse_feed(raw, source, now=None):
         parsed.append({
             "title": title, "url": url, "published_at": stamp,
             "publisher": source["name"], "snippet": plain_text(description)[:350],
-            "provider": "direct_opml_rss", "official": source["url"].startswith(
-                ("https://www.federalreserve.gov/", "https://www.bls.gov/", "https://www.eia.gov/")),
+            "provider": "direct_opml_rss",
+            "official": source.get("source_class")=="official_government_rss"
+                        or source["url"].startswith(
+                            ("https://www.federalreserve.gov/", "https://www.bls.gov/", "https://www.eia.gov/")),
+            "source_class": source.get("source_class", "user_opml_public_rss"),
             "source_group": source["lane"], "source_id": source["id"],
             "source_name": source["name"], "verification_status": "INDEX_ONLY_NOT_FACT_CHECKED",
         })
