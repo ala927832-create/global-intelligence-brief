@@ -1,4 +1,4 @@
-"""Regression protection for the GIB owner-approved 2026-10-23 global editorial charter."""
+"""Regression protection for owner-approved GIB editorial V2 and preserved source/release boundaries."""
 import json
 import unittest
 from pathlib import Path
@@ -10,16 +10,26 @@ class FrozenGlobalEditorialCharterTests(unittest.TestCase):
         cls.daily=json.loads(Path("config/inoreader_free_feeds.json").read_text(encoding="utf-8"))
         cls.refs=json.loads(Path("config/specialist_official_references.json").read_text(encoding="utf-8"))
 
-    def test_original_six_sections_and_dual_depth_are_untouched(self):
-        self.assertEqual(self.contract["contract_version"],"2026-10-23-approved-v1")
+    def test_owner_approved_v2_sections_morning_depth_and_release_lock(self):
+        self.assertEqual(self.contract["contract_version"],"2026-10-28-owner-approved-v2")
         self.assertEqual(self.contract["change_policy"],"OWNER_CONFIRMATION_REQUIRED_BEFORE_CHANGING_ANY_FIELD")
         self.assertEqual([x["name"] for x in self.contract["sections"]],[
             "Executive Brief","The World in Brief","Essential Analysis","Deep Research",
             "What Changed & What to Watch","Sources & Evidence"])
-        self.assertEqual([x["minutes"] for x in self.contract["versions"]],["10-15","30-45"])
+        self.assertEqual([x["minutes"] for x in self.contract["versions"]],["30-40","40-50"])
+        self.assertEqual([x["evening_minutes"] for x in self.contract["versions"]],["10-15","30-45"])
+        self.assertTrue(all(x["edition_scope"]=="morning" for x in self.contract["versions"]))
+        self.assertIn("1–2",self.contract["sections"][3]["description"])
+        self.assertIn("8–12",self.contract["sections"][1]["description"])
+        self.assertEqual(self.contract["editorial_selection"]["discovery_priority"],
+                         "REPUTABLE_MAJOR_PUBLISHER_TOP_HEADLINES_AND_LEAD_STORIES_FIRST")
+        self.assertIn("never independent fact verification",
+                      self.contract["editorial_selection"]["editorial_guardrails"])
         self.assertEqual(self.contract["zinc_policy"],
                          "READ_ONLY_PUBLIC_VERIFIED_CROSS_MARKET_SIGNALS_ONLY; ORIGINAL_REPO_UNCHANGED")
         self.assertEqual(self.contract["publishing"],"OFF_UNTIL_QUALITY_AND_OWNER_APPROVAL")
+        self.assertEqual(self.contract["schedule"]["global_morning"],"07:30")
+        self.assertEqual(self.contract["schedule"]["global_evening"],"17:30")
 
     def test_exact_original_user_opml_daily_feed_inventory(self):
         feeds=self.daily["feeds"]
