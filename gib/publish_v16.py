@@ -43,7 +43,7 @@ def source_grounded_fallback(article):
         return ('<div class="context"><h4>來源目前公開的資訊</h4>'
                 '<p>來源索引只有新聞標題，沒有可供可靠整理的正文或摘要；'
                 '請透過下方原文來源閱讀，系統不會自行補寫事實。</p></div>')
-    source=article.get('sources',[{}])[0]
+    source=(article.get('sources') or [{}])[0]
     link='<a href="'+h(source.get('url'))+'">閱讀原始報導</a>' if source.get('url') else ''
     return ('<div class="context"><h4>來源報導重點（尚未獨立完成查核）</h4><ul>'+
             ''.join('<li>'+h(x)+'</li>' for x in points)+'</ul>'+
@@ -219,7 +219,7 @@ def issue_body(issue, edits=None, level='essential'):
             if e and len(''.join(str(z) for z in e.get('sections',{}).values()))>=120]
         if draft_items:
             result.append('<p class="quality-label">下列是依新聞來源整理的 AI 延伸研究草稿，未取得完整一手證據；'
-                          '不得冒稱已完成的 30–45 分鐘正式深度研究。</p>')
+                          '不得冒稱已完成正式深度研究。</p>')
             for i,(x,e) in enumerate(draft_items,1):
                 headline=e.get('headline_zh') or x['title_original']
                 result.append(f'<div class="dossier">'
@@ -243,7 +243,23 @@ def issue_body(issue, edits=None, level='essential'):
                 result.append(f'<p class="source-note"><a href="#{source_anchor(x["sources"][0])}">'
                               '回看本書來源與證據</a>　·　<a href="#reading-index">返回索引</a></p></div>')
         else:
-            result.append('<p class="quality-label">本期尚無 2–3 項具備原始證據、歷史資料與反方材料的深入研究，不能標示為完成的 30–45 分鐘深度刊物。</p>')
+            result.append('<p class="quality-label">本期尚無通過審查的獨立研究專題。以下是原始新聞來源的延伸閱讀導引，'
+                          '不能假裝是完整深度研究，也不憑空新增事件或影響。</p>')
+            for i,x in enumerate(items[:2],1):
+                source=(x.get('sources') or [{}])[0]
+                result.append(f'<div class="dossier"><p class="eyebrow">SOURCE READING {i:02d} · 資料摘錄（非深度研究）</p>'
+                              f'<h3 id="research-source-{i}">{h(x.get("title_original"))}</h3>')
+                points=source_grounded_digest(x)
+                if points:
+                    result.append('<ul>'+''.join('<li>'+h(point)+'</li>' for point in points)+'</ul>')
+                else:
+                    result.append('<p>目前來源沒有提供足以整理的正文或摘要，'
+                                  '僅能保留原始新聞標題和來源網址。</p>')
+                if source.get('url'):
+                    result.append('<p><a href="'+h(source['url'])+'">查看來源原文</a> '
+                                  '· '+h(source.get('publisher'))+' · '
+                                  +h(x.get('article_published_at'))+'</p>')
+                result.append('</div>')
     result.append('</section>')
     # 05. What Changed & What to Watch
     result.append('<section class="follow" id="watch">'+heading('05','What Changed & What to Watch','新證據、判斷變化與未來一週'))
