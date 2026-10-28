@@ -3,7 +3,8 @@ import datetime as dt
 import json
 import unittest
 from tools.gib_style_c_rc.inoreader_source import (
-    attach_provenance, collect_export_feeds, normalize_items, _validate_feed_url, strict_timestamp
+    attach_provenance, collect_export_feeds, normalize_items, _validate_feed_url,
+    strict_timestamp, safe_feed_diagnostics
 )
 
 
@@ -81,6 +82,38 @@ class InoreaderSourceTests(unittest.TestCase):
                     "https://www.inoreader.com.evil.example/path"):
             with self.assertRaises(ValueError):
                 _validate_feed_url(bad)
+
+    def test_diagnostics_identifies_lane_and_error_without_leaking_secret(self):
+        urls={**self.urls,
+              "macro":"http://www.inoreader.com/stream/user/123/tag/News?token=top-secret",
+              "taiwan":"https://www.inoreader.com/",
+              "energy_commodities":"https://external.example/stream/user/123/tag/News?private=xxx"}
+        diagnostics=safe_feed_diagnostics(urls)
+        self.assertEqual(diagnostics["global"],"VALID_URL_SHAPE")
+        self.assertEqual(diagnostics["macro"],"INOREADER_EXPORT_HTTPS_REQUIRED")
+        self.assertEqual(diagnostics["taiwan"],"INOREADER_EXPORT_EXPECTED_RSS_OR_JSON_STREAM_LINK")
+        self.assertEqual(diagnostics["energy_commodities"],"INOREADER_EXPORT_NOT_INOREADER_DOMAIN")
+        self.assertNotIn("top-secret",str(diagnostics))
+        self.assertNotIn("external.example",str(diagnostics))
+        with self.assertRaisesRegex(ValueError,"INOREADER_INVALID_EXPORT_macro"):
+            collect_export_feeds(urls,fetcher=lambda _:self.fail("invalid configuration should not fetch"))
+
+    def test_regional_host_and_actual_output_stream_shape(self):
+        self.assertEqual(
+            _validate_feed_url("https://us.inoreader.com/stream/user/123/tag/Industries/view/json"),
+            "https://us.inoreader.com/stream/user/123/tag/Industries/view/json")
+        self.assertEqual(
+            _validate_feed_url("https://beta.inoreader.com/stream/user/123/tag/Global"),
+            "https://beta.inoreader.com/stream/user/123/tag/Global")
+        self.assertEqual(
+            safe_feed_diagnostics({**self.urls,"macro":"INOREADER_MACRO_FEED_URL"})["macro"],
+            "INOREADER_EXPORT_SECRET_CONTAINS_NAME_NOT_URL")
+
+    def test_reject_html_clips_and_unrecognized_inoreader_subdomains(self):
+        with self.assertRaisesRegex(ValueError,"HTML_VIEW_NOT_SUPPORTED"):
+            _validate_feed_url("https://www.inoreader.com/stream/user/123/tag/News/view/html")
+        with self.assertRaisesRegex(ValueError,"UNRECOGNIZED_INOREADER_HOST"):
+            _validate_feed_url("https://unknown.inoreader.com/stream/user/123/tag/News")
 
     def test_undated_or_timezone_naive_is_excluded(self):
         self.assertIsNone(strict_timestamp("2026-10-28T07:00:00"))

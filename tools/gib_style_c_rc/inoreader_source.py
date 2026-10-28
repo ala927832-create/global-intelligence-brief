@@ -26,8 +26,11 @@ LANES = {
     "energy_commodities": "INOREADER_ENERGY_COMMODITIES_FEED_URL",
     "taiwan": "INOREADER_TAIWAN_FEED_URL",
 }
-ALLOWED_HOSTS = frozenset({"inoreader.com", "www.inoreader.com",
-                           "innoreader.com", "www.innoreader.com"})
+# Official Inoreader region/beta hosts are explicitly allowed, not arbitrary domains.
+ALLOWED_HOSTS = frozenset({
+    "inoreader.com", "www.inoreader.com", "us.inoreader.com", "beta.inoreader.com",
+    "innoreader.com", "www.innoreader.com",
+})
 MAX_FEED_BYTES = 2_000_000
 MAX_ENTRIES_PER_LANE = 200
 MAX_SNIPPET_CHARS = 450
@@ -80,12 +83,55 @@ def _original_link(item):
 
 
 def _validate_feed_url(url):
-    parsed = urlsplit(url)
-    if parsed.scheme != "https" or parsed.hostname not in ALLOWED_HOSTS or parsed.port is not None:
-        raise ValueError("INOREADER_EXPORT_URL_INVALID_HOST_OR_SCHEME")
-    if parsed.username or parsed.password or parsed.fragment:
+    """Accept *only* Inoreader HTTPS exported RSS/JSON feeds.
+
+    Never include the incoming URL (it may hold an access token) in errors.
+    Each error is a stable non-sensitive code for repository Actions logs.
+    """
+    if not isinstance(url, str) or not url.strip():
+        raise ValueError("INOREADER_EXPORT_URL_MISSING")
+    if url.strip() in LANES.values():
+        raise ValueError("INOREADER_EXPORT_SECRET_CONTAINS_NAME_NOT_URL")
+    try:
+        parsed = urlsplit(url.strip())
+        hostname = parsed.hostname
+        port = parsed.port
+    except ValueError:
+        raise ValueError("INOREADER_EXPORT_URL_MALFORMED") from None
+    if parsed.scheme.lower() != "https":
+        raise ValueError("INOREADER_EXPORT_HTTPS_REQUIRED")
+    if parsed.username or parsed.password or parsed.fragment or port is not None:
         raise ValueError("INOREADER_EXPORT_URL_UNSAFE")
-    return url
+    if hostname not in ALLOWED_HOSTS:
+        if hostname and (hostname.endswith(".inoreader.com") or hostname.endswith(".innoreader.com")):
+            raise ValueError("INOREADER_EXPORT_UNRECOGNIZED_INOREADER_HOST")
+        raise ValueError("INOREADER_EXPORT_NOT_INOREADER_DOMAIN")
+    if not parsed.path.startswith("/stream/user/"):
+        raise ValueError("INOREADER_EXPORT_EXPECTED_RSS_OR_JSON_STREAM_LINK")
+    if parsed.path.rstrip("/").endswith("/view/html"):
+        raise ValueError("INOREADER_EXPORT_HTML_VIEW_NOT_SUPPORTED")
+    return url.strip()
+
+
+def safe_feed_diagnostics(urls):
+    """Classify configured lane URLs without outputting addresses or tokens."""
+    result = {}
+    for lane, secret_name in LANES.items():
+        value = urls.get(lane, "")
+        try:
+            _validate_feed_url(value)
+            result[lane] = "VALID_URL_SHAPE"
+        except ValueError as exc:
+            result[lane] = str(exc)
+    return result
+
+
+def check_environment_secrets():
+    """CLI-friendly preflight. NEVER prints any secret URL or host/path/query."""
+    results = safe_feed_diagnostics(urls_from_environment())
+    for lane, status in results.items():
+        print(f"INOREADER_FEED_URL_CHECK {lane}: {status}")
+    return all(status == "VALID_URL_SHAPE" for status in results.values())
 
 
 def _parse(raw: bytes, content_type: str):
@@ -196,8 +242,12 @@ def collect_export_feeds(urls, fetcher=None):
     missing = [lane for lane in LANES if not urls.get(lane)]
     if missing:
         raise RuntimeError("INOREADER_NOT_CONNECTED:" + ",".join(missing))
-    for url in urls.values():
-        _validate_feed_url(url)
+    for lane in LANES:
+        try:
+            _validate_feed_url(urls[lane])
+        except ValueError as exc:
+            # Print only safe lane name and stable validation code.
+            raise ValueError(f"INOREADER_INVALID_EXPORT_{lane}:{exc}") from None
 
     def request(url):
         response = requests.get(url, timeout=24, allow_redirects=False,
@@ -273,3 +323,7 @@ def attach_provenance(issue, raw, health):
         article["inoreader_lanes"] = sorted(found)
     issue.setdefault("source_health", {})["inoreader"] = health
     return issue
+
+
+if __name__ == "__main__":
+    raise SystemExit(0 if check_environment_secrets() else 1)

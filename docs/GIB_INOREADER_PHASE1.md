@@ -44,3 +44,18 @@ Inoreader 保留你的訂閱、監測、Rules 與標籤。轉接器只讀四路 
 - 無明確時區／發布日期、沒有真實原始網址、Feed 格式錯誤、缺少任一路 Feed，均記為失敗，不能補假新聞。
 - P1 的來源候選與粗分類，不等於 P2 的新聞重要性與逐項專業核查。
 - 目前保留原有人工 BOOX 驗收與正式發行 HOLD。
+
+## Inoreader P1 URL 錯誤快速診斷（2026-10-28）
+
+四個 Secrets **存在**只代表 GitHub 能收到非空值，不等於值是有效 RSS／JSON Export URL。
+
+- `INOREADER_EXPORT_HTTPS_REQUIRED`：應從 Inoreader 複製以 https:// 開頭的完整輸出網址，而非 http、無協定網址或 Secret 名稱。
+- `INOREADER_EXPORT_NOT_INOREADER_DOMAIN`：目前填入的不是 Inoreader 輸出網址；不可貼原本訂閱的 BBC、新聞網站 RSS 或其他工具連結。
+- `INOREADER_EXPORT_EXPECTED_RSS_OR_JSON_STREAM_LINK`：目前是 Inoreader 首頁／帳號頁／資料夾 UI 頁，不是 Export 視窗內的 RSS／JSON Feed。
+- `INOREADER_EXPORT_SECRET_CONTAINS_NAME_NOT_URL`：Secret Value 被填成變數名稱。
+- `INOREADER_EXPORT_UNRECOGNIZED_INOREADER_HOST`：URL 使用了尚未確認的 Inoreader 子網域，不會直接放行；需回到 Export 視窗複製正確 RSS／JSON 網址。
+- `VALID_URL_SHAPE`：只確認 URL 結構正確；**還沒有檢查網路連線、HTTP 回應、是否具有真實新聞內容**。
+
+GitHub Actions 檢查時只顯示 global / macro / energy_commodities / taiwan 四個來源名稱與上述分類，不輸出任何私人網址、查詢參數、存取識別碼。若四路都顯示 VALID_URL_SHAPE 才執行真實下載。
+
+官方做法：於 Inoreader 左側對資料夾／標籤右鍵開啟資訊，啟用 Export，從 RSS 或 JSON 的選項複製生成的完整網址，不要使用 OPML、HTML clip 或頁面網址。
