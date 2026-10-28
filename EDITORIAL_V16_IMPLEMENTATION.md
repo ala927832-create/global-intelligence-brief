@@ -1,5 +1,8 @@
 # Global Intelligence Brief V1.6 — Full editorial pipeline / execution contract
 
+
+> **2026-10-28 owner-approved v2 amendment:** The latest `config/frozen_contract.json` supersedes earlier V1 editorial targets below. Prioritize reputable major publishers' leading headlines as candidates without treating headlines as verified evidence. Morning Essential = 30–40 min; morning Deep Research = 40–50 min; evening timing and reading lengths remain V1. Deep edition focuses on 1–2 high-evidence studies, substantially deeper rather than more numerous. Preserve six sections, Style C, independent claims review and release OFF. First acquire the six already-authorized 10/29, 10/30, 11/02 source snapshots; only then update selection/editing/QA code using real evidence. See `docs/GIB_OWNER_APPROVED_AMENDMENT_20261028.md`.
+
 **Status: Engineering QA — not approved for publication.** Two products are independent:
 this repo is Global Intelligence Brief; `zinc-intelligence-v26` is unchanged.
 
