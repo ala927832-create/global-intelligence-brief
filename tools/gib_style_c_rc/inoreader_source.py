@@ -98,11 +98,21 @@ def _parse(raw: bytes, content_type: str):
         for item in items[:MAX_ENTRIES_PER_LANE]:
             if not isinstance(item, dict):
                 continue
+            # Output may use either JSON Feed fields or Inoreader's native
+            # stream-entry shape (alternate/canonical links; Unix published).
+            links = item.get("canonical") or item.get("alternate") or []
+            if not isinstance(links, list):
+                links = []
+            original = next((link.get("href", "") for link in links
+                             if isinstance(link, dict) and link.get("href")), "")
+            summary = item.get("summary") or item.get("content_text") or item.get("content_html") or ""
+            if isinstance(summary, dict):
+                summary = summary.get("content") or ""
             yield {
                 "title": item.get("title") or "",
-                "url": item.get("url") or item.get("external_url") or "",
-                "published": item.get("date_published") or item.get("date_modified") or "",
-                "summary": item.get("summary") or item.get("content_text") or item.get("content_html") or "",
+                "url": item.get("url") or item.get("external_url") or original,
+                "published": item.get("date_published") or item.get("published") or item.get("date_modified") or "",
+                "summary": summary,
                 "publisher": (item.get("author") or {}).get("name", "") if isinstance(item.get("author"), dict) else "",
             }
         return
