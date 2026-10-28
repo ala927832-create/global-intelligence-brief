@@ -3,7 +3,7 @@ import datetime as dt
 import json
 import unittest
 from tools.gib_style_c_rc.inoreader_source import (
-    attach_provenance, collect_export_feeds, normalize_items, _validate_feed_url
+    attach_provenance, collect_export_feeds, normalize_items, _validate_feed_url, strict_timestamp
 )
 
 
@@ -55,6 +55,16 @@ class InoreaderSourceTests(unittest.TestCase):
                     "https://www.inoreader.com.evil.example/path"):
             with self.assertRaises(ValueError):
                 _validate_feed_url(bad)
+
+    def test_undated_or_timezone_naive_is_excluded(self):
+        self.assertIsNone(strict_timestamp("2026-10-28T07:00:00"))
+        self.assertIsNone(strict_timestamp(""))
+        self.assertIsNotNone(strict_timestamp("2026-10-28T07:00:00+08:00"))
+        items=[{"title":"Ambiguous time","url":"https://news.example/naive",
+                "date_published":"2026-10-28T07:00:00"}]
+        rows,rejected=normalize_items(self._json(items),"application/feed+json","industry")
+        self.assertEqual(len(rows),0)
+        self.assertEqual(rejected["missing_publication_time"],1)
 
     def test_reader_links_are_not_mistaken_for_original_articles(self):
         items=[{"title":"Reader alias","url":"https://www.inoreader.com/article/123",
