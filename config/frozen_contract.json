@@ -1,5 +1,5 @@
 {
-  "contract_version": "2026-10-28-owner-approved-v2",
+  "contract_version": "2026-10-29-owner-approved-v3",
   "product": "Global Intelligence Brief",
   "independent_repository": "global-intelligence-brief",
   "change_policy": "OWNER_CONFIRMATION_REQUIRED_BEFORE_CHANGING_ANY_FIELD",
@@ -11,12 +11,36 @@
     "專業 XHTML／EPUB 3：共用已審定底稿，輸出速讀與深讀版"
   ],
   "sections": [
-    {"number": "01", "name": "Executive Brief", "description": "三件最重要的事情、整體國際局勢，以及今天與上一期相比真正改變的資訊。"},
-    {"number": "02", "name": "The World in Brief", "description": "8–12 則全球精選消息。優先考量可靠主要新聞機構的當日頭條與重點新聞；無須每則都達到全球制度性重大衝擊，但必須具真實新聞價值、時效、可追溯來源及多元國際視角，不以八卦、宣傳稿或重複報導湊數。"},
-    {"number": "03", "name": "Essential Analysis", "description": "3–5 項重要事件的背景、傳導機制、相關證據與觀察方向。"},
-    {"number": "04", "name": "Deep Research", "description": "僅深讀版聚焦 1–2 個高品質專題，減少重複新聞篇數，增加每篇的一手證據、歷史比較、數據、傳導機制、反方觀點與可推翻判斷的條件；不足一篇合格研究時維持 HOLD。"},
-    {"number": "05", "name": "What Changed & What to Watch", "description": "追蹤新證據、判斷變化、未來一週關鍵事件與必要的 Zinc Research Watch。"},
-    {"number": "06", "name": "Sources & Evidence", "description": "每則重要研究的來源、發布日期、數據期間與仍未核實事項。"}
+    {
+      "number": "01",
+      "name": "Executive Brief",
+      "description": "三件最重要的事情、整體國際局勢，以及今天與上一期相比真正改變的資訊。"
+    },
+    {
+      "number": "02",
+      "name": "The World in Brief",
+      "description": "晨報分兩層：10–12 則有足夠來源重點的主要新聞＋10–12 則不同事件的補充快訊，共 20–24 則；全球重大媒體頭條優先。來源不足不能用空白、重複、猜測或舊新聞湊數。夜報維持既有時長並以真實增量為準。"
+    },
+    {
+      "number": "03",
+      "name": "Essential Analysis",
+      "description": "晨報 4 篇不同事件的完整焦點分析；提供新增的背景、可核對證據、因果傳導、相反解釋及觀察重點，禁止重述第二章或人工拉長。夜報依實際增量與原核准時長執行。"
+    },
+    {
+      "number": "04",
+      "name": "Deep Research",
+      "description": "Deep Research 晨報聚焦 1–2 篇與當天重大新聞相關的一手證據研究，需有原始文件、資料期間、歷史比較、機制、反方觀點、可推翻條件及來源對應；不能拿舊歷史研究冒充今日新專題。不到一篇合格研究維持 HOLD。"
+    },
+    {
+      "number": "05",
+      "name": "What Changed & What to Watch",
+      "description": "追蹤新證據、判斷變化、未來一週關鍵事件與必要的 Zinc Research Watch。"
+    },
+    {
+      "number": "06",
+      "name": "Sources & Evidence",
+      "description": "每則重要研究的來源、發布日期、數據期間與仍未核實事項。"
+    }
   ],
   "editorial_selection": {
     "discovery_priority": "REPUTABLE_MAJOR_PUBLISHER_TOP_HEADLINES_AND_LEAD_STORIES_FIRST",
@@ -24,11 +48,106 @@
     "source_scope": "EXISTING_APPROVED_FREE_SOURCES_ONLY_UNLESS_SEPARATELY_AUTHORIZED",
     "editorial_guardrails": "Headline placement is a discovery and prioritization signal, never independent fact verification. Preserve original reporting, source dates, cross-checks, global diversity and human editorial signoff. Do not promote recycled headlines, sensationalism, marketing or owner industry bias."
   },
-  "format": {"primary_language":"zh-TW","palette":"Layout 01","epub":"EPUB 3 reflowable","reader":"BOOX Note Air4 C", "cover_ratio":"3:4"},
-  "versions": [{"name":"Essential", "minutes":"30-40", "edition_scope":"morning", "evening_minutes":"10-15"},{"name":"Deep Research", "minutes":"40-50", "edition_scope":"morning", "evening_minutes":"30-45"}],
-  "schedule": {"timezone":"Asia/Taipei","global_morning":"07:30","zinc_daily":"10:30","zinc_alert":"17:30","global_evening":"17:30"},
-  "sources": ["FreeNewsApi.io","GDELT","official RSS","independently cited public research"],
-  "release_gates": ["10_REAL_TRADING_DAYS", "EPUBCHECK_PASS", "BOOX_NEOREADER_REAL_DEVICE_PASS", "REAL_NEWS_EVIDENCE_VERIFIED", "GEMINI_TWO_PASSES_CONFIRMED", "NO_UNAPPROVED_COSTS"],
-  "zinc_policy":"READ_ONLY_PUBLIC_VERIFIED_CROSS_MARKET_SIGNALS_ONLY; ORIGINAL_REPO_UNCHANGED",
-  "publishing":"OFF_UNTIL_QUALITY_AND_OWNER_APPROVAL"
+  "format": {
+    "primary_language": "zh-TW",
+    "palette": "Layout 01",
+    "epub": "EPUB 3 reflowable",
+    "reader": "BOOX Note Air4 C",
+    "cover_ratio": "3:4"
+  },
+  "versions": [
+    {
+      "name": "Essential",
+      "minutes": "30-40",
+      "edition_scope": "morning",
+      "evening_minutes": "10-15"
+    },
+    {
+      "name": "Deep Research",
+      "minutes": "40-50",
+      "edition_scope": "morning",
+      "evening_minutes": "30-45"
+    }
+  ],
+  "schedule": {
+    "timezone": "Asia/Taipei",
+    "global_morning": "07:30",
+    "zinc_daily": "10:30",
+    "zinc_alert": "17:30",
+    "global_evening": "17:30"
+  },
+  "sources": [
+    "FreeNewsApi.io",
+    "GDELT",
+    "official RSS",
+    "independently cited public research"
+  ],
+  "release_gates": [
+    "FIRST_CONTENT_INPUT_GATE_PASS_BEFORE_RENDER",
+    "10_REAL_TRADING_DAYS",
+    "EPUBCHECK_PASS",
+    "BOOX_NEOREADER_REAL_DEVICE_PASS",
+    "REAL_NEWS_EVIDENCE_VERIFIED",
+    "GEMINI_TWO_PASSES_CONFIRMED",
+    "NO_UNAPPROVED_COSTS"
+  ],
+  "zinc_policy": "READ_ONLY_PUBLIC_VERIFIED_CROSS_MARKET_SIGNALS_ONLY; ORIGINAL_REPO_UNCHANGED",
+  "publishing": "OFF_UNTIL_QUALITY_AND_OWNER_APPROVAL",
+  "editorial_acceptance": {
+    "scope": "MORNING_ONLY_FOR_EXPANDED_NEWS_VOLUME_AND_LENGTH; EVENING_ORIGINAL_MINUTES_UNCHANGED",
+    "source_intake_hard_gate": {
+      "name": "G0_EVIDENCE_BEARING_UNIQUE_EVENTS_BEFORE_GEMINI_OR_PREVIEW",
+      "min_distinct_current_events": 20,
+      "min_distinct_original_publisher_domains": 4,
+      "min_editorial_topic_groups": 4,
+      "min_source_attributed_summary_characters": 50,
+      "identity": "DEDUP_CANONICAL_URL_AND_NEAR_IDENTICAL_EVENT_TITLE; REPRINTS_NOT_NEW_EVENTS",
+      "evidence": "MUST_HAVE_TIMESTAMP_ORIGINAL_URL_AND_SUMMARY_OR_SOURCE_BOUND_POINTS; A_TITLE_ALONE_IS_NOT_AN_EVIDENCE_BEARING_EVENT",
+      "failure": "FAIL_CLOSED_INTERNAL_DIAGNOSTICS_ONLY; NO_GEMINI_NO_HTML_NO_EPUB_NO_OWNER_REVIEW_PACKAGE",
+      "explanation": "A SHORTLIST SHORTAGE IS A SOURCE_CAPTURE_OR_SELECTION_PIPELINE_DEFECT, NEVER PROOF THAT GLOBAL NEWS IS SCARCE",
+      "repeat_policy": "DO_NOT_RESUBMIT_THE_SAME_INCOMPLETE_PREVIEW"
+    },
+    "morning_content": {
+      "main_news_min": 10,
+      "main_news_max": 12,
+      "supplementary_news_min": 10,
+      "supplementary_news_max": 12,
+      "unique_news_total_min": 20,
+      "unique_news_total_max": 24,
+      "distinct_substantive_analyses": 4,
+      "deep_research_min": 1,
+      "deep_research_max": 2,
+      "essential_body_hanzi_planning_range": [
+        9000,
+        11000
+      ],
+      "deep_body_hanzi_planning_range": [
+        12000,
+        15000
+      ],
+      "source_evidence_rule": "LINK_EACH_MATERIAL_CLAIM_TO_ACCESSIBLE_AND_ATTRIBUTED_SOURCE_OR_HOLD; INDEX_ONLY_NEVER_VERIFIED",
+      "reading_rule": "HUMAN_READING_TIMING_MUST_CONFIRM_ESSENTIAL_30_40_MIN_AND_DEEP_40_50_MIN; WORD_COUNTS_ONLY_PLANNING_PROXIES",
+      "anti_padding": "NO_REPEATED_PARAGRAPHS_NO_UNSUPPORTED_INFERENCES_NO_OLD_STORY_REPACKAGING_NO_BLANK_PLACEHOLDERS",
+      "geography": "GLOBAL_AND_CROSS_REGIONAL_COVERAGE_CHECK; DO_NOT_FILL_QUOTAS_WITH_IRRELEVANT_STORIES"
+    },
+    "sequential_improvements": [
+      {
+        "round": 1,
+        "name": "SOURCE_AND_HARD_INPUT_GATE",
+        "deliverable": "At least 20 deduplicated, dated, source-supported distinct candidate events; source failure classification and first-gate blocking"
+      },
+      {
+        "round": 2,
+        "name": "DEPTH_AND_EDITORIAL_PIPELINE",
+        "deliverable": "10–12 major articles, 10–12 briefs, 4 substantive analyses, 1–2 topical evidence-rich studies; 2 material Gemini edits and claim audit"
+      },
+      {
+        "round": 3,
+        "name": "ONE_COMPLETE_ACCEPTANCE",
+        "deliverable": "Unified real-source P2 evidence, source and claim coverage, duplication check, measured reading time, HTML and EPUB technical checks; submit to owner only if all gates pass"
+      }
+    ],
+    "nonpass_behavior": "NO_READER_FACING_OUTPUT_WHILE_ANY_GATE_FAILS; KEEP_ONLY_INTERNAL_FAILURE_COUNTS_AND_BLOCKERS; FIX_WITHIN_APPROVED_SCOPE",
+    "acceptance_authority": "NO_AUTOMATIC_EDITORIAL_SIGNOFF; OWNER_CONFIRMATION_REQUIRED_BEFORE_P3_P4_AND_PUBLISH"
+  }
 }

@@ -1,4 +1,4 @@
-"""Regression protection for owner-approved GIB editorial V2 and preserved source/release boundaries."""
+"""Regression protection for owner-approved GIB editorial V3 and preserved source/release boundaries."""
 import json
 import unittest
 from pathlib import Path
@@ -10,8 +10,8 @@ class FrozenGlobalEditorialCharterTests(unittest.TestCase):
         cls.daily=json.loads(Path("config/inoreader_free_feeds.json").read_text(encoding="utf-8"))
         cls.refs=json.loads(Path("config/specialist_official_references.json").read_text(encoding="utf-8"))
 
-    def test_owner_approved_v2_sections_morning_depth_and_release_lock(self):
-        self.assertEqual(self.contract["contract_version"],"2026-10-28-owner-approved-v2")
+    def test_owner_approved_v3_sections_morning_depth_and_release_lock(self):
+        self.assertEqual(self.contract["contract_version"],"2026-10-29-owner-approved-v3")
         self.assertEqual(self.contract["change_policy"],"OWNER_CONFIRMATION_REQUIRED_BEFORE_CHANGING_ANY_FIELD")
         self.assertEqual([x["name"] for x in self.contract["sections"]],[
             "Executive Brief","The World in Brief","Essential Analysis","Deep Research",
@@ -20,7 +20,10 @@ class FrozenGlobalEditorialCharterTests(unittest.TestCase):
         self.assertEqual([x["evening_minutes"] for x in self.contract["versions"]],["10-15","30-45"])
         self.assertTrue(all(x["edition_scope"]=="morning" for x in self.contract["versions"]))
         self.assertIn("1–2",self.contract["sections"][3]["description"])
-        self.assertIn("8–12",self.contract["sections"][1]["description"])
+        self.assertIn("20–24",self.contract["sections"][1]["description"])
+        self.assertIn("10–12",self.contract["sections"][1]["description"])
+        self.assertEqual(self.contract["editorial_acceptance"]["source_intake_hard_gate"]["min_distinct_current_events"],20)
+        self.assertEqual(self.contract["editorial_acceptance"]["morning_content"]["distinct_substantive_analyses"],4)
         self.assertEqual(self.contract["editorial_selection"]["discovery_priority"],
                          "REPUTABLE_MAJOR_PUBLISHER_TOP_HEADLINES_AND_LEAD_STORIES_FIRST")
         self.assertIn("never independent fact verification",
