@@ -246,6 +246,12 @@ def _original_source_feed_matches(packet, index_rows, cutoff):
 
 
 
+def _needs_two_distinct_primary_issuers(manifest):
+    """Only explicit two-origin disputes require two original issuers."""
+    return bool(((manifest or {}).get("estimate_reconciliation") or {}).get(
+        "numerical_discrepancy_must_not_be_silently_resolved"))
+
+
 def _distinct_primary_issuer_domains(docs):
     """Two pages on one institution domain do not make two issuers."""
     return {urlsplit(d.get("url") or "").hostname for d in docs
@@ -642,8 +648,7 @@ def build_packets(rows, now, weights=None, fetcher=None, max_documents=6, curate
             # independent corroboration. An explicit two-issuer comparison
             # remains mandatory only for genuinely conflicting estimates.
             manifest=_load_issue_manifest().get(packet["event_id"],{})
-            needs_two=bool((manifest.get("estimate_reconciliation") or {}).get(
-                "numerical_discrepancy_must_not_be_silently_resolved"))
+            needs_two=_needs_two_distinct_primary_issuers(manifest)
             if needs_two:
                 packet["blockers"].append(
                     "REQUIRED_SECOND_PRIMARY_ESTIMATE_ISSUER_NOT_LOCATED")
