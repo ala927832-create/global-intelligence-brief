@@ -19,6 +19,8 @@ on:
       - 'tests/test_r2_fact_review_sheet.py'
       - 'qa/r2_ai_editor_review_18_claims_20261029.json'
       - 'tests/test_r2_ai_editor_review.py'
+      - 'qa/r2_direct_original_source_recheck_20261029.json'
+      - 'tests/test_r2_direct_original_recheck.py'
       - 'tests/test_r2_primary_links.py'
       - 'config/r2_original_issuer_document_archive_20261029.json'
       - 'tests/test_r2_primary_archive.py'
@@ -66,6 +68,8 @@ on:
       - 'tests/test_r2_fact_review_sheet.py'
       - 'qa/r2_ai_editor_review_18_claims_20261029.json'
       - 'tests/test_r2_ai_editor_review.py'
+      - 'qa/r2_direct_original_source_recheck_20261029.json'
+      - 'tests/test_r2_direct_original_recheck.py'
       - 'tests/test_r2_primary_links.py'
       - 'config/r2_original_issuer_document_archive_20261029.json'
       - 'tests/test_r2_primary_archive.py'
@@ -286,6 +290,24 @@ jobs:
           output.parent.mkdir(parents=True,exist_ok=True)
           output.write_text(json.dumps(r,ensure_ascii=False,indent=2),encoding='utf-8')
           print('R2_AI_18_CLAIMS_REVIEW_RECORDED_HUMAN_SIGNOFF_REMAINS_ZERO')
+          PY
+      - name: Reconciled AI direct primary-source review (D03/T02) without editing approval
+        run: |
+          python - <<'PY'
+          import pathlib,json
+          p=pathlib.Path('qa/r2_direct_original_source_recheck_20261029.json')
+          r=json.loads(p.read_text(encoding='utf-8'))
+          assert len(r['source_rechecks'])==4
+          assert (r['direct_primary_count_for_eighteen_claims'],
+                  r['original_author_distributor_count_for_eighteen_claims'],
+                  r['conditional_derived_count_for_eighteen_claims'])==(16,1,1)
+          assert not r['human_editorial_signoff']
+          assert not r['two_pass_gemini_authorized']
+          assert not r['publication_approved']
+          out=pathlib.Path('qa_outputs/p2_integrated/R2_DIRECT_PRIMARY_RECHECK_AI_ONLY.json')
+          out.parent.mkdir(parents=True,exist_ok=True)
+          out.write_text(json.dumps(r,ensure_ascii=False,indent=2),encoding='utf-8')
+          print('R2_D03_T02_DIRECT_PRIMARY_REVIEW_D04_INDEX_ONLY_T03_CONDITIONAL_G2_HOLD')
           PY
       - name: Upload one consolidated P2 QA bundle (including blockers)
         if: always()

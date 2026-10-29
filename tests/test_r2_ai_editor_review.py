@@ -23,11 +23,23 @@ class AiFactReviewIntegrityTests(unittest.TestCase):
                             and not x["public_release_permitted"]
                             for x in checks))
         self.assertEqual(sum(x["status"].startswith("DIRECT_PRIMARY_SUPPORTED")
-                             for x in checks),14)
-        self.assertEqual(sum(x["status"].startswith("OFFICIAL_INDEXED")
-                             for x in checks),3)
+                             for x in checks),16)
+        self.assertEqual(sum(x["status"]=="ORIGINAL_ISSUER_AUTHORED_DISTRIBUTOR_FULL_TEXT_VERIFIED"
+                             for x in checks),1)
         self.assertEqual(sum(x["status"]=="CONDITIONAL_DERIVED_COMPARISON"
                              for x in checks),1)
+        self.assertEqual(report["review_status_counts"]["direct_original_primary_supported"],16)
+        self.assertEqual(report["review_status_counts"]["original_index_direct_access_blocked"],0)
+        self.assertEqual(report["review_status_counts"]["original_issuer_authored_distributor_text_available"],1)
+        self.assertEqual(report["original_author_source_distribution_count"],1)
+        reviewed={x["claim_id"]:x for x in checks}
+        for cid in ("D03","T02"):
+            self.assertEqual(reviewed[cid]["review_access"],"WEB_TEXT_DIRECT_ORIGINAL_PRIMARY")
+            self.assertFalse(reviewed[cid]["additional_source_needed"])
+        self.assertFalse(reviewed["D04"]["additional_source_needed"])
+        self.assertIn("HTTP 403",reviewed["D04"]["verification_note"])
+        self.assertIn("presseportal.de",reviewed["D04"]["independently_read_publisher_distribution_url"])
+        self.assertIn("NOT been demonstrated",reviewed["T03"]["limitation"])
         self.assertTrue(report["ai_reviewer_work_completed"])
         self.assertTrue(report["ai_review_does_not_satisfy_original_human_signature_gate"])
         self.assertEqual(report["verified_human_editorial_signatures"],0)
