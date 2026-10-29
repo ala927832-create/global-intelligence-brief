@@ -240,6 +240,16 @@ def diversified_v3(items, top_n=24, max_per_section=8):
         if counts.get(section,0)>=max_per_section: continue
         old=len(reserved);add(item)
         if len(reserved)>old: counts[section]=counts.get(section,0)+1
+    # The per-section cap is a diversity PREFERENCE, not a hard rejection
+    # of authenticated subscribed publisher NEWS. When fewer than 20 stories
+    # would otherwise survive but there are genuine distinct candidates,
+    # backfill from the existing ranked pool without fabricating events.
+    # G1 still separately checks 4 actual topics, 4 publishers and exact
+    # 10–12 / 10–12 tier counts.
+    if len(reserved)<min(top_n,len(items)):
+        for item in items:
+            if len(reserved)>=top_n:break
+            add(item)
     # Restore ranked order so low-scoring coverage representatives do not
     # automatically become top headlines; editorial signoff remains separate.
     by_url={canon_url(x.get("url","")):i for i,x in enumerate(items)}
