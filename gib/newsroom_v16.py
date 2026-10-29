@@ -7,7 +7,7 @@ import datetime as dt
 import hashlib
 import json
 from urllib.parse import urlsplit
-from .editorial import cluster, rank, diversified, sig, material_news_candidate
+from .editorial import cluster, rank, diversified, diversified_v3, sig, material_news_candidate
 
 TOPICS = {
     'macro': '全球宏觀', 'central_banks': '央行與金融',
@@ -67,8 +67,8 @@ def canonical_issue(raw, edition, now, weights=None, prior=None, max_items=12, r
     # V3 morning has two distinct editorial tiers. Preserve the old
     # 12-story mode for retrospective legacy fixtures and evening.
     tiered=bool(tiered_v3 and edition=="morning")
-    chosen=diversified(eligible,24 if tiered else max_items,
-                       max_per_section=8 if tiered else 4)
+    chosen=(diversified_v3(eligible,top_n=24,max_per_section=8) if tiered
+            else diversified(eligible,max_items,max_per_section=4))
     tier_main_count=(max(10,len(chosen)-12) if len(chosen)>=20 else 0) if tiered else 0
     rows=[]
     updates=[]
