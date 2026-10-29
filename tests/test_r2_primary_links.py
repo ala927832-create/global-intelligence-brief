@@ -1,6 +1,8 @@
 """Curated primary research is actual article text provenance, not 'VERIFIED' news."""
 import datetime as dt
+import io
 import unittest
+from pypdf import PdfWriter
 
 from gib.r2_evidence_packets import (
     _attach_curated_original_research, _load_issue_manifest,
@@ -59,6 +61,31 @@ class CuratedOriginalEvidenceTests(unittest.TestCase):
                     "https://attacker.com@unapproved.example/"):
             with self.assertRaises(ValueError):
                 fetch_curated_primary_page(url)
+
+    def test_issuer_pdf_is_parsed_readonly_and_not_fact_certified(self):
+        writer=PdfWriter()
+        writer.add_blank_page(width=595,height=842)
+        buf=io.BytesIO()
+        writer.write(buf)
+        class Response:
+            status_code=200
+            headers={"Content-Type":"application/pdf"}
+            content=buf.getvalue()
+            text=""
+            def raise_for_status(self): return None
+        class Session:
+            def get(self,url,**kwargs):
+                self.assertion_url=url
+                self.arguments=kwargs
+                return Response()
+        session=Session()
+        source="https://www.maureletprom.fr/en/documents/download/1931/activity-for-the-first-nine-months-of-2026"
+        from gib.r2_evidence_packets import fetch_curated_primary_page
+        result=fetch_curated_primary_page(source,session=session)
+        self.assertEqual(result["text"],"")
+        self.assertEqual(result["url"],source)
+        self.assertEqual(len(result["sha256"]),64)
+        self.assertFalse(session.arguments["allow_redirects"])
 
     def test_fetched_page_without_claim_text_is_not_promoted(self):
         p=self.samples()
