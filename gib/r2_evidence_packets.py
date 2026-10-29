@@ -29,7 +29,7 @@ from qa.r2_evidence_preflight import latest_morning_cutoff
 # NOT an extension of the 24 RSS feeds or official_rss source providers.
 R2_PRIMARY_HOSTS = frozenset({
     "www.federalreserve.gov", "www.bankofcanada.ca",
-    "www.nim.org", "www.maureletprom.fr"
+    "www.nim.org", "www.maureletprom.fr", "nishati.go.tz"
 })
 R2_MANIFEST = (Path(__file__).resolve().parents[1] /
                "config/r2_primary_research_links_20261029.json")
@@ -152,7 +152,10 @@ def _attach_curated_original_research(packets, now, fetcher, budget):
                     d.isoformat(),
                     f"{d.strftime('%B')} {d.day}, {d.year}",
                     f"{d.day} {d.strftime('%B')} {d.year}",
-                    f"{d.strftime('%b')} {d.day}, {d.year}"
+                    f"{d.strftime('%b')} {d.day}, {d.year}",
+                    f"{d.day}th {d.strftime('%b')}, {d.year}",
+                    f"{d.day} Oktoba, {d.year}",
+                    f"{d.day} Oktoba {d.year}"
                 ]
                 row["original_document_date_located"] = any(
                     date.casefold() in lower for date in possible_dates)
