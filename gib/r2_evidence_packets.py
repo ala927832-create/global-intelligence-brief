@@ -29,7 +29,7 @@ from qa.r2_evidence_preflight import latest_morning_cutoff
 # NOT an extension of the 24 RSS feeds or official_rss source providers.
 R2_PRIMARY_HOSTS = frozenset({
     "www.federalreserve.gov", "www.bankofcanada.ca",
-    "www.nim.org", "www.maureletprom.fr", "nishati.go.tz"
+    "www.nim.org", "www.maureletprom.fr", "nishati.go.tz", "www.nishati.go.tz"
 })
 R2_MANIFEST = (Path(__file__).resolve().parents[1] /
                "config/r2_primary_research_links_20261029.json")
@@ -44,7 +44,7 @@ def fetch_curated_primary_page(url, session=None):
         raise ValueError("R2_ORIGINAL_DOCUMENT_NOT_ALLOWLISTED")
     client = session or requests.Session()
     response = client.get(
-        url, timeout=(6, 14), allow_redirects=False,
+        url, timeout=(6, 14), allow_redirects=False, verify=True,
         headers={"User-Agent": "GIB-R2-Source-Verification/1.0",
                  "Accept": "text/html,text/plain,application/xhtml+xml,application/pdf"})
     response.raise_for_status()
@@ -183,6 +183,12 @@ def _attach_curated_original_research(packets, now, fetcher, budget):
                     if row["matched_primary_text_phrases"]
                     else "PAGE_RETRIEVED_NO_EXACT_CLAIM_MATCH")
                 row["primary_document_directly_accessed"] = True
+            except requests.exceptions.SSLError:
+                # Explicit TLS failure rather than a generic missing source.
+                # Do NOT retry via HTTP or disable certificate validation.
+                row["retrieval_status"] = "SOURCE_TLS_CERTIFICATE_REJECTED"
+                row["error_type"] = "SSLError"
+                row["claim_fact_checked"] = False
             except (requests.RequestException, ValueError, KeyError, TypeError) as error:
                 row["retrieval_status"] = "SOURCE_FETCH_OR_MATCH_FAILED"
                 row["error_type"] = type(error).__name__
@@ -192,6 +198,50 @@ def _attach_curated_original_research(packets, now, fetcher, budget):
                 "matched_claim_phrases": len(row["matched_primary_text_phrases"])
             })
     return audits
+
+
+
+def _original_source_feed_matches(packet, index_rows, cutoff):
+    """Locate a curated issuer URL already carried by the original RSS index.
+
+    RSS discovery is distinct from fetching a full, hashable official page.
+    An exact issuer URL and valid source timestamp support provenance, not
+    independent editorial certification. Crucially, do not apply G0's 50-char
+    news-excerpt threshold: many official RSS feeds only provide short titles.
+    """
+    manifest=_load_issue_manifest().get(packet.get("event_id"))
+    if not manifest or manifest.get("exact_news_title")!=packet.get("original_title"):
+        return []
+    expected={d["url"] for d in manifest.get("primary_documents",[])}
+    hits=[]
+    seen=set()
+    begin=cutoff-dt.timedelta(hours=14)
+    for item in index_rows:
+        url=item.get("url")
+        if url not in expected or url in seen:
+            continue
+        if not item.get("official"):
+            continue
+        try:
+            source_date=dt.datetime.fromisoformat(
+                str(item.get("published_at") or "").replace("Z","+00:00"))
+            if source_date.tzinfo is None or not begin<source_date<=cutoff:
+                continue
+        except (TypeError,ValueError):
+            continue
+        seen.add(url)
+        hits.append({
+            "issuer_url":url,
+            "original_source_feed_title":str(item.get("title") or "")[:250],
+            "source_discovery_id":item.get("source_id"),
+            "source_published_at_utc":source_date.astimezone(dt.timezone.utc).isoformat(),
+            "discovery_provider":item.get("provider"),
+            "source_excerpt_sha256":_sha(item.get("snippet") or ""),
+            "official_feed_url_matched":True,
+            "claim_fact_checked":False,
+            "article_body_retrieved_from_feed":False
+        })
+    return hits
 
 
 
@@ -420,6 +470,8 @@ def build_packets(rows, now, weights=None, fetcher=None, max_documents=6, curate
         focus_issue, fetcher=official_fetcher, max_documents=max_documents)
     packets = [_dossier(x) for x in focus_issue["articles"]]
     for item in packets:
+        item["original_issuer_urls_found_in_current_rss_source_index"] = (
+            _original_source_feed_matches(item, rows, cutoff))
         item["additional_publisher_index_matches_not_fact_verified"] = (
             _match_independent_index_for_review(item, eligible, cutoff))
         item["independent_publisher_source_comparison_status"] = (
@@ -428,6 +480,9 @@ def build_packets(rows, now, weights=None, fetcher=None, max_documents=6, curate
             else "NO_SECOND_INDEPENDENT_NEWS_INDEX_CANDIDATE")
     output["potential_additional_independent_publisher_sources"] = sum(
         len(p["additional_publisher_index_matches_not_fact_verified"])
+        for p in packets)
+    output["original_issuer_urls_also_seen_in_current_rss"] = sum(
+        len(p["original_issuer_urls_found_in_current_rss_source_index"])
         for p in packets)
     already_fetched = focus_issue.get("source_health", {}).get(
         "primary_source_review", {}).get("fetched_count", 0)
@@ -487,6 +542,31 @@ def build_packets(rows, now, weights=None, fetcher=None, max_documents=6, curate
         bool(d["contrasting_position_source_documents"]) for d in packets)
     output["focus_with_located_observations_not_causal_proofs"] = sum(
         bool(d["observational_data_source_documents"]) for d in packets)
+    # Distinguish an actual two-issuer primary-source comparison from
+    # repeated documents by the same issuer (e.g. two Bank of Canada pages).
+    output["cross_issuer_original_document_pairs_ready_for_review"] = 0
+    for packet in packets:
+        docs=[d for d in packet.get("curated_original_research",[])
+              if d["retrieval_status"] ==
+              "ORIGINAL_DOCUMENT_EXCERPT_MATCH_NOT_FACT_VERIFIED"
+              and d.get("source_document_sha256") and d.get("original_document_date_located")]
+        issuers={d.get("issuer") for d in docs}
+        distinct_sources={urlsplit(d.get("url") or "").hostname for d in docs}
+        two_issuers=(len(issuers)>=2 and len(distinct_sources)>=2)
+        packet["cross_issuer_primary_source_comparison"]={
+            "distinct_issuers_with_dated_primary_matches":len(issuers),
+            "distinct_original_domains":len(distinct_sources),
+            "two_independent_primary_issuers_located":bool(two_issuers),
+            "source_claims_need_manual_reconciliation":True,
+            "contradiction_or_difference_explained":False,
+            "fact_verification_signed":False,
+            "status":("TWO_PRIMARY_ISSUERS_READY_FOR_MANUAL_RECONCILIATION"
+                      if two_issuers else "MISSING_SECOND_DISTINCT_PRIMARY_ISSUER")
+        }
+        if two_issuers:
+            output["cross_issuer_original_document_pairs_ready_for_review"]+=1
+        else:
+            packet["blockers"].append("SECOND_PRIMARY_ISSUER_NOT_FETCHED_OR_MATCHED")
     output["analysis_packets"] = packets
     # Deep subjects must be tied to current sourced headlines. Shortlisting
     # them is NEVER equivalent to finished research or original evidence.

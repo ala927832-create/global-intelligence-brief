@@ -115,7 +115,7 @@
           "locator_hint": "PDF page 4 (zero-based page 3), Tanzania subsection; volume estimates are preliminary gas volumes and not independently certified reserves"
         },
         {
-          "url": "https://nishati.go.tz/news/historia-yaandikwa-mnazi-bay-waziri-homera-atangaza-ugunduzi-wa-gesi-asilia-wa-futi-za-ujazo-bilioni-223",
+          "url": "https://www.nishati.go.tz/news/historia-yaandikwa-mnazi-bay-waziri-homera-atangaza-ugunduzi-wa-gesi-asilia-wa-futi-za-ujazo-bilioni-223",
           "issuer": "Tanzania Ministry of Energy (Wizara ya Nishati)",
           "publication_date": "2026-10-28",
           "source_kind": "TANZANIA_GOVERNMENT_PRIMARY_RELEASE",
@@ -124,7 +124,8 @@
             "kisima cha Kasa",
             "tarehe 27 Oktoba, 2026"
           ],
-          "locator_hint": "Swahili official release; title references 223 billion cubic feet and ministry minister's 27 October Kasa visit; independent source/date/measurement vocabulary must be reconciled with 22 October operator PDF"
+          "locator_hint": "Swahili official release; title references 223 billion cubic feet and ministry minister's 27 October Kasa visit; independent source/date/measurement vocabulary must be reconciled with 22 October operator PDF",
+          "tls_note": "Try independently indexed canonical www government HTTPS alias, TLS peer verification mandatory; do not downgrade to HTTP, redirect or verify=False"
         }
       ],
       "counterevidence_search": "Compare dated government estimate 223 Bcf, operator preliminary approximately 200 Bcf gross, and resource classification before calling it reserves",
