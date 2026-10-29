@@ -1,0 +1,49 @@
+"""AI review is not a substitute for owner-required human editorial approval."""
+import json
+import unittest
+from pathlib import Path
+
+ROOT=Path(__file__).resolve().parents[1]
+REVIEW=ROOT/"qa/r2_ai_editor_review_18_claims_20261029.json"
+LEDGER=ROOT/"qa/r2_crosssource_claim_ledger_20261029.json"
+
+class AiFactReviewIntegrityTests(unittest.TestCase):
+    def test_eighteen_real_claim_ids_with_bounded_ai_only_reviewer(self):
+        report=json.loads(REVIEW.read_text(encoding="utf-8"))
+        ledger=json.loads(LEDGER.read_text(encoding="utf-8"))
+        claim_to_sources={
+            c["id"]:set(c["source_ids"])
+            for topic in ledger["dossiers"] for c in topic["claims"]}
+        checks=report["claim_reviews"]
+        self.assertEqual(len(checks),18)
+        self.assertEqual({x["claim_id"] for x in checks},set(claim_to_sources))
+        self.assertTrue(all(set(x["source_ids"])==claim_to_sources[x["claim_id"]]
+                            for x in checks))
+        self.assertTrue(all(x["reviewer"]=="AI_GPT6" and not x["human_signature"]
+                            and not x["public_release_permitted"]
+                            for x in checks))
+        self.assertEqual(sum(x["status"].startswith("DIRECT_PRIMARY_SUPPORTED")
+                             for x in checks),14)
+        self.assertEqual(sum(x["status"].startswith("OFFICIAL_INDEXED")
+                             for x in checks),3)
+        self.assertEqual(sum(x["status"]=="CONDITIONAL_DERIVED_COMPARISON"
+                             for x in checks),1)
+        self.assertTrue(report["ai_reviewer_work_completed"])
+        self.assertTrue(report["ai_review_does_not_satisfy_original_human_signature_gate"])
+        self.assertEqual(report["verified_human_editorial_signatures"],0)
+        self.assertFalse(report["headline_coverage_cutoff_0730_persisted_and_verified"])
+        self.assertFalse(report["gemini_pass_1_permitted"])
+        self.assertFalse(report["gemini_pass_2_permitted"])
+        self.assertFalse(report["release_approved"])
+
+    def test_ai_review_must_not_mutate_original_newsroom_ledger_to_verified(self):
+        ledger=json.loads(LEDGER.read_text(encoding="utf-8"))
+        for topic in ledger["dossiers"]:
+            self.assertFalse(topic["human_reviewed"])
+            self.assertFalse(topic["ready_for_gemini"])
+            for claim in topic["claims"]:
+                self.assertFalse(claim["editor_signed"])
+                self.assertNotEqual(claim["source_match_status"],"VERIFIED")
+
+if __name__=="__main__":
+    unittest.main()
