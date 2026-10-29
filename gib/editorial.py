@@ -150,7 +150,13 @@ def rank(items,weights):
         speculative=sum(bool(x in t) for x in
             ('opinion:', 'op-ed', 'commentary:', 'rumor:', 'unconfirmed:',
              'price prediction'))
+        # Owner's Inoreader original publisher roster is the default
+        # newspaper reporting desk. Subscription is an editorial preference,
+        # not independent proof that a publisher claim is true.
+        from .subscription_news_policy import is_subscribed_news
+        subscribed=is_subscribed_news(a)
         a['editorial_rank_signals']={
+            'owner_subscribed_news_source':subscribed,
             'global_relevance':global_signals,
             'narrow_listing':narrow_signals,
             'commentary_or_speculation':speculative,
@@ -161,6 +167,7 @@ def rank(items,weights):
             +(4 if a.get('official') else 0)
             +min(2,len(a['publishers'])-1)*1.5
             +min(global_signals,3)*2.5
+            +(3 if subscribed else 0)
             -narrow_signals*5
             -speculative*3,2)
     return sorted(items,key=lambda a:(-a['score'],a.get('published_at') or ''))
@@ -233,6 +240,16 @@ def diversified_v3(items, top_n=24, max_per_section=8):
         if counts.get(section,0)>=max_per_section: continue
         old=len(reserved);add(item)
         if len(reserved)>old: counts[section]=counts.get(section,0)+1
+    # The per-section cap is a diversity PREFERENCE, not a hard rejection
+    # of authenticated subscribed publisher NEWS. When fewer than 20 stories
+    # would otherwise survive but there are genuine distinct candidates,
+    # backfill from the existing ranked pool without fabricating events.
+    # G1 still separately checks 4 actual topics, 4 publishers and exact
+    # 10–12 / 10–12 tier counts.
+    if len(reserved)<min(top_n,len(items)):
+        for item in items:
+            if len(reserved)>=top_n:break
+            add(item)
     # Restore ranked order so low-scoring coverage representatives do not
     # automatically become top headlines; editorial signoff remains separate.
     by_url={canon_url(x.get("url","")):i for i,x in enumerate(items)}

@@ -46,7 +46,15 @@
     "discovery_priority": "REPUTABLE_MAJOR_PUBLISHER_TOP_HEADLINES_AND_LEAD_STORIES_FIRST",
     "materiality_rule": "DO_NOT_REQUIRE_SYSTEMIC_WORLD_EVENT_FOR_EVERY_SELECTED_NEWS_ITEM",
     "source_scope": "EXISTING_APPROVED_FREE_SOURCES_ONLY_UNLESS_SEPARATELY_AUTHORIZED",
-    "editorial_guardrails": "Headline placement is a discovery and prioritization signal, never independent fact verification. Preserve original reporting, source dates, cross-checks, global diversity and human editorial signoff. Do not promote recycled headlines, sensationalism, marketing or owner industry bias."
+    "editorial_guardrails": "Headline placement is a discovery and prioritization signal, never independent fact verification. Preserve original reporting, source dates, cross-checks, global diversity and human editorial signoff. Do not promote recycled headlines, sensationalism, marketing or owner industry bias.",
+    "inoreader_subscribed_news_owner_amendment": {
+      "approved_date": "2026-10-29",
+      "policy": "A genuine article identified through one of the owner's 24 imported Inoreader OPML public publisher RSS feeds, with original HTTPS article URL and publication timestamp inside the edition window, is qualified as SOURCE-ATTRIBUTED NEWS. A missing independently confirmed claim, opposing interpretation, or primary government statement may not veto the original subscribed news item.",
+      "source_boundary": "Validate original OPML source ID, name and lane; 24 imported feed IDs only. Other free APIs are still supplemental and do not inherit automatic subscriber-news status. Deduplicate actual repeated events; keep time/URL/source safety controls.",
+      "content_boundary": "If RSS contains only title, report the attributed linked title and do not manufacture a body, numerical claims, source quote or summarizing sentences. Where bounded publisher excerpt exists, only source-attributed, clearly reported content may be conveyed.",
+      "ai_analysis_boundary": "Deeper causal mechanisms, independent factual assertions, disputes, rebuttals, forecasts, added numerical interpretations and Deep Research still require their own dated and attributable evidence. Opposing evidence belongs under Analysis/Alternative Views, not as grounds to reject the publisher's news.",
+      "approval_boundary": "Subscribed-news qualification is NOT third-party fact certification or authorization to turn on Gemini, publication, EPUB, Pages or LINE; retain other G2 quality, timed-capture and owner release gates."
+    }
   },
   "format": {
     "primary_language": "zh-TW",
@@ -102,10 +110,11 @@
       "min_editorial_topic_groups": 4,
       "min_source_attributed_summary_characters": 50,
       "identity": "DEDUP_CANONICAL_URL_AND_NEAR_IDENTICAL_EVENT_TITLE; REPRINTS_NOT_NEW_EVENTS",
-      "evidence": "MUST_HAVE_TIMESTAMP_ORIGINAL_URL_AND_SUMMARY_OR_SOURCE_BOUND_POINTS; A_TITLE_ALONE_IS_NOT_AN_EVIDENCE_BEARING_EVENT",
+      "evidence": "OWNER_SUBSCRIBED_OPML_NEWS_NEEDS_ORIGINAL_URL_TIMESTAMP_SOURCE_ID_AND_LINKED_TITLE; PUBLISHER_EXCERPT_REQUIRED_ONLY_FOR_ADDITIONAL_AI_SUMMARY_OR_NON_SUBSCRIBED_NEWS; NO_INVENTED_TEXT",
       "failure": "FAIL_CLOSED_INTERNAL_DIAGNOSTICS_ONLY; NO_GEMINI_NO_HTML_NO_EPUB_NO_OWNER_REVIEW_PACKAGE",
-      "explanation": "A SHORTLIST SHORTAGE IS A SOURCE_CAPTURE_OR_SELECTION_PIPELINE_DEFECT, NEVER PROOF THAT GLOBAL NEWS IS SCARCE",
-      "repeat_policy": "DO_NOT_RESUBMIT_THE_SAME_INCOMPLETE_PREVIEW"
+      "explanation": "A SHORTLIST SHORTAGE IS A SOURCE_CAPTURE_OR_SELECTION_PIPELINE_DEFECT, NEVER PROOF THAT GLOBAL NEWS IS SCARCE; OPML subscriber news attribution is not gated by the AI editor's agreement with the report.",
+      "repeat_policy": "DO_NOT_RESUBMIT_THE_SAME_INCOMPLETE_PREVIEW",
+      "subscribed_news_exception": "SOURCE_ATTRIBUTED_SUBSCRIBED_FEED_EVENT_COUNTS_AS_REPORTABLE_NEWS_EVEN_IF_SHORT_OR_CONTROVERSIAL; COUNTEREVIDENCE_AND_CAUSAL_ASSUMPTIONS_ARE_ANALYSIS_ONLY"
     },
     "morning_content": {
       "main_news_min": 10,
@@ -128,7 +137,8 @@
       "source_evidence_rule": "LINK_EACH_MATERIAL_CLAIM_TO_ACCESSIBLE_AND_ATTRIBUTED_SOURCE_OR_HOLD; INDEX_ONLY_NEVER_VERIFIED",
       "reading_rule": "HUMAN_READING_TIMING_MUST_CONFIRM_ESSENTIAL_30_40_MIN_AND_DEEP_40_50_MIN; WORD_COUNTS_ONLY_PLANNING_PROXIES",
       "anti_padding": "NO_REPEATED_PARAGRAPHS_NO_UNSUPPORTED_INFERENCES_NO_OLD_STORY_REPACKAGING_NO_BLANK_PLACEHOLDERS",
-      "geography": "GLOBAL_AND_CROSS_REGIONAL_COVERAGE_CHECK; DO_NOT_FILL_QUOTAS_WITH_IRRELEVANT_STORIES"
+      "geography": "GLOBAL_AND_CROSS_REGIONAL_COVERAGE_CHECK; DO_NOT_FILL_QUOTAS_WITH_IRRELEVANT_STORIES",
+      "subscribed_news_attribution_rule": "OWNER_APPROVED_INOREADER_SOURCE_NEWS_IS_VALID_AS_ATTRIBUTED_NEWS_WITH_ORIGINAL_LINK_AND_DATE; INDEPENDENT_RESEARCH_FACT_CHECK_NOT_A_PER_NEWS_VETO"
     },
     "sequential_improvements": [
       {
@@ -147,7 +157,7 @@
         "deliverable": "Unified real-source P2 evidence, source and claim coverage, duplication check, measured reading time, HTML and EPUB technical checks; submit to owner only if all gates pass"
       }
     ],
-    "nonpass_behavior": "NO_READER_FACING_OUTPUT_WHILE_ANY_GATE_FAILS; KEEP_ONLY_INTERNAL_FAILURE_COUNTS_AND_BLOCKERS; FIX_WITHIN_APPROVED_SCOPE",
+    "nonpass_behavior": "ALLOW_ONLY_INTERNAL_PROVENANCE-BOUNDED_NEWS_CANDIDATE_QA_IF_RESEARCH_GATE_FAILS; NO_READER_FACING_HTML_EPUB_OR_AUTOMATED_PUBLICATION_WHILE_ANY_RELEASE_GATE_FAILS",
     "acceptance_authority": "NO_AUTOMATIC_EDITORIAL_SIGNOFF; OWNER_CONFIRMATION_REQUIRED_BEFORE_P3_P4_AND_PUBLISH"
   }
 }

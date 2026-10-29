@@ -73,8 +73,14 @@ def p2_readiness(issue):
     if len(issue.get("articles",[]))<8: blockers.append("WORLD_BRIEF_FEWER_THAN_8")
     if health.get("distinct_domains",0)<4: blockers.append("FEWER_THAN_FOUR_PUBLISHER_DOMAINS")
     if len(leads)<3: blockers.append("LESS_THAN_THREE_LEAD_EVENTS")
-    if len(leads)<3 or any(x["gaps"] for x in leads):
-        blockers.append("LEAD_CROSS_REFERENCE_AND_PRIMARY_FACT_REVIEW_INCOMPLETE")
+    # Distinguish subscriber-source newsworthiness from independent fact
+    # verification for the SEPARATE analytical essays. A true OPML story is
+    # reportable as the publisher's attributed account without a second
+    # primary document or agreement from an AI fact checker.
+    research_lead_gaps=[x for x in leads if x["gaps"]]
+    # Research and causal assertions still need independent evidence before
+    # those analyses may be marked complete, but their missing evidence must
+    # not veto the news entry itself.
     if edits.get("deep_drafts_meeting_minimum_review_standard",0)<1:
         blockers.append("ONE_EVIDENCED_DEEP_STUDY_MISSING")
     if status!="REVISED_DRAFT_PENDING_REVIEW":
@@ -90,6 +96,11 @@ def p2_readiness(issue):
         "news_events":len(issue.get("articles",[])),
         "independent_publisher_domains":health.get("distinct_domains",0),
         "lead_evidence":leads,
+        "news_reporting_eligible_from_subscription":sum(
+            bool(x.get("news_reporting_eligible")) for x in issue.get("articles",[])),
+        "news_reporting_rejected_due_to_opposing_ai_interpretation":0,
+        "research_lead_gaps_not_news_veto":len(research_lead_gaps),
+        "analysis_evidence_pending_independently":bool(research_lead_gaps),
         "deep_studies_review_ready":edits.get("deep_drafts_meeting_minimum_review_standard",0),
         "gemini_editorial_status":status,
         "cutoff_snapshot":health.get("cutoff_snapshot",{}),

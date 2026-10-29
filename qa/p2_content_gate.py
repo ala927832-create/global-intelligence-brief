@@ -11,6 +11,7 @@ from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 from gib.contract import locked_contract
 from gib.editorial import cluster, classify, material_news_candidate, SPORTS_LEISURE
+from gib.subscription_news_policy import is_subscribed_news
 
 TZ=ZoneInfo("Asia/Taipei")
 UTC=dt.timezone.utc
@@ -33,7 +34,10 @@ def _usable_source_summary(row):
     # Only actually returned publisher text, not the headline or AI prose.
     snippet=str(row.get("snippet") or row.get("description") or "").strip()
     if len(snippet)>=50: return True
-    known={row.get("source_id"),*list(row.get("source_ids") or [])}
+    source_ids=row.get("source_ids")
+    if not isinstance(source_ids,(list,tuple,set)):
+        source_ids=[]
+    known={x for x in [row.get("source_id"),*source_ids] if isinstance(x,str)}
     for item in (row.get("reported_key_points") or []) + (
             row.get("source_digest",{}).get("points",[])
             if isinstance(row.get("source_digest"),dict) else []):
@@ -43,9 +47,10 @@ def _usable_source_summary(row):
     return False
 
 def eligible_source_rows(rows,cutoff,edition="morning"):
-    """Return only dated publisher excerpts that may enter G0 and G1.
+    """Allow owner-subscribed NEWS as an attributed headline without 50-char text.
 
-    Crucially, do not rank or invent a 20-story issue from RSS URL counts.
+    AI summaries and explanatory claims still require their own direct evidence.
+    Supplemental non-OPML sources retain the previous stricter summary gate.
     """
     if cutoff.tzinfo is None: raise ValueError("CUTOFF_REQUIRES_TIMEZONE")
     start,end=_cutoff_window(cutoff,edition)
@@ -62,11 +67,12 @@ def eligible_source_rows(rows,cutoff,edition="morning"):
         pub=_date(row.get("published_at"))
         if pub is None or not start<pub<=end:
             rejected["OUTSIDE_WINDOW_OR_MISSING_DATETIME"]+=1;continue
-        if not _usable_source_summary(row):
+        subscribed=is_subscribed_news(row)
+        if not subscribed and not _usable_source_summary(row):
             rejected["TITLE_ONLY_OR_INSUFFICIENT_SOURCE_TEXT"]+=1;continue
-        if SPORTS_LEISURE.search(title):
+        if not subscribed and SPORTS_LEISURE.search(title):
             rejected["SPORTS_NOT_NEWS_DESK"]+=1;continue
-        if not material_news_candidate(row):
+        if not subscribed and not material_news_candidate(row):
             # A leading story on an approved WORLD newsroom feed need not
             # mention inflation/war/AI to be newsworthy. This relaxes only
             # discovery, not sourcing, human editing or editorial acceptance.
@@ -89,8 +95,13 @@ def source_input_gate(rows,cutoff,edition="morning",contract=None,observed_at=No
     distinct=cluster(eligible,end,cutoff_hours=25)
     domains={urlsplit(a["url"]).hostname for a in distinct}
     topics={classify(a["title"]) for a in distinct}
+    subscribed_news=[x for x in distinct if is_subscribed_news(x)]
+    subscribed_headline_only=[x for x in subscribed_news if not _usable_source_summary(x)]
     rules={
         "distinct_evidence_bearing_events":len(distinct),
+        "source_attributed_subscribed_news_events":len(subscribed_news),
+        "subscribed_headline_only_links":len(subscribed_headline_only),
+        "source_excerpt_supported_news_events":sum(_usable_source_summary(x) for x in distinct),
         "original_publisher_domains":len(domains),
         "editorial_topic_groups":len(topics),
     }
@@ -99,8 +110,8 @@ def source_input_gate(rows,cutoff,edition="morning",contract=None,observed_at=No
         "original_publisher_domains":q["min_distinct_original_publisher_domains"],
         "editorial_topic_groups":q["min_editorial_topic_groups"],
     }
-    blockers=[f"{key.upper()}_{val}_BELOW_{minimums[key]}"
-              for key,val in rules.items() if val<minimums[key]]
+    blockers=[f"{key.upper()}_{rules[key]}_BELOW_{minimums[key]}"
+              for key in minimums if rules[key]<minimums[key]]
     lag=None
     if observed_at is not None:
         if observed_at.tzinfo is None: raise ValueError("OBSERVED_AT_REQUIRES_TIMEZONE")
@@ -130,6 +141,8 @@ def source_input_gate(rows,cutoff,edition="morning",contract=None,observed_at=No
         "blockers":blockers,
         "sample_event_titles":[a["title"] for a in distinct[:6]],
         "news_not_scarce_inference_prohibited":True,
+        "subscribed_news_reportable_without_independent_ai_fact_review":True,
+        "headline_only_news_must_not_be_expanded_from_title":True,
         "source_index_does_not_prove_original_article_full_text":True,
         "gemini_allowed":False if blockers else None,
         "reader_preview_allowed":False if blockers else None,
@@ -178,7 +191,10 @@ def selected_story_gate(issue,contract=None):
             selected_primary_urls.append(primary)
         else: blockers.append("SELECTED_EVENT_MISSING_PRIMARY_HTTPS_SOURCE")
         if len(str(a.get("headline_summary") or "").strip())<50:
-            blockers.append("SELECTED_EVENT_INSUFFICIENT_SOURCE_EXCERPT")
+            origin=a.get("news_source_policy") or {}
+            if not (origin.get("subscription_news_eligible") is True
+                    and origin.get("summary_policy")=="HEADLINE_ONLY_LINK_NO_AI_SUMMARY"):
+                blockers.append("SELECTED_EVENT_INSUFFICIENT_SOURCE_EXCERPT")
     if len(selected_domains)<contract["editorial_acceptance"]["source_intake_hard_gate"]["min_distinct_original_publisher_domains"]:
         blockers.append("SELECTED_PUBLISHER_DIVERSITY_BELOW_4")
     if len(selected_topics)<contract["editorial_acceptance"]["source_intake_hard_gate"]["min_editorial_topic_groups"]:
@@ -192,6 +208,13 @@ def selected_story_gate(issue,contract=None):
         "main_news":len(mains),"supplementary_news":len(shorts),
         "selected_primary_publisher_domains":len(selected_domains),
         "selected_editorial_topics":len(selected_topics),
+        "selected_subscribed_news_reportable":sum(
+            (a.get("news_source_policy") or {}).get("subscription_news_eligible") is True
+            for a in articles),
+        "selected_subscribed_headline_only":sum(
+            (a.get("news_source_policy") or {}).get("summary_policy")=="HEADLINE_ONLY_LINK_NO_AI_SUMMARY"
+            for a in articles),
+        "news_eligibility_is_not_ai_analysis_or_publication_approval":True,
         "gemini_allowed":False if blockers else None,
         "reader_preview_allowed":False if blockers else None,
         "publication_approved":False

@@ -26,6 +26,9 @@ on:
       - 'tests/test_r2_primary_archive.py'
       - 'config/r2_primary_research_links_20261029.json'
       - 'qa/p2_content_gate.py'
+      - 'gib/subscription_news_policy.py'
+      - 'qa/r2_subscribed_news_lane.py'
+      - 'tests/test_owner_inoreader_news_separation.py'
       - 'tests/test_p2_v3_content_gate.py'
       - 'config/frozen_contract.json'
       - 'gib/contract.py'
@@ -75,6 +78,9 @@ on:
       - 'tests/test_r2_primary_archive.py'
       - 'config/r2_primary_research_links_20261029.json'
       - 'qa/p2_content_gate.py'
+      - 'gib/subscription_news_policy.py'
+      - 'qa/r2_subscribed_news_lane.py'
+      - 'tests/test_owner_inoreader_news_separation.py'
       - 'tests/test_p2_v3_content_gate.py'
       - 'config/frozen_contract.json'
       - 'gib/contract.py'
@@ -193,6 +199,37 @@ jobs:
                       raise AssertionError(f'{edition} {name} offline QA failed: {checks["issues"]}')
               assert row['release_approved'] is False
           print('P2_TECHNICAL_ARTIFACTS_AND_OFFLINE_QA_PASS; EDITORIAL_AND_RELEASE_HOLD')
+          PY
+      - name: Owner-subscribed Inoreader NEWS admission separate from independent AI analysis evidence
+        # Reads only the same collected real source index. No new providers,
+        # invented summaries, Gemini, rendered HTML/EPUB or publication.
+        run: |
+          python - <<'PY'
+          import glob,json,pathlib,subprocess,sys
+          indexes=glob.glob('qa_outputs/p2_integrated/*/source_index.json')
+          assert len(indexes)==1, 'Exactly one real collected index required'
+          source=pathlib.Path(indexes[0])
+          report=source.parent/'R2_SUBSCRIBED_NEWS_LANE_NOT_READER_OUTPUT.json'
+          subprocess.run([sys.executable,'qa/r2_subscribed_news_lane.py',
+                          '--source-index',str(source),'--output',str(report)],check=True)
+          record=json.loads(report.read_text(encoding='utf-8'))
+          assert record['original_opml_feeds_configured']==24
+          assert record['rebuttal_or_independent_ai_opinion_can_remove_subscribed_news'] is False
+          assert record['ai_brief_generation_from_title_only_forbidden']
+          assert not record['gemini_called']
+          assert not record['html_or_epub_generated']
+          assert not record['public_news_release_enabled']
+          assert not record['p2_editorial_final_pass']
+          for story in record['headline_news_entries']:
+              if story['user_inoreader_subscribed'] and story['summary_mode']=='HEADLINE_ONLY_LINK_NO_AI_SUMMARY':
+                  assert story['source_publisher_excerpt_only']==''
+              assert story['source_article_url'].startswith('https://')
+              assert story['source_published_utc']
+          print('OPML_NEWS_ACCEPTED_AS_ATTRIBUTED_SOURCE_NOT_AN_AI_RESEARCH_VETO',
+                'inoreader candidates=',record['dated_subscribed_news_eligible_before_ranking'],
+                'selected from subscribed=',record['selected_subscription_news'],
+                'source-only headline links=',record['selected_subscription_headline_only'],
+                'research still separate and held')
           PY
       - name: R2 source-evidence and editorial-depth test ONLY after G0/G1 structural thresholds
         # No new provider calls, Gemini, text generation or reader files.
