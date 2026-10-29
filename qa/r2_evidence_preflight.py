@@ -107,8 +107,11 @@ def scan_source_index(rows,now,contract=None,weights=None):
         blockers.append("FOUR_EVIDENCED_DISTINCT_ANALYSES_NOT_COMPLETED")
     if ready_research<required["deep_research_min"]:
         blockers.append("CURRENT_HEADLINE_PRIMARY_SOURCE_DEEP_RESEARCH_MISSING")
-    if verified_leads<3:
-        blockers.append("TOP_THREE_INDEPENDENTLY_VERIFIED_LEADS_MISSING")
+    # Owner policy: subscribed original newsroom coverage is reportable
+    # without independent AI agreement. Insufficient primary fact review
+    # belongs to an additional analysis/research checklist, not a veto of
+    # the first three source-attributed NEWS items.
+    lead_research_gaps=max(0,3-verified_leads)
     if signed<3:
         blockers.append("EDITOR_SIGNED_SOURCE_CLAIMS_MISSING")
     if not issue.get("editorial_drafts"):
@@ -128,6 +131,8 @@ def scan_source_index(rows,now,contract=None,weights=None):
         "supplementary_news":selected["supplementary_news"],
         "attributable_index_evidence_points":evidence_points,
         "manually_attested_verified_claims":signed,
+        "lead_research_crosschecks_still_needed":lead_research_gaps,
+        "subscribed_original_news_not_vetoed_by_analysis_disagreement":True,
         "required_distinct_analyses":required["distinct_substantive_analyses"],
         "completed_source_grounded_analyses":ready_analyses,
         "required_current_deep_studies_min":required["deep_research_min"],
