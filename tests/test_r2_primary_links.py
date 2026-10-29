@@ -95,6 +95,30 @@ class CuratedOriginalEvidenceTests(unittest.TestCase):
         self.assertEqual(len(result["sha256"]),64)
         self.assertFalse(session.arguments["allow_redirects"])
 
+    def test_cross_newsroom_source_must_be_exact_distinct_domain_same_window(self):
+        from gib.r2_evidence_packets import _match_independent_index_for_review
+        cutoff=dt.datetime(2026,10,28,23,30,tzinfo=dt.timezone.utc)
+        packet=next(p for p in self.samples() if p["event_id"]=="518b083502af6be8")
+        packet["source_domains"]=["www.npr.org"]
+        exact="Fed leaves interest rates unchanged despite inflation in the US"
+        candidate={
+            "title":exact,"url":"https://www.aljazeera.com/economy/2026/10/28/fed-holds",
+            "published_at":"2026-10-28T19:05:44+00:00",
+            "snippet":"A news publisher reported an unchanged target range while inflation remains elevated."
+        }
+        hits=_match_independent_index_for_review(packet,[candidate],cutoff)
+        self.assertEqual(len(hits),1)
+        self.assertFalse(hits[0]["independent_fact_corroboration_verified"])
+        self.assertFalse(hits[0]["article_body_retrieved"])
+        same=dict(candidate,url="https://www.npr.org/similar-title")
+        stale=dict(candidate,published_at="2026-10-27T08:00:00+00:00")
+        vaguely_similar=dict(candidate,title="Fed leaves policy unchanged but dollar moves")
+        self.assertEqual(_match_independent_index_for_review(
+            packet,[same,stale,vaguely_similar],cutoff),[])
+        wrong=dict(packet,original_title="Unrelated headline same event id")
+        self.assertEqual(_match_independent_index_for_review(
+            wrong,[candidate],cutoff),[])
+
     def test_fetched_page_without_claim_text_is_not_promoted(self):
         p=self.samples()
         log=_attach_curated_original_research(

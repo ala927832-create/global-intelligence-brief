@@ -191,6 +191,54 @@ def _attach_curated_original_research(packets, now, fetcher, budget):
     return audits
 
 
+
+def _match_independent_index_for_review(packet, all_eligible_rows, cutoff):
+    """Exact same-window *potential* publisher match, NOT verified corroboration.
+
+    Do not count unlocated source articles or similarly themed but unrelated
+    news stories as an independent assertion. Only previously identified
+    source-index titles can be selected, with a different original domain.
+    """
+    registry=_load_issue_manifest()
+    spec=registry.get(packet["event_id"])
+    if not spec or spec.get("exact_news_title")!=packet["original_title"]:
+        return []
+    trusted_titles=set(spec.get("independent_original_news_index_titles") or [])
+    if not trusted_titles: return []
+    original=set(packet.get("source_domains") or [])
+    hits=[]
+    seen=set()
+    start=cutoff-dt.timedelta(hours=14)
+    for row in all_eligible_rows:
+        if row.get("title") not in trusted_titles:
+            continue
+        url=row.get("url") or ""
+        host=urlsplit(url).hostname
+        if (urlsplit(url).scheme!="https" or not host or
+                host in original or (host,url) in seen):
+            continue
+        try:
+            stamp=dt.datetime.fromisoformat(
+                str(row.get("published_at","")).replace("Z","+00:00"))
+            if stamp.tzinfo is None or not start<stamp<=cutoff:
+                continue
+        except (TypeError,ValueError):
+            continue
+        seen.add((host,url))
+        hits.append({
+            "source_index_title":row["title"],
+            "original_news_url":url,
+            "publisher_domain":host,
+            "article_published_at_utc":stamp.astimezone(dt.timezone.utc).isoformat(),
+            "source_excerpt_sha256":_sha(str(row.get("snippet") or "")[:350]),
+            "source_excerpt_short":str(row.get("snippet") or "")[:350],
+            "independent_fact_corroboration_verified":False,
+            "article_body_retrieved":False,
+            "claim_by_claim_reconciliation":"REQUIRES_HUMAN_SOURCE_REVIEW"
+        })
+    return hits
+
+
 def _sha(text):
     return hashlib.sha256(str(text or "").encode("utf-8")).hexdigest()
 
@@ -368,6 +416,16 @@ def build_packets(rows, now, weights=None, fetcher=None, max_documents=6, curate
     output["primary_source_fetch_results"] = review_official_excerpts(
         focus_issue, fetcher=official_fetcher, max_documents=max_documents)
     packets = [_dossier(x) for x in focus_issue["articles"]]
+    for item in packets:
+        item["additional_publisher_index_matches_not_fact_verified"] = (
+            _match_independent_index_for_review(item, eligible, cutoff))
+        item["independent_publisher_source_comparison_status"] = (
+            "SOURCE_INDEX_CANDIDATE_NEEDS_CLAIM_REVIEW" if
+            item["additional_publisher_index_matches_not_fact_verified"]
+            else "NO_SECOND_INDEPENDENT_NEWS_INDEX_CANDIDATE")
+    output["potential_additional_independent_publisher_sources"] = sum(
+        len(p["additional_publisher_index_matches_not_fact_verified"])
+        for p in packets)
     already_fetched = focus_issue.get("source_health", {}).get(
         "primary_source_review", {}).get("fetched_count", 0)
     # Use original issuer documents not already indexed by the news feeds.
