@@ -108,6 +108,18 @@ def _attach_curated_original_research(packets, now, fetcher, budget):
                 "human_reviewed": False, "claim_fact_checked": False
             }
             packet["curated_original_research"].append(row)
+            try:
+                source_date = dt.date.fromisoformat(spec["publication_date"])
+                if source_date > now.astimezone(dt.timezone.utc).date():
+                    row["retrieval_status"] = "PRIMARY_SOURCE_DATED_IN_FUTURE"
+                    audits.append({"event_id": packet["event_id"],
+                                   "url":spec["url"],"status":row["retrieval_status"]})
+                    continue
+            except (ValueError, KeyError):
+                row["retrieval_status"] = "PRIMARY_SOURCE_DATE_INVALID"
+                audits.append({"event_id": packet["event_id"],
+                               "url":spec["url"],"status":row["retrieval_status"]})
+                continue
             if used >= budget:
                 row["retrieval_status"] = "OFFICIAL_READ_ONLY_BUDGET_REACHED"
                 audits.append({"event_id": packet["event_id"],"url": spec["url"],
@@ -335,6 +347,11 @@ def build_packets(rows, now, weights=None, fetcher=None, max_documents=6, curate
     output["curated_primary_claim_phrases_matched"] = sum(
         len(item["matched_primary_text_phrases"])
         for packet in packets for item in packet.get("curated_original_research", []))
+    output["focus_with_located_primary_context"] = sum(
+        bool(d["primary_official_context_not_fact_verified"]) or any(
+            row["retrieval_status"] == "ORIGINAL_DOCUMENT_EXCERPT_MATCH_NOT_FACT_VERIFIED"
+            for row in d.get("curated_original_research", []))
+        for d in packets)
     output["analysis_packets"] = packets
     # Deep subjects must be tied to current sourced headlines. Shortlisting
     # them is NEVER equivalent to finished research or original evidence.
@@ -362,8 +379,7 @@ def build_packets(rows, now, weights=None, fetcher=None, max_documents=6, curate
     } for d in deep[:2]]
     output["status"] = "HOLD_R2_EVIDENCE_BEFORE_GEMINI"
     output["focus_distinct_topics"] = len({d["topic"] for d in packets})
-    output["focus_with_located_primary_context"] = sum(
-        bool(d["primary_official_context_not_fact_verified"]) for d in packets)
+    # SOURCE DOCUMENT matching is not an independent validated counterclaim.
     output["focus_with_confirmed_contrary_evidence"] = 0
     output["focus_with_verified_causal_data"] = 0
     output["focus_with_signed_claims"] = sum(d["signed_verified_claims"] >= 3 for d in packets)
