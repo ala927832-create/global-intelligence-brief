@@ -37,6 +37,12 @@ def main():
        "primary_fetch_results":len(result["primary_source_fetch_results"]),
        "curated_original_documents_matched":result.get("curated_primary_documents_located",0),
        "matched_original_document_claim_phrases":result.get("curated_primary_claim_phrases_matched",0),
+       "official_original_issuer_urls_also_in_rss_index":result.get("original_issuer_urls_also_seen_in_current_rss",0),
+       "cross_issuer_pairs_awaiting_manual_review":result.get("cross_issuer_original_document_pairs_ready_for_review",0),
+       "tls_certificate_failures":sum(
+          d.get("retrieval_status")=="SOURCE_TLS_CERTIFICATE_REJECTED"
+          for packet in result.get("analysis_packets",[])
+          for d in packet.get("curated_original_research",[])),
        "independent_news_index_candidate_links":result.get("potential_additional_independent_publisher_sources",0),
        "focus_with_source_located_alternative_positions":result.get("focus_with_located_contrasting_positions",0),
        "focus_with_source_observations_not_causal_proofs":result.get("focus_with_located_observations_not_causal_proofs",0),
