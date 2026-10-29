@@ -29,7 +29,7 @@ from qa.r2_evidence_preflight import latest_morning_cutoff
 # NOT an extension of the 24 RSS feeds or official_rss source providers.
 R2_PRIMARY_HOSTS = frozenset({
     "www.federalreserve.gov", "www.bankofcanada.ca",
-    "www.nim.org", "www.maureletprom.fr", "nishati.go.tz"
+    "www.nim.org", "www.maureletprom.fr", "nishati.go.tz", "www.nishati.go.tz"
 })
 R2_MANIFEST = (Path(__file__).resolve().parents[1] /
                "config/r2_primary_research_links_20261029.json")
@@ -183,6 +183,12 @@ def _attach_curated_original_research(packets, now, fetcher, budget):
                     if row["matched_primary_text_phrases"]
                     else "PAGE_RETRIEVED_NO_EXACT_CLAIM_MATCH")
                 row["primary_document_directly_accessed"] = True
+            except requests.exceptions.SSLError:
+                # Explicit TLS failure rather than a generic missing source.
+                # Do NOT retry via HTTP or disable certificate validation.
+                row["retrieval_status"] = "SOURCE_TLS_CERTIFICATE_REJECTED"
+                row["error_type"] = "SSLError"
+                row["claim_fact_checked"] = False
             except (requests.RequestException, ValueError, KeyError, TypeError) as error:
                 row["retrieval_status"] = "SOURCE_FETCH_OR_MATCH_FAILED"
                 row["error_type"] = type(error).__name__
