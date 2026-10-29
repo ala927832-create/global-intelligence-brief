@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import datetime as dt
 import hashlib
+import io
 import json
 from collections import Counter
 from copy import deepcopy
@@ -45,21 +46,31 @@ def fetch_curated_primary_page(url, session=None):
     response = client.get(
         url, timeout=(6, 14), allow_redirects=False,
         headers={"User-Agent": "GIB-R2-Source-Verification/1.0",
-                 "Accept": "text/html,text/plain,application/xhtml+xml"})
+                 "Accept": "text/html,text/plain,application/xhtml+xml,application/pdf"})
     response.raise_for_status()
     if response.status_code in (301, 302, 303, 307, 308):
         raise ValueError("R2_REDIRECT_REQUIRES_SEPARATE_VALIDATION")
     if len(response.content) > MAX_BYTES:
         raise ValueError("R2_DOCUMENT_TOO_LARGE")
     kind = response.headers.get("Content-Type", "").lower()
-    if not any(t in kind for t in ("text/html","application/xhtml","text/plain")):
+    if not any(t in kind for t in ("text/html","application/xhtml","text/plain","application/pdf")):
         raise ValueError("R2_UNSUPPORTED_PRIMARY_DOCUMENT_TYPE")
-    parsed_text = VisibleText()
-    if "html" in kind:
-        parsed_text.feed(response.text)
-        body = normalize_text(" ".join(parsed_text.parts))
+    if "application/pdf" in kind:
+        # Original issuer PDF only, <=800KB and <=8 pages: do not store or
+        # mirror the copyrighted full PDF/text in the evidence artifact.
+        from pypdf import PdfReader
+        reader = PdfReader(io.BytesIO(response.content), strict=False)
+        if reader.is_encrypted or len(reader.pages) > 8:
+            raise ValueError("R2_PDF_ENCRYPTED_OR_TOO_MANY_PAGES")
+        body = normalize_text(" ".join(
+            (page.extract_text() or "") for page in reader.pages))[:80000]
     else:
-        body = normalize_text(response.text)
+        parsed_text = VisibleText()
+        if "html" in kind:
+            parsed_text.feed(response.text)
+            body = normalize_text(" ".join(parsed_text.parts))
+        else:
+            body = normalize_text(response.text)
     return {
         "url": url, "text": body,
         "sha256": hashlib.sha256(response.content).hexdigest(),
@@ -98,6 +109,7 @@ def _attach_curated_original_research(packets, now, fetcher, budget):
             row = {
                 "url": spec["url"], "issuer": spec["issuer"],
                 "source_kind": spec["source_kind"],
+                "source_location_hint": spec.get("locator_hint"),
                 "manifest_publication_date_not_independently_checked":
                     spec["publication_date"],
                 "retrieval_status": "NOT_FETCHED",
