@@ -10,7 +10,7 @@ from collections import Counter
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 from gib.contract import locked_contract
-from gib.editorial import cluster, classify, material_news_candidate
+from gib.editorial import cluster, classify, material_news_candidate, SPORTS_LEISURE
 
 TZ=ZoneInfo("Asia/Taipei")
 UTC=dt.timezone.utc
@@ -42,11 +42,12 @@ def _usable_source_summary(row):
             return True
     return False
 
-def source_input_gate(rows,cutoff,edition="morning",contract=None):
-    """Only morning adopts V3 expansion; evening uses separate delta policy."""
+def eligible_source_rows(rows,cutoff,edition="morning"):
+    """Return only dated publisher excerpts that may enter G0 and G1.
+
+    Crucially, do not rank or invent a 20-story issue from RSS URL counts.
+    """
     if cutoff.tzinfo is None: raise ValueError("CUTOFF_REQUIRES_TIMEZONE")
-    contract=contract or locked_contract()
-    q=contract["editorial_acceptance"]["source_intake_hard_gate"]
     start,end=_cutoff_window(cutoff,edition)
     rejected=Counter()
     eligible=[]
@@ -63,9 +64,28 @@ def source_input_gate(rows,cutoff,edition="morning",contract=None):
             rejected["OUTSIDE_WINDOW_OR_MISSING_DATETIME"]+=1;continue
         if not _usable_source_summary(row):
             rejected["TITLE_ONLY_OR_INSUFFICIENT_SOURCE_TEXT"]+=1;continue
+        if SPORTS_LEISURE.search(title):
+            rejected["SPORTS_NOT_NEWS_DESK"]+=1;continue
         if not material_news_candidate(row):
-            rejected["NONNEWS_OR_LOW_SIGNAL"]+=1;continue
+            # A leading story on an approved WORLD newsroom feed need not
+            # mention inflation/war/AI to be newsworthy. This relaxes only
+            # discovery, not sourcing, human editing or editorial acceptance.
+            allowed_global=(row.get("provider")=="direct_opml_rss"
+                            and "global" in (row.get("source_groups") or
+                                             [row.get("source_group")]))
+            if not allowed_global:
+                rejected["NONNEWS_OR_LOW_SIGNAL"]+=1;continue
         eligible.append(row)
+    return eligible,rejected,start,end
+
+def source_input_gate(rows,cutoff,edition="morning",contract=None,observed_at=None):
+    """Morning candidate gate with explicit retrospective-capture diagnostics.
+
+    A 2026-10-29 RSS read must not be called an on-time 2026-10-28 edition.
+    """
+    contract=contract or locked_contract()
+    q=contract["editorial_acceptance"]["source_intake_hard_gate"]
+    eligible,rejected,start,end=eligible_source_rows(rows,cutoff,edition)
     distinct=cluster(eligible,end,cutoff_hours=25)
     domains={urlsplit(a["url"]).hostname for a in distinct}
     topics={classify(a["title"]) for a in distinct}
@@ -81,6 +101,12 @@ def source_input_gate(rows,cutoff,edition="morning",contract=None):
     }
     blockers=[f"{key.upper()}_{val}_BELOW_{minimums[key]}"
               for key,val in rules.items() if val<minimums[key]]
+    lag=None
+    if observed_at is not None:
+        if observed_at.tzinfo is None: raise ValueError("OBSERVED_AT_REQUIRES_TIMEZONE")
+        lag=round((observed_at.astimezone(UTC)-end.astimezone(UTC)).total_seconds()/60,1)
+        if lag < 0: blockers.append("SOURCE_SNAPSHOT_BEFORE_CUTOFF_INCOMPLETE")
+        elif lag > 45: blockers.append("RETROSPECTIVE_CAPTURE_NOT_ON_TIME")
     if edition=="evening":
         # 20 articles and 30–40/40–50 min are MORNING ONLY.
         # The evening is gated separately by genuine morning delta + P2 evidence.
@@ -89,7 +115,16 @@ def source_input_gate(rows,cutoff,edition="morning",contract=None):
         "gate":"HOLD_SOURCE_INPUT_INCOMPLETE" if blockers else "PASS_SOURCE_CANDIDATES_ONLY_NOT_FACT_VERIFIED",
         "edition":edition,
         "source_cutoff_utc":end.isoformat(),"source_window_start_utc":start.isoformat(),
+        "source_capture_lag_minutes":lag,
+        # A near-cutoff timestamp on a retrospective batch does not prove
+        # the six owner-approved scheduled captures actually ran.
+        "is_timely_cutoff_snapshot_proven":False,
+        "source_timestamp_within_45m_only":bool(lag is not None and 0<=lag<=45),
         "input_original_rows":len(rows),"eligible_original_rows":len(eligible),
+        "distinct_eligible_provider_domains":len({urlsplit(x["url"]).hostname for x in eligible}),
+        "sample_eligible_source_groups":dict(sorted(Counter(
+            x.get("source_group") or "other" for x in eligible).items())),
+        "repeated_or_syndicated_items":len(eligible)-len(distinct),
         **rules,"minimums":minimums,
         "rejected":dict(sorted(rejected.items())),
         "blockers":blockers,

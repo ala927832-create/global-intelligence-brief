@@ -15,7 +15,7 @@ from types import SimpleNamespace
 from qa.opml_free_p1 import collect
 from qa.p2_source_fusion import collect_existing_free_sources, fuse_with_original_opml
 from run_newsroom_v16 import run
-from qa.p2_content_gate import source_input_gate, selected_story_gate
+from qa.p2_content_gate import source_input_gate, selected_story_gate, eligible_source_rows
 from gib.newsroom_v16 import canonical_issue
 from gib.contract import locked_contract
 from tools.gib_style_c_rc.live_html_qa import filter_raw_before_ranking, bounds
@@ -67,55 +67,84 @@ def run_batch(report_date=None,gemini=False,source_fetcher=None,now=None,extra_f
     source_index.write_text(json.dumps(articles,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     source_report.write_text(json.dumps(source_health,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     snapshot_hash=digest(source_index)
-    # V3: strict live RSS preflight, BEFORE Gemini, HTML, EPUB or owner preview.
-    # Controlled source_fetcher fixtures are strictly internal integration tests,
-    # NEVER owner-facing editions and NEVER eligible for publication approval.
+    # V3 - compare ACTUAL capture time against the requested historical cutoff.
+    # Retrospective source reads never certify an on-time edition. We also
+    # diagnose the latest completed morning separately to explain apparent
+    # source shortages without pretending old RSS remains a historical archive.
+    #
+    # Round 1 produces source/selection metrics only. Round 2 must implement
+    # evidenced articles and G2 before Gemini or any reader output resumes.
     if source_fetcher is None:
         contract=locked_contract()
         morning_cutoff=local_cutoff(date,"morning")
-        first=source_input_gate(articles,morning_cutoff,"morning",contract)
+        first=source_input_gate(articles,morning_cutoff,"morning",contract,
+                                observed_at=now)
+        latest_local=now.astimezone(TZ)
+        current_date=latest_local.date()
+        if latest_local.time()<dt.time(7,30):
+            current_date=current_date-dt.timedelta(days=1)
+        current_cutoff=local_cutoff(current_date,"morning")
+        current=source_input_gate(articles,current_cutoff,"morning",contract,
+                                  observed_at=now)
         selected=None
-        if not first["blockers"]:
-            day_start,day_end=bounds(date,"morning")
-            inside,_=filter_raw_before_ranking(articles,day_start,day_end)
-            issue_probe=canonical_issue(inside,"morning",morning_cutoff,
-                                        json.loads((ROOT/"config/sources.json").read_text(encoding="utf-8")
-                                                   ).get("section_weights"),require_material_relevance=True)
+        # Even if the historical replay is not on time, separately diagnose
+        # its story tier capacity whenever sufficiently many unique candidates
+        # exist. Do not use this to waive the timestamp blocker.
+        if first["distinct_evidence_bearing_events"]>=20:
+            within,_rejected,_start,_end=eligible_source_rows(
+                articles,morning_cutoff,"morning")
+            issue_probe=canonical_issue(
+                within,"morning",morning_cutoff,
+                json.loads((ROOT/"config/sources.json").read_text(encoding="utf-8")
+                           ).get("section_weights"),
+                require_material_relevance=False,tiered_v3=True)
             selected=selected_story_gate(issue_probe,contract)
-        if first["blockers"] or (selected and selected["blockers"]):
-            blockers=first["blockers"]+(selected["blockers"] if selected else [])
-            # Explicitly DO NOT call run(), Gemini, pandoc, HTML or EPUB.
-            hold={
-                "kind":"GIB_P2_V3_SOURCE_FIRST_FAIL_CLOSED_DIAGNOSTIC",
-                "report_date_tpe":date.isoformat(),
-                "run_mode":"LIVE_PUBLIC_RSS_BACKFILL_DIAGNOSTICS_ONLY",
-                "stage":"G0_SOURCE_INPUT" if first["blockers"] else "G1_STORY_SELECTION",
-                "gate":"HOLD_NO_READER_PREVIEW",
-                "source_gate":source_health.get("gate"),
-                "p2_original_opml_source_gate":source_health.get("original_opml_p1_gate"),
-                "source_index_sha256":snapshot_hash,
-                "source_configured":source_health.get("configured_sources"),
-                "source_index_total":len(articles),
-                "first_source_gate":first,
-                "selected_news_gate":selected,
-                "blockers":blockers,
-                "diagnosis":"SOURCE_OR_RANKING_PIPELINE_DEFECT_NOT_WORLD_NEWS_SHORTAGE",
-                "editions":{},"nonpublished_preview_generated":False,
-                "gemini_requested":False,"gemini_called":False,
-                "p2_content_accepted":False,"release_approved":False,
-                "owner_review_required_now":False,
-                "next_action":"INTERNAL_SOURCE_AND_EDITORIAL_FIX_ONLY_NO_INCOMPLETE_PREVIEW"
-            }
-            report_path=out/"P2_V3_CONTENT_HOLD.json"
-            report_path.write_text(json.dumps(hold,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
-            print(json.dumps({"p2":"HOLD_SOURCE_FIRST_NO_PREVIEW",
-                              "stage":hold["stage"],
-                              "source_candidates":first["distinct_evidence_bearing_events"],
-                              "selected_news":selected["unique_events"] if selected else None,
-                              "blockers":blockers,"gemini_called":False,
-                              "reader_preview_generated":False,
-                              "diagnostics":str(report_path)},ensure_ascii=False))
-            return hold
+        blockers=first["blockers"]+(selected["blockers"] if selected else [])
+        if not blockers:
+            # G0/G1 may now pass. That is NOT permission to bypass G2
+            # article/claim verification, research depth or reading time.
+            blockers=["G2_EDITORIAL_EVIDENCE_AND_DEPTH_NOT_YET_ACCEPTED"]
+        if first["blockers"]:
+            stage="G0_SOURCE_INPUT"
+        elif selected and selected["blockers"]:
+            stage="G1_STORY_SELECTION"
+        else:
+            stage="G2_EDITORIAL_EVIDENCE_PENDING"
+        hold={
+            "kind":"GIB_P2_V3_SOURCE_FIRST_FAIL_CLOSED_DIAGNOSTIC",
+            "report_date_tpe":date.isoformat(),
+            "run_mode":"LIVE_PUBLIC_RSS_BACKFILL_DIAGNOSTICS_ONLY",
+            "stage":stage,
+            "gate":"HOLD_NO_READER_PREVIEW",
+            "source_gate":source_health.get("gate"),
+            "p2_original_opml_source_gate":source_health.get("original_opml_p1_gate"),
+            "source_index_sha256":snapshot_hash,
+            "source_configured":source_health.get("configured_sources"),
+            "source_index_total":len(articles),
+            "first_source_gate":first,
+            "latest_morning_source_window_diagnostic_only":current,
+            "latest_morning_report_date_tpe":current_date.isoformat(),
+            "selected_news_gate":selected,
+            "blockers":blockers,
+            "diagnosis":"CLASSIFY_SOURCE_WINDOW_AND_SELECTION_FAILURE_NOT_NEWS_SCARCITY",
+            "editions":{},"nonpublished_preview_generated":False,
+            "gemini_requested":False,"gemini_called":False,
+            "p2_content_accepted":False,"release_approved":False,
+            "owner_review_required_now":False,
+            "next_action":"COMPLETE_ROUND_1_SOURCE_AND_SELECTION_THEN_ROUND_2_EVIDENCE"
+        }
+        report_path=out/"P2_V3_CONTENT_HOLD.json"
+        report_path.write_text(json.dumps(hold,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+        print(json.dumps({"p2":"HOLD_SOURCE_FIRST_NO_PREVIEW",
+                          "stage":stage,
+                          "historical_replay_candidates":first["distinct_evidence_bearing_events"],
+                          "current_morning_candidates":current["distinct_evidence_bearing_events"],
+                          "selected_news":selected["unique_events"] if selected else None,
+                          "blockers":blockers,
+                          "gemini_called":False,
+                          "reader_preview_generated":False,
+                          "diagnostics":str(report_path)},ensure_ascii=False))
+        return hold
     deliveries={}
     earlier=None
     for edition in ("morning","evening"):

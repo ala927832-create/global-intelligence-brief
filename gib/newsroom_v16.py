@@ -41,7 +41,7 @@ def article_sources(item):
              'discovery_providers':list(item.get('discovery_providers') or [item.get('provider','UNKNOWN_SOURCE_INDEX')]),
              'evidence_status':'ATTRIBUTED_NOT_INDEPENDENTLY_VERIFIED'} for url in uniq]
 
-def canonical_issue(raw, edition, now, weights=None, prior=None, max_items=12, require_material_relevance=False):
+def canonical_issue(raw, edition, now, weights=None, prior=None, max_items=12, require_material_relevance=False, tiered_v3=False):
     if now.tzinfo is None: raise ValueError('now must be timezone-aware')
     if edition not in ('morning','evening'):raise ValueError('edition must be morning/evening')
     grouped=rank(cluster(raw,now,cutoff_hours=72 if edition=='morning' else 40),weights or {})
@@ -64,16 +64,22 @@ def canonical_issue(raw, edition, now, weights=None, prior=None, max_items=12, r
     # because URLs were non-HTTPS/missing, wasting slots.
     eligible=[a for a in candidates if article_sources(a) and _date(a.get('published_at'))
               and (not require_material_relevance or material_news_candidate(a))]
-    chosen=diversified(eligible,max_items,max_per_section=4)
+    # V3 morning has two distinct editorial tiers. Preserve the old
+    # 12-story mode for retrospective legacy fixtures and evening.
+    tiered=bool(tiered_v3 and edition=="morning")
+    chosen=diversified(eligible,24 if tiered else max_items,
+                       max_per_section=8 if tiered else 4)
+    tier_main_count=(max(10,len(chosen)-12) if len(chosen)>=20 else 0) if tiered else 0
     rows=[]
     updates=[]
-    for a in chosen:
+    for index,a in enumerate(chosen):
         sources=article_sources(a)
         if not sources: continue
         date=_date(a.get('published_at'))
         change_kind=('OFFICIAL_UPDATE_UNVERIFIED' if sig(a['title']) in old else 'NEW_REPORTED_EVENT') if edition=='evening' else 'MORNING_CANDIDATE'
         rows.append({
           'change_kind':change_kind,
+          'editorial_tier':('main' if index<tier_main_count else 'supplement') if tiered else None,
           'event_id':sig(a['title']), 'topic':a['section'], 'topic_label':TOPICS.get(a['section'],'全球新聞'),
           'title_original':a['title'], 'event_time_utc':None,
           'article_published_at':date.isoformat() if date else None,
@@ -97,6 +103,9 @@ def canonical_issue(raw, edition, now, weights=None, prior=None, max_items=12, r
       'material_candidate_count':len(eligible),
       'unrelated_candidate_excluded':len(candidates)-len(eligible),
       'selected_count':len(rows),
+      'editorial_tiering_mode':'V3_TWO_LEVEL_NEWS_ONLY_NOT_EDITOR_APPROVED' if tiered else 'LEGACY',
+      'selected_main_count':sum(x.get('editorial_tier')=='main' for x in rows),
+      'selected_supplement_count':sum(x.get('editorial_tier')=='supplement' for x in rows),
       'fresh_dated_count':sum(bool(x['article_published_at']) for x in rows),
       'distinct_domains':len({s['publisher'] for x in rows for s in x['sources']}),
       'has_morning_comparison':bool(prior.get('issue_id')) if edition=='evening' else True
