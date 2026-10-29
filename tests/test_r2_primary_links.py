@@ -53,6 +53,19 @@ class CuratedOriginalEvidenceTests(unittest.TestCase):
                                 for doc in p["curated_original_research"])
                             for p in packets))
 
+    def test_single_authority_policy_decision_does_not_require_second_original_issuer(self):
+        from gib.r2_evidence_packets import _needs_two_distinct_primary_issuers
+        registry=_load_issue_manifest()
+        fed=registry["518b083502af6be8"]
+        canada=registry["5dc602fc74652df4"]
+        tanzania=registry["4ada865e9de2e48a"]
+        self.assertFalse(_needs_two_distinct_primary_issuers(fed))
+        self.assertFalse(_needs_two_distinct_primary_issuers(canada))
+        self.assertTrue(_needs_two_distinct_primary_issuers(tanzania))
+        # Even when a single issuer is sufficient to prove the announcement,
+        # counterarguments, independent interpretation and signing remain open.
+        self.assertFalse(fed.get("human_reviewed",False))
+
     def test_two_bank_documents_do_not_count_as_two_independent_issuers(self):
         from gib.r2_evidence_packets import _distinct_primary_issuer_domains
         bank=[

@@ -246,6 +246,12 @@ def _original_source_feed_matches(packet, index_rows, cutoff):
 
 
 
+def _needs_two_distinct_primary_issuers(manifest):
+    """Only explicit two-origin disputes require two original issuers."""
+    return bool(((manifest or {}).get("estimate_reconciliation") or {}).get(
+        "numerical_discrepancy_must_not_be_silently_resolved"))
+
+
 def _distinct_primary_issuer_domains(docs):
     """Two pages on one institution domain do not make two issuers."""
     return {urlsplit(d.get("url") or "").hostname for d in docs
@@ -635,7 +641,22 @@ def build_packets(rows, now, weights=None, fetcher=None, max_documents=6, curate
         if two_issuers:
             output["cross_issuer_original_document_pairs_ready_for_review"]+=1
         else:
-            packet["blockers"].append("SECOND_PRIMARY_ISSUER_NOT_FETCHED_OR_MATCHED")
+            # A central-bank rate decision has ONE authoritative decision
+            # maker, not two independently issuing central banks. Its factual
+            # decision can be matched to that primary release, while the
+            # consequence and interpretation still require source-by-source
+            # independent corroboration. An explicit two-issuer comparison
+            # remains mandatory only for genuinely conflicting estimates.
+            manifest=_load_issue_manifest().get(packet["event_id"],{})
+            needs_two=_needs_two_distinct_primary_issuers(manifest)
+            if needs_two:
+                packet["blockers"].append(
+                    "REQUIRED_SECOND_PRIMARY_ESTIMATE_ISSUER_NOT_LOCATED")
+            packet["cross_issuer_primary_source_comparison"]["status"]=(
+                "TWO_PRIMARY_ESTIMATE_ISSUERS_REQUIRED" if needs_two
+                else "ONE_AUTHORITATIVE_ORIGIN_NEEDS_INDEPENDENT_CLAIM_CHECK")
+        packet["cross_issuer_primary_source_comparison"][
+            "claim_by_claim_external_comparison_completed"]=False
     registry=_load_issue_manifest()
     for packet in packets:
         packet["source_stated_quantity_comparison"] = (
