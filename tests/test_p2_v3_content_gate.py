@@ -128,6 +128,34 @@ class V3ContentGateTests(unittest.TestCase):
         self.assertEqual(len(eligible),1)
         self.assertEqual(rejected["SPORTS_NOT_NEWS_DESK"],1)
 
+    def test_latest_morning_selection_is_measured_even_when_old_replay_fails(self):
+        rows=[article(i) for i in range(22)]
+        now=dt.datetime(2026,10,29,0,0,tzinfo=dt.timezone.utc)
+        source_health={"gate":"PASS_DIRECT_RSS_DISCOVERY","configured_sources":24,
+                       "original_opml_p1_gate":"PASS_DIRECT_RSS_DISCOVERY",
+                       "data_origin":"USER_OPML_PLUS_EXISTING_FREE_PUBLIC_INDEXES"}
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder)
+            with patch.object(batch,"OUTPUT",root), \
+                 patch.object(batch,"collect",return_value=(rows,source_health)), \
+                 patch.object(batch,"collect_existing_free_sources",return_value={}), \
+                 patch.object(batch,"fuse_with_original_opml",
+                              return_value=(rows,source_health)), \
+                 patch.object(batch,"run",side_effect=AssertionError("NO_PREVIEW")):
+                result=batch.run_batch(report_date="2026-10-28",now=now,gemini=True)
+            self.assertEqual(result["gate"],"HOLD_NO_READER_PREVIEW")
+            self.assertEqual(result["first_source_gate"]["distinct_evidence_bearing_events"],0)
+            self.assertGreaterEqual(
+                result["latest_morning_source_window_diagnostic_only"]
+                      ["distinct_evidence_bearing_events"],20)
+            self.assertTrue(result["round1_structural_source_and_selection_met"],result)
+            self.assertGreaterEqual(result["latest_morning_selected_news_gate"]["unique_events"],20)
+            self.assertFalse(result["gemini_called"])
+            self.assertFalse(result["nonpublished_preview_generated"])
+            self.assertFalse(result["actual_cutoff_capture_verified"])
+            self.assertFalse(list(root.rglob("*.html")))
+            self.assertFalse(list(root.rglob("*.epub")))
+
     def test_underfilled_live_batch_writes_diagnostic_and_never_calls_publishing(self):
         with tempfile.TemporaryDirectory() as folder:
             out=Path(folder)
