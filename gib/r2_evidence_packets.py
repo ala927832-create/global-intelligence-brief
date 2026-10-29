@@ -211,6 +211,66 @@ def _attach_curated_original_research(packets, now, fetcher, budget):
 
 
 
+R2_PROVENANCE_ARCHIVE = (Path(__file__).resolve().parents[1] /
+    "config/r2_original_issuer_document_archive_20261029.json")
+
+
+def _historical_original_document_provenance(packets, now):
+    """Append real prior-run source hashes, never override live fetch status.
+
+    A prior exact excerpt match is useful archival evidence for a known issue,
+    but it does NOT show that the same URL was fetched successfully this run,
+    that a news claim was fact checked, or that publication is allowed.
+    """
+    try:
+        archive=json.loads(R2_PROVENANCE_ARCHIVE.read_text(encoding="utf-8"))
+    except (OSError,ValueError):
+        return {"status":"ARCHIVE_UNREADABLE","attached":0}
+    if (archive.get("schema") != "GIB_R2_SIX_PRIMARY_DOCUMENT_PROVENANCE_ARCHIVE_V1"
+        or archive.get("generated_from_actual_github_actions_run_id")!=40808266483):
+        return {"status":"ARCHIVE_SCHEMA_OR_LINEAGE_INVALID","attached":0}
+    registry=_load_issue_manifest()
+    allowed={event_id:{x["url"] for x in rec.get("primary_documents",[])}
+             for event_id,rec in registry.items()}
+    prior={}
+    for rec in archive.get("original_documents",[]):
+        key=(rec.get("event_id"),rec.get("url"))
+        stamp=rec.get("retrieved_at_utc") or ""
+        sha=rec.get("sha256") or ""
+        try:
+            d=dt.datetime.fromisoformat(stamp.replace("Z","+00:00"))
+            if (d.tzinfo is None or d>now.astimezone(dt.timezone.utc)
+                or len(sha)!=64 or
+                any(ch not in "0123456789abcdef" for ch in sha.lower()) or
+                key[1] not in allowed.get(key[0],set()) or
+                not rec.get("original_document_publication_date_text_located")):
+                continue
+        except (ValueError,TypeError):
+            continue
+        prior[key]=rec
+    attached=0
+    for packet in packets:
+        for doc in packet.get("curated_original_research",[]):
+            rec=prior.get((packet["event_id"],doc.get("url")))
+            if not rec:continue
+            doc["historical_matched_original_document"]={
+                "github_actions_run_id":archive["generated_from_actual_github_actions_run_id"],
+                "artifact_id":archive["source_artifact_id"],
+                "source_document_sha256":rec["sha256"],
+                "retrieved_at_utc":rec["retrieved_at_utc"],
+                "archived_matched_phrase_count":rec["matched_phrase_count"],
+                "historical_status":"TEXT_LOCATED_NOT_FACT_VERIFIED",
+                "current_run_retrieval_proven":False,
+                "human_editorial_signoff":False
+            }
+            attached+=1
+    return {"status":"PRIOR_PROVENANCE_LINKED_NOT_CURRENT_EVIDENCE",
+            "attached":attached,
+            "current_matches_unchanged":True,
+            "gemini_allowed":False}
+
+
+
 def _original_source_feed_matches(packet, index_rows, cutoff):
     """Locate a curated issuer URL already carried by the original RSS index.
 
@@ -574,6 +634,10 @@ def build_packets(rows, now, weights=None, fetcher=None, max_documents=6, curate
     original_fetcher = curated_fetcher or fetch_curated_primary_page
     output["curated_primary_research_audit"] = _attach_curated_original_research(
         packets, now, original_fetcher, max(0, max_documents - already_fetched))
+    # A verified historical document hash never substitutes for a failed live
+    # source; archive count is reported SEPARATELY from this run's actual hits.
+    output["historical_primary_doc_provenance"] = (
+        _historical_original_document_provenance(packets, now))
     output["curated_primary_documents_located"] = sum(
         item["retrieval_status"] ==
         "ORIGINAL_DOCUMENT_EXCERPT_MATCH_NOT_FACT_VERIFIED"

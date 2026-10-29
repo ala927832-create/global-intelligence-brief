@@ -18,6 +18,8 @@ on:
       - 'qa/r2_fact_editor_review_sheet.py'
       - 'tests/test_r2_fact_review_sheet.py'
       - 'tests/test_r2_primary_links.py'
+      - 'config/r2_original_issuer_document_archive_20261029.json'
+      - 'tests/test_r2_primary_archive.py'
       - 'config/r2_primary_research_links_20261029.json'
       - 'qa/p2_content_gate.py'
       - 'tests/test_p2_v3_content_gate.py'
@@ -61,6 +63,8 @@ on:
       - 'qa/r2_fact_editor_review_sheet.py'
       - 'tests/test_r2_fact_review_sheet.py'
       - 'tests/test_r2_primary_links.py'
+      - 'config/r2_original_issuer_document_archive_20261029.json'
+      - 'tests/test_r2_primary_archive.py'
       - 'config/r2_primary_research_links_20261029.json'
       - 'qa/p2_content_gate.py'
       - 'tests/test_p2_v3_content_gate.py'
@@ -229,6 +233,7 @@ jobs:
                 'current deep topic candidates=',len(record['current_deep_research_shortlist']),
                 'primary matched=',record.get('focus_with_located_primary_context',0),
                 'issuer documents matched=',record.get('curated_primary_documents_located',0),
+                'archive hashes (not live)=',record.get('historical_primary_doc_provenance',{}).get('attached',0),
                 'claim phrases located=',record.get('curated_primary_claim_phrases_matched',0))
           PY
       - name: R2 four-analysis and two-deep-source internal draft / claim-lineage QA (never a release)

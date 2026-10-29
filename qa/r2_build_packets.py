@@ -36,6 +36,9 @@ def main():
        "primary_context_located":result.get("focus_with_located_primary_context",0),
        "primary_fetch_results":len(result["primary_source_fetch_results"]),
        "curated_original_documents_matched":result.get("curated_primary_documents_located",0),
+       "historical_dated_document_hashes":result.get(
+           "historical_primary_doc_provenance",{}).get("attached",0),
+       "historical_hashes_must_not_count_as_current_fetched":True,
        "matched_original_document_claim_phrases":result.get("curated_primary_claim_phrases_matched",0),
        "official_original_issuer_urls_also_in_rss_index":result.get("original_issuer_urls_also_seen_in_current_rss",0),
        "cross_issuer_pairs_awaiting_manual_review":result.get("cross_issuer_original_document_pairs_ready_for_review",0),

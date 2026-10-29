@@ -1,0 +1,87 @@
+{
+  "schema": "GIB_R2_SIX_PRIMARY_DOCUMENT_PROVENANCE_ARCHIVE_V1",
+  "issue_date": "2026-10-29",
+  "generated_from_actual_github_actions_run_id": 40808266483,
+  "source_artifact_id": 12869591022,
+  "source_artifact_name": "gib-p2-integrated-qa-40808266483",
+  "source_report": "qa_outputs/p2_integrated/2026-10-28/R2_EVIDENCE_PACKETS.json",
+  "archival_status": "HISTORICAL_DOC_FETCH_AND_EXACT_PHRASE_PROVENANCE_NOT_EDITORIAL_FACT_VERIFICATION",
+  "external_news_article_full_text_copied": false,
+  "no_automatic_source_substitution": true,
+  "not_an_on_time_0730_capture": true,
+  "no_gemini_or_release_approval": true,
+  "original_documents": [
+    {
+      "event_id": "518b083502af6be8",
+      "source_kind": "GOVERNMENT_PRIMARY_RELEASE",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a.htm",
+      "sha256": "1fc507bcdcf93e9a5384dde213c05ce85b95b7c5218492d5597939b28ebc5896",
+      "retrieved_at_utc": "2026-10-29T02:48:58.629792+00:00",
+      "matched_phrase_count": 3,
+      "original_document_publication_date_text_located": true,
+      "historical_document_status": "ORIGINAL_DOCUMENT_EXCERPT_MATCH_NOT_FACT_VERIFIED",
+      "editorial_fact_review_status": "NOT_SIGNED",
+      "current_run_fetched": false
+    },
+    {
+      "event_id": "269bcc066124cf2b",
+      "source_kind": "ORIGINAL_SURVEY_PUBLISHER",
+      "url": "https://www.nim.org/en/press/article/konsumklima-konjunkturerwartungen-steigen-kauflaune-zieht-nicht-mit-1",
+      "sha256": "4b5aa9418ed49e1be1fa71df9e0e6b53f67f6c66e7894157c721785b65d971dd",
+      "retrieved_at_utc": "2026-10-29T02:48:59.283117+00:00",
+      "matched_phrase_count": 3,
+      "original_document_publication_date_text_located": true,
+      "historical_document_status": "ORIGINAL_DOCUMENT_EXCERPT_MATCH_NOT_FACT_VERIFIED",
+      "editorial_fact_review_status": "NOT_SIGNED",
+      "current_run_fetched": false
+    },
+    {
+      "event_id": "5dc602fc74652df4",
+      "source_kind": "CENTRAL_BANK_PRIMARY_RELEASE",
+      "url": "https://www.bankofcanada.ca/2026/10/fad-press-release-2026-10-28/",
+      "sha256": "71c63511716e166531cae3b3d977f84085c8140b666f021107abbc1a04b0a67c",
+      "retrieved_at_utc": "2026-10-29T02:48:59.439857+00:00",
+      "matched_phrase_count": 3,
+      "original_document_publication_date_text_located": true,
+      "historical_document_status": "ORIGINAL_DOCUMENT_EXCERPT_MATCH_NOT_FACT_VERIFIED",
+      "editorial_fact_review_status": "NOT_SIGNED",
+      "current_run_fetched": false
+    },
+    {
+      "event_id": "5dc602fc74652df4",
+      "source_kind": "CENTRAL_BANK_PRIMARY_SPEECH",
+      "url": "https://www.bankofcanada.ca/2026/10/opening-statement-2026-10-28/",
+      "sha256": "96dab6f25b695d1a071e025d90682a9cd230985b5096270457797fa372af3cb4",
+      "retrieved_at_utc": "2026-10-29T02:48:59.582000+00:00",
+      "matched_phrase_count": 2,
+      "original_document_publication_date_text_located": true,
+      "historical_document_status": "ORIGINAL_DOCUMENT_EXCERPT_MATCH_NOT_FACT_VERIFIED",
+      "editorial_fact_review_status": "NOT_SIGNED",
+      "current_run_fetched": false
+    },
+    {
+      "event_id": "4ada865e9de2e48a",
+      "source_kind": "OPERATING_COMPANY_PRIMARY_PDF_RELEASE",
+      "url": "https://www.maureletprom.fr/en/documents/download/1931/activity-for-the-first-nine-months-of-2026",
+      "sha256": "95236f260f420924cada13034c52ba57eaa98474642180edbe45b2cd8417aeda",
+      "retrieved_at_utc": "2026-10-29T02:49:01.413897+00:00",
+      "matched_phrase_count": 3,
+      "original_document_publication_date_text_located": true,
+      "historical_document_status": "ORIGINAL_DOCUMENT_EXCERPT_MATCH_NOT_FACT_VERIFIED",
+      "editorial_fact_review_status": "NOT_SIGNED",
+      "current_run_fetched": false
+    },
+    {
+      "event_id": "4ada865e9de2e48a",
+      "source_kind": "TANZANIA_GOVERNMENT_PRIMARY_RELEASE",
+      "url": "https://www.nishati.go.tz/news/historia-yaandikwa-mnazi-bay-waziri-homera-atangaza-ugunduzi-wa-gesi-asilia-wa-futi-za-ujazo-bilioni-223",
+      "sha256": "bb019fad79943ad57fd2ecfbff7308199781ece0eec90a9e41697fe2f0204476",
+      "retrieved_at_utc": "2026-10-29T02:49:04.388358+00:00",
+      "matched_phrase_count": 3,
+      "original_document_publication_date_text_located": true,
+      "historical_document_status": "ORIGINAL_DOCUMENT_EXCERPT_MATCH_NOT_FACT_VERIFIED",
+      "editorial_fact_review_status": "NOT_SIGNED",
+      "current_run_fetched": false
+    }
+  ]
+}
