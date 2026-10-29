@@ -22,7 +22,7 @@ class CuratedOriginalEvidenceTests(unittest.TestCase):
             "source_domains":[]
         } for key,item in registry.items()]
 
-    def test_four_current_issues_have_five_exact_primary_research_links(self):
+    def test_four_current_issues_have_six_exact_primary_research_links(self):
         manifest=_load_issue_manifest()
         lookup={doc["url"]:doc for item in manifest.values()
                 for doc in item["primary_documents"]}
@@ -37,10 +37,10 @@ class CuratedOriginalEvidenceTests(unittest.TestCase):
         packets=self.samples()
         audit=_attach_curated_original_research(packets,NOW,fake,6)
         self.assertEqual(len(packets),4)
-        self.assertEqual(len(audit),5)
+        self.assertEqual(len(audit),6)
         self.assertTrue(all(x["status"]=="ORIGINAL_DOCUMENT_EXCERPT_MATCH_NOT_FACT_VERIFIED"
                             for x in audit),audit)
-        self.assertEqual(sum(len(d["curated_original_research"]) for d in packets),5)
+        self.assertEqual(sum(len(d["curated_original_research"]) for d in packets),6)
         self.assertTrue(all(not doc["claim_fact_checked"]
                             for p in packets for doc in p["curated_original_research"]))
         self.assertTrue(all(not doc["human_reviewed"]
@@ -52,6 +52,20 @@ class CuratedOriginalEvidenceTests(unittest.TestCase):
         self.assertTrue(all(any(doc["contrasting_position_located"]
                                 for doc in p["curated_original_research"])
                             for p in packets))
+
+    def test_tanzania_two_independent_original_issuers_keep_volume_difference_unresolved(self):
+        registry=_load_issue_manifest()
+        tz=next(x for x in registry.values() if x["event_id"]=="4ada865e9de2e48a")
+        self.assertEqual(len(tz["primary_documents"]),2)
+        self.assertEqual({doc["issuer"] for doc in tz["primary_documents"]},
+                         {"Maurel & Prom (operator; primary technical corporate release)",
+                          "Tanzania Ministry of Energy (Wizara ya Nishati)"})
+        self.assertEqual(tz["estimate_reconciliation"]
+                         ["government_reported_gross_volume_bcf"],223)
+        self.assertEqual(tz["estimate_reconciliation"]
+                         ["operator_preliminary_gross_volume_bcf_approx"],200)
+        self.assertTrue(tz["estimate_reconciliation"]
+                        ["do_not_confuse_field_estimate_with_proved_reserves"])
 
     def test_no_matching_news_title_never_receives_an_external_document(self):
         packets=self.samples()
@@ -126,7 +140,7 @@ class CuratedOriginalEvidenceTests(unittest.TestCase):
                 "text":"unrelated generic homepage with no matched claim",
                 "sha256":"b"*64,"retrieved_at":NOW.isoformat()
             },6)
-        self.assertEqual(len(log),5)
+        self.assertEqual(len(log),6)
         self.assertTrue(all(x["status"]=="PAGE_RETRIEVED_NO_EXACT_CLAIM_MATCH"
                             for x in log))
         self.assertEqual(sum(bool(doc["matched_primary_text_phrases"])
