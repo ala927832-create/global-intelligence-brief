@@ -22,7 +22,12 @@
         }
       ],
       "counterevidence_search": "The two FOMC members favoring a hike; separate actual inflation series from market forecasts",
-      "causal_mechanism_to_test": "Policy-rate decision -> expectations / term premia -> credit conditions; requires market and data measurements, not title inference"
+      "causal_mechanism_to_test": "Policy-rate decision -> expectations / term premia -> credit conditions; requires market and data measurements, not title inference",
+      "deep_research_candidate_priority": 8,
+      "priority_rationale": "Formal Fed decision, dissent, path of policy and market expectations",
+      "contrasting_original_source_phrase": "Voting against the monetary policy action were Lisa D. Cook and Beth M. Hammack",
+      "original_observation_phrase": "Inflation remains elevated",
+      "independent_counterargument_not_yet_verified": true
     },
     {
       "event_id": "269bcc066124cf2b",
@@ -42,7 +47,12 @@
         }
       ],
       "counterevidence_search": "Survey economic expectations improving even as composite consumer climate softens",
-      "causal_mechanism_to_test": "Survey attitudes -> subsequent consumer spending; requires methodology and official sales data; correlation is not causation"
+      "causal_mechanism_to_test": "Survey attitudes -> subsequent consumer spending; requires methodology and official sales data; correlation is not causation",
+      "deep_research_candidate_priority": 7,
+      "priority_rationale": "Divergence between improving Germany economic expectations and depressed household spending intentions",
+      "contrasting_original_source_phrase": "economic expectations are rising for the sixth consecutive month",
+      "original_observation_phrase": "declines slightly by 0.2 points to -30.8 points",
+      "independent_counterargument_not_yet_verified": true
     },
     {
       "event_id": "5dc602fc74652df4",
@@ -72,7 +82,12 @@
         }
       ],
       "counterevidence_search": "Governor explicitly discusses the option of holding; inflation excluding gasoline and economic slack require comparison",
-      "causal_mechanism_to_test": "Energy cost increases -> input costs -> passthrough -> CPI and monetary policy response; test with official forecast and survey series"
+      "causal_mechanism_to_test": "Energy cost increases -> input costs -> passthrough -> CPI and monetary policy response; test with official forecast and survey series",
+      "deep_research_candidate_priority": 9,
+      "priority_rationale": "Canada rate increase with explicitly debated hold-vs-hike alternatives and numeric monetary outlook",
+      "contrasting_original_source_phrase": "The main argument for holding was that the rise in inflation",
+      "original_observation_phrase": "increased its target for the overnight rate by 25 basis points to 2.5%",
+      "independent_counterargument_not_yet_verified": true
     },
     {
       "event_id": "4ada865e9de2e48a",
@@ -93,7 +108,12 @@
         }
       ],
       "counterevidence_search": "Compare dated government estimate 223 Bcf, operator preliminary approximately 200 Bcf gross, and resource classification before calling it reserves",
-      "causal_mechanism_to_test": "Gas-in-place estimates -> proven recoverable resources -> infrastructure/time to first production -> actual electricity/industrial price impact; requires field/transport data"
+      "causal_mechanism_to_test": "Gas-in-place estimates -> proven recoverable resources -> infrastructure/time to first production -> actual electricity/industrial price impact; requires field/transport data",
+      "deep_research_candidate_priority": 10,
+      "priority_rationale": "Apparent discrepancy between government and operator gas-volume estimates, classification and production potential",
+      "contrasting_original_source_phrase": "approximately 200 bcf gross",
+      "original_observation_phrase": "120 bcf on an M&P working interest basis",
+      "independent_counterargument_not_yet_verified": true
     }
   ],
   "controls": {
