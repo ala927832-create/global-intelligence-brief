@@ -7,6 +7,9 @@ on:
       - 'qa/p2_integrated_batch.py'
       - 'qa/r2_evidence_preflight.py'
       - 'tests/test_r2_evidence_preflight.py'
+      - 'qa/r2_build_packets.py'
+      - 'gib/r2_evidence_packets.py'
+      - 'tests/test_r2_evidence_packets.py'
       - 'qa/p2_content_gate.py'
       - 'tests/test_p2_v3_content_gate.py'
       - 'config/frozen_contract.json'
@@ -38,6 +41,9 @@ on:
       - 'qa/p2_integrated_batch.py'
       - 'qa/r2_evidence_preflight.py'
       - 'tests/test_r2_evidence_preflight.py'
+      - 'qa/r2_build_packets.py'
+      - 'gib/r2_evidence_packets.py'
+      - 'tests/test_r2_evidence_packets.py'
       - 'qa/p2_content_gate.py'
       - 'tests/test_p2_v3_content_gate.py'
       - 'config/frozen_contract.json'
@@ -178,6 +184,32 @@ jobs:
               assert record['r1']['source_and_selection_structural_ready']
           print('R2_REAL_SOURCE_DIAGNOSTIC_ONLY_NO_CONTENT_RELEASE',
                 record['r2']['status'])
+          PY
+      - name: R2 evidence-first four analysis packets and two current-topic research candidates
+        # From the SAME source-index.json, with only bounded approved official
+        # source pages. This step NEVER creates draft articles, Gemini calls,
+        # HTML, EPUB, owner preview or release approval.
+        run: |
+          python - <<'PY'
+          import glob,json,pathlib,subprocess,sys
+          paths=glob.glob('qa_outputs/p2_integrated/*/source_index.json')
+          assert len(paths)==1, 'R2 requires one real harvested source index'
+          source=pathlib.Path(paths[0])
+          report=source.parent/'R2_EVIDENCE_PACKETS.json'
+          subprocess.run([sys.executable,'qa/r2_build_packets.py',
+                          '--source-index',str(source),
+                          '--output',str(report),
+                          '--max-documents','6'],check=True)
+          record=json.loads(report.read_text(encoding='utf-8'))
+          assert not record['gemini_first_pass_allowed']
+          assert not record['gemini_second_pass_allowed']
+          assert not record['gemini_called']
+          assert not record['generated_reader_files']
+          assert not record['release_approved']
+          print('R2_RESEARCH_PACKET_HOLD',record['status'],
+                'analysis candidates=',len(record['analysis_packets']),
+                'current deep topic candidates=',len(record['current_deep_research_shortlist']),
+                'primary matched=',record.get('focus_with_located_primary_context',0))
           PY
       - name: Upload one consolidated P2 QA bundle (including blockers)
         if: always()
