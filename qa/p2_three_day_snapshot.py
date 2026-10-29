@@ -23,6 +23,8 @@ import requests
 from qa.opml_free_p1 import collect as collect_opml, validate_config
 from qa.p2_source_fusion import collect_existing_free_sources, fuse_with_original_opml
 from gib.editorial import canon_url
+from qa.p2_content_gate import source_input_gate, eligible_source_rows, selected_story_gate
+from gib.newsroom_v16 import canonical_issue
 
 TZ = ZoneInfo("Asia/Taipei")
 UTC = dt.timezone.utc
@@ -214,6 +216,32 @@ def execute_capture(now=None,cron=None,opml_fetcher=None,extra_fetchers=None,
         morning_delta={"kind":"NO_VERIFIED_SAME_DAY_MORNING_BASELINE",
                        "reason":prior_error or "MORNING_ARTIFACT_MISSING",
                        "material_news_updates_verified":0}
+    # R1 evidence is computed from the SAME real, bounded index that this
+    # approved six-slot workflow captured, not the later replay runner.
+    # Pure source/selection QA only; NO Gemini, HTML, EPUB or extra fetches.
+    r1={"scope":"MORNING_ONLY_G0_G1_READ_ONLY", "news_not_fact_verified":True,
+        "release_approved":False}
+    if slot=="morning":
+        cutoff=deadline_local(day,slot)
+        g0=source_input_gate(filtered,cutoff,"morning",observed_at=started)
+        eligible,_,_,_=eligible_source_rows(filtered,cutoff,"morning")
+        probe=canonical_issue(eligible,"morning",cutoff.astimezone(UTC),
+                              provider_config.get("section_weights"),
+                              require_material_relevance=False,tiered_v3=True)
+        g1=selected_story_gate(probe)
+        # On-time capture proof comes from this explicitly whitelisted job,
+        # never from source_input_gate's retrospective-only field.
+        r1.update({
+            "g0":{k:v for k,v in g0.items() if k!="sample_event_titles"},
+            "g1":g1,
+            "time_gate":capture_status,
+            "scheduled_date":day,
+            "scheduled_slot":slot,
+            "time_verified":capture_status=="AT_CUTOFF_CAPTURE_STARTED",
+            "structural_pass":(capture_status=="AT_CUTOFF_CAPTURE_STARTED"
+                               and not g0["blockers"] and not g1["blockers"]),
+            "p2_editorial_pass":False,
+        })
     snapshot={
         "schema":SCHEMA,"date_tpe":day,"slot":slot,
         "scheduled_local_cutoff":deadline_local(day,slot).isoformat(),
@@ -227,6 +255,7 @@ def execute_capture(now=None,cron=None,opml_fetcher=None,extra_fetchers=None,
         "all_unique_url_count":len(full),
         "source_window_article_count":len(filtered),
         "window_exclusions":rejected,
+        "round1_source_selection_quality":r1,
         "morning_delta_provenance":prior.get("date_tpe")+"|"+prior.get("slot") if prior else None,
         "index_delta":morning_delta,
         "rows":filtered,
@@ -249,6 +278,7 @@ def execute_capture(now=None,cron=None,opml_fetcher=None,extra_fetchers=None,
     summary["snapshot_window_sha256"]=_digest(b)
     summary["original_opml_source_gate"]=health.get("original_opml_p1_gate")
     summary["external_provider_diagnostics"]=health.get("p2_external_source_fusion",{})
+    summary["round1_source_selection_quality"]=r1
     summary["source_window_unique_domains"]=len({
         __import__("urllib.parse",fromlist=["urlsplit"]).urlsplit(row["url"]).hostname
         for row in filtered
