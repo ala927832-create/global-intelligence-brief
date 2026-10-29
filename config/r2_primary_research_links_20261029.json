@@ -1,0 +1,107 @@
+{
+  "schema": "GIB_R2_CURRENT_ISSUE_PRIMARY_RESEARCH_URLS_V1",
+  "purpose": "Research links for four exact newsroom events; not a source provider, not a publication license or human fact-check",
+  "source_edition": "2026-10-29-morning",
+  "source_index_sample": "real-snapshot-2026-10-29T02:02Z",
+  "selected_events": [
+    {
+      "event_id": "518b083502af6be8",
+      "exact_news_title": "Fed holds interest rates steady even as inflation remains stubborn",
+      "research_subject": "2026-10-28 FOMC hold decision",
+      "primary_documents": [
+        {
+          "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a.htm",
+          "issuer": "Board of Governors of the Federal Reserve System",
+          "publication_date": "2026-10-28",
+          "source_kind": "GOVERNMENT_PRIMARY_RELEASE",
+          "required_phrases": [
+            "The Committee decided to maintain the target range for the federal funds rate",
+            "Inflation remains elevated",
+            "Voting against the monetary policy action were Lisa D. Cook and Beth M. Hammack"
+          ]
+        }
+      ],
+      "counterevidence_search": "The two FOMC members favoring a hike; separate actual inflation series from market forecasts",
+      "causal_mechanism_to_test": "Policy-rate decision -> expectations / term premia -> credit conditions; requires market and data measurements, not title inference"
+    },
+    {
+      "event_id": "269bcc066124cf2b",
+      "exact_news_title": "German Consumers Grow Slightly Gloomier on Lingering Inflation Concerns",
+      "research_subject": "NIM Consumer Climate November 2026 forecast",
+      "primary_documents": [
+        {
+          "url": "https://www.nim.org/en/press/article/konsumklima-konjunkturerwartungen-steigen-kauflaune-zieht-nicht-mit-1",
+          "issuer": "Nuremberg Institute for Market Decisions (NIM), Consumer Climate powered by GfK",
+          "publication_date": "2026-10-28",
+          "source_kind": "ORIGINAL_SURVEY_PUBLISHER",
+          "required_phrases": [
+            "declines slightly by 0.2 points to -30.8 points",
+            "economic expectations are rising for the sixth consecutive month",
+            "willingness to buy continues to decline slightly"
+          ]
+        }
+      ],
+      "counterevidence_search": "Survey economic expectations improving even as composite consumer climate softens",
+      "causal_mechanism_to_test": "Survey attitudes -> subsequent consumer spending; requires methodology and official sales data; correlation is not causation"
+    },
+    {
+      "event_id": "5dc602fc74652df4",
+      "exact_news_title": "Growth Plays Key Supporting Role in Bank of Canada Rate-Hike Decision",
+      "research_subject": "Bank of Canada 2026-10-28 rate increase and outlook",
+      "primary_documents": [
+        {
+          "url": "https://www.bankofcanada.ca/2026/10/fad-press-release-2026-10-28/",
+          "issuer": "Bank of Canada",
+          "publication_date": "2026-10-28",
+          "source_kind": "CENTRAL_BANK_PRIMARY_RELEASE",
+          "required_phrases": [
+            "increased its target for the overnight rate by 25 basis points to 2.5%",
+            "Growth picked up in Canada through the middle of the year",
+            "Given persistently high oil prices, CPI inflation has been around 3%"
+          ]
+        },
+        {
+          "url": "https://www.bankofcanada.ca/2026/10/opening-statement-2026-10-28/",
+          "issuer": "Bank of Canada, governor press conference",
+          "publication_date": "2026-10-28",
+          "source_kind": "CENTRAL_BANK_PRIMARY_SPEECH",
+          "required_phrases": [
+            "The main argument for holding was that the rise in inflation",
+            "The main argument for an increase was that energy prices are higher"
+          ]
+        }
+      ],
+      "counterevidence_search": "Governor explicitly discusses the option of holding; inflation excluding gasoline and economic slack require comparison",
+      "causal_mechanism_to_test": "Energy cost increases -> input costs -> passthrough -> CPI and monetary policy response; test with official forecast and survey series"
+    },
+    {
+      "event_id": "4ada865e9de2e48a",
+      "exact_news_title": "Tanzania celebrates first natural gas discovery in more than 10 years",
+      "research_subject": "Mnazi Bay Kasa-1X discovery: reported 223 Bcf versus operator preliminary ~200 Bcf",
+      "primary_documents": [
+        {
+          "url": "https://www.maureletprom.fr/en/article/activity-for-the-first-nine-months-of-2026",
+          "issuer": "Maurel & Prom (operator; primary technical corporate release)",
+          "publication_date": "2026-10-22",
+          "source_kind": "OPERATING_COMPANY_PRIMARY_RELEASE",
+          "required_phrases": [
+            "confirmed the presence of a gas reservoir with encouraging characteristics",
+            "approximately 200 bcf gross",
+            "120 bcf on an M&P working interest basis"
+          ]
+        }
+      ],
+      "counterevidence_search": "Compare dated government estimate 223 Bcf, operator preliminary approximately 200 Bcf gross, and resource classification before calling it reserves",
+      "causal_mechanism_to_test": "Gas-in-place estimates -> proven recoverable resources -> infrastructure/time to first production -> actual electricity/industrial price impact; requires field/transport data"
+    }
+  ],
+  "controls": {
+    "not_rss_provider": true,
+    "no_fetched_copy_of_full_news_article": true,
+    "no_unreviewed_claim_marked_verified": true,
+    "no_fabricated_independent_counterevidence": true,
+    "no_gemini_before_signed_evidence": true,
+    "max_public_primary_fetches_per_batch": 6,
+    "no_auto_release": true
+  }
+}
