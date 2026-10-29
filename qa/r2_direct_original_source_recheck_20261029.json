@@ -38,8 +38,8 @@
       "original_publication": "2026-09-30",
       "original_url": "https://www.destatis.de/DE/Presse/Pressemitteilungen/2026/09/PD26_346_45212.html",
       "original_issuer": "Statistisches Bundesamt (Destatis)",
-      "retrieval_channel": "PUBLISHER_SEARCH_INDEX_FULL_EXCERPT_DIRECT_URL_HTTP_403",
-      "original_locator": "Press release 346: August 2026 preliminary calendar- and seasonally adjusted real retail turnover headline and comparison table",
+      "retrieval_channel": "AUTHOR_ORIGINAL_FULL_TEXT_DIRECT_READ_PRESSEPORTAL_DISTRIBUTED_COPY",
+      "original_locator": "Byline Statistisches Bundesamt, Sep30 2026 08:00, table of August 2026 preliminary season/calendar adjusted real retail sales, Original-Content credit to Destatis via news aktuell",
       "dated_observations": [
         {
           "label": "August 2026 adjusted real retail sales monthly",
@@ -53,10 +53,11 @@
         }
       ],
       "matched_to_claim": "D04",
-      "direct_original_response": "HTTP_403_NOT_DIRECTLY_RETRIEVED",
+      "direct_original_response": "DESTatis_ORIGIN_HTTP_403_DISTRIBUTION_ORIGINAL_AUTHOR_FULL_TEXT_READ",
       "revision_and_methodology_caveat": "Provisional season/calendar-adjusted values; not equivalent to total private consumption, subject to revision",
       "editor_human_signed": false,
-      "status": "PUBLISHER_ORIGINAL_INDEX_SUPPORT_WITH_DIRECT_ACCESS_BLOCKER"
+      "status": "ORIGINAL_AUTHOR_FULL_TEXT_LOCATED_AT_AUTHORIZED_DISTRIBUTION_CHANNEL",
+      "original_issuer_authored_distribution_url": "https://www.presseportal.de/pm/32102/6361776"
     },
     {
       "claim_id": "T02",
@@ -116,19 +117,20 @@
     }
   ],
   "direct_primary_count_for_eighteen_claims": 16,
-  "indexed_original_limited_count_for_eighteen_claims": 1,
+  "indexed_original_limited_count_for_eighteen_claims": 0,
   "conditional_derived_count_for_eighteen_claims": 1,
   "automated_claim_signature": false,
   "human_editorial_signoff": false,
   "two_pass_gemini_authorized": false,
   "publication_approved": false,
-  "source_provenance_notice": "The D04 original retailer release is only present in the official search index; no claimed successfully downloaded original PDF or dated raw tables. All observations are from dated originals before the issue cutoff; no full copyrighted article copied.",
+  "source_provenance_notice": "16 claims directly read on original institutional primary pages; 1 D04 original issuer-authored complete release directly read on Presseportal/news aktuell with verified original content byline while Destatis original URL returned HTTP403; 1 T03 conditional arithmetic not resource confirmation. No reprinted copyright full text and no human editor signature.",
   "action_items": [
-    "Alternative machine-readable Destatis 2026-09-30 archived release or GENESIS dated retail vintage for D04",
+    "Preserve both original Destatis D04 URL (HTTP403) and official-issuer-authored release distributed through Presseportal; do not mislabel the distributor as independent publisher corroboration",
     "Operator/TPDC/ministry explanation of 223 vs 200 bcf scope and resource category for T03",
     "Full line-by-line editorial challenge of every paragraph in 4 focus analyses and 2 studies",
     "Preserve original 07:30 scheduled-capture rule and avoid retroactive backfill of missing archive",
     "Only run Gemini pass 1/2 after distinct evidence acceptance requirements actually pass"
   ],
-  "g2_status": "HOLD_EVIDENCE_EDITORIAL_AND_CUTOFF"
+  "g2_status": "HOLD_EVIDENCE_EDITORIAL_AND_CUTOFF",
+  "original_author_distributor_count_for_eighteen_claims": 1
 }
