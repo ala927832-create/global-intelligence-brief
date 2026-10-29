@@ -53,6 +53,45 @@ class CuratedOriginalEvidenceTests(unittest.TestCase):
                                 for doc in p["curated_original_research"])
                             for p in packets))
 
+    def test_two_bank_documents_do_not_count_as_two_independent_issuers(self):
+        from gib.r2_evidence_packets import _distinct_primary_issuer_domains
+        bank=[
+            {"url":"https://www.bankofcanada.ca/2026/10/decision/"},
+            {"url":"https://www.bankofcanada.ca/2026/10/governor/"}
+        ]
+        self.assertEqual(len(_distinct_primary_issuer_domains(bank)),1)
+        different=bank+[{"url":"https://www.nishati.go.tz/news/government"}]
+        self.assertEqual(len(_distinct_primary_issuer_domains(different)),2)
+
+    def test_gas_numeric_difference_requires_two_located_hashed_originals(self):
+        from gib.r2_evidence_packets import _source_stated_quantity_comparison
+        registry=_load_issue_manifest()
+        event="4ada865e9de2e48a"
+        base={"event_id":event,"curated_original_research":[]}
+        missing=_source_stated_quantity_comparison(base,registry)
+        self.assertEqual(missing["status"],"HOLD_SOURCE_QUANTITY_PAIR_NOT_LOCATED")
+        self.assertTrue(missing["numbers_not_silently_reconciled"])
+        source=registry[event]["primary_documents"]
+        def doc(spec):
+            return {
+                "url":spec["url"],"source_kind":spec["source_kind"],
+                "source_document_sha256":"a"*64,
+                "original_document_date_located":True,
+                "manifest_publication_date_not_independently_checked":spec["publication_date"],
+                "retrieval_status":"ORIGINAL_DOCUMENT_EXCERPT_MATCH_NOT_FACT_VERIFIED",
+                "matched_primary_text_phrases":list(spec["required_phrases"])}
+        base["curated_original_research"]=[doc(x) for x in source]
+        complete=_source_stated_quantity_comparison(base,registry)
+        self.assertEqual(complete["status"],
+                         "TWO_ORIGINAL_ISSUER_VOLUME_ESTIMATES_LOCATED_REQUIRES_RECONCILIATION")
+        self.assertEqual(complete["absolute_reported_estimate_difference_bcf_approx"],23)
+        self.assertFalse(complete["resource_classification_verified"])
+        self.assertFalse(complete["difference_explained"])
+        self.assertFalse(complete["independent_claim_reviewer_signed"])
+        base["curated_original_research"][1]["source_document_sha256"]=None
+        with_missing_hash=_source_stated_quantity_comparison(base,registry)
+        self.assertEqual(with_missing_hash["status"],"HOLD_SOURCE_QUANTITY_PAIR_NOT_LOCATED")
+
     def test_original_fed_source_feed_with_only_short_headline_is_not_lost(self):
         from gib.r2_evidence_packets import _original_source_feed_matches
         cutoff=dt.datetime(2026,10,28,23,30,tzinfo=dt.timezone.utc)

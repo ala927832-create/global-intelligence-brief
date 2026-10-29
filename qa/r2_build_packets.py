@@ -39,6 +39,7 @@ def main():
        "matched_original_document_claim_phrases":result.get("curated_primary_claim_phrases_matched",0),
        "official_original_issuer_urls_also_in_rss_index":result.get("original_issuer_urls_also_seen_in_current_rss",0),
        "cross_issuer_pairs_awaiting_manual_review":result.get("cross_issuer_original_document_pairs_ready_for_review",0),
+       "source_stated_numeric_comparisons_pending_reconciliation":result.get("matched_cross_issuer_numeric_comparisons_pending_review",0),
        "tls_certificate_failures":sum(
           d.get("retrieval_status")=="SOURCE_TLS_CERTIFICATE_REJECTED"
           for packet in result.get("analysis_packets",[])
