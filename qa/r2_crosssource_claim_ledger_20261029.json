@@ -1,0 +1,616 @@
+{
+  "schema": "GIB_R2_RESEARCHER_CROSSSOURCE_LEDGER_V1",
+  "issue_date": "2026-10-29",
+  "edition": "morning",
+  "cutoff_local": "2026-10-29T07:30:00+08:00",
+  "policy": "Source material read independently, date-specific claims grounded; lack of journalist/editor signature is NOT hidden; direct-data effects must not be called causal facts. No article reprints.",
+  "research_provenance": "Public original institutions and statistical releases checked for this internal dossier; this file is curated findings, not downloaded/hash-certified counterpart to GitHub R2_EVIDENCE_PACKETS.json",
+  "dossiers": [
+    {
+      "topic": "fed",
+      "event_id": "518b083502af6be8",
+      "event_kind": "DATE_LINKED_CURRENT_HEADLINE",
+      "sources": [
+        {
+          "id": "F1",
+          "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a.htm",
+          "issuer": "Federal Reserve",
+          "publication_date": "2026-10-28",
+          "role": "POLICY_PRIMARY"
+        },
+        {
+          "id": "F2",
+          "url": "https://www.bls.gov/news.release/cpi.nr0.htm",
+          "issuer": "U.S. Bureau of Labor Statistics",
+          "publication_date": "2026-10-14",
+          "role": "INDEPENDENT_STATISTICS"
+        },
+        {
+          "id": "F3",
+          "url": "https://www.federalreserve.gov/monetarypolicy/fomcprojtabl20260916.htm",
+          "issuer": "Federal Reserve",
+          "publication_date": "2026-09-16",
+          "role": "HISTORICAL_PROJECTION"
+        }
+      ],
+      "claims": [
+        {
+          "id": "F01",
+          "statement": "FOMC 2026-10-28 maintained the federal funds target range at 3.75%–4.00%; 10 voted for, 2 against.",
+          "source_ids": [
+            "F1"
+          ],
+          "observation_date": "2026-10-28",
+          "claim_kind": "OBSERVED_POLICY_DECISION",
+          "limitation": "Target band is not a realized daily interbank trading rate.",
+          "source_match_status": "RESEARCHER_LOCATED_PUBLIC_DOCUMENT_NOT_SIGNED_FACT_VERIFICATION",
+          "editor_signed": false
+        },
+        {
+          "id": "F02",
+          "statement": "Dissenters Lisa D. Cook and Beth M. Hammack preferred a 25-basis-point increase.",
+          "source_ids": [
+            "F1"
+          ],
+          "observation_date": "2026-10-28",
+          "claim_kind": "OBSERVED_VOTE",
+          "limitation": "Dissent is not a future path commitment.",
+          "source_match_status": "RESEARCHER_LOCATED_PUBLIC_DOCUMENT_NOT_SIGNED_FACT_VERIFICATION",
+          "editor_signed": false
+        },
+        {
+          "id": "F03",
+          "statement": "September 2026 US CPI was +3.7% year on year, with monthly seasonally adjusted CPI +0.6%, and core CPI +2.6% year on year.",
+          "source_ids": [
+            "F2"
+          ],
+          "observation_date": "2026-09",
+          "claim_kind": "OBSERVED_DATA",
+          "limitation": "CPI is not Fed's preferred PCE inflation series.",
+          "source_match_status": "RESEARCHER_LOCATED_PUBLIC_DOCUMENT_NOT_SIGNED_FACT_VERIFICATION",
+          "editor_signed": false
+        },
+        {
+          "id": "F04",
+          "statement": "September 2026 FOMC participant projections projected 2026 total PCE inflation median 3.7% and core PCE median 3.4%.",
+          "source_ids": [
+            "F3"
+          ],
+          "observation_date": "2026-09-16",
+          "claim_kind": "EARLIER_FORECAST",
+          "limitation": "Older SEP is not an Oct28 updated projection.",
+          "source_match_status": "RESEARCHER_LOCATED_PUBLIC_DOCUMENT_NOT_SIGNED_FACT_VERIFICATION",
+          "editor_signed": false
+        }
+      ],
+      "counterevidence": [
+        {
+          "id": "FX1",
+          "statement": "Two participants favoring a hike directly contradicts an inference of unanimous dovishness.",
+          "source_ids": [
+            "F1"
+          ],
+          "meaning": "Policy hold does not identify a consensus about risk.",
+          "status": "DOCUMENTED_LIMITATION_NOT_DISPROOF_OF_SOURCE_EVENT"
+        },
+        {
+          "id": "FX2",
+          "statement": "Elevated September realized CPI constrains an inference that inflation had normalized.",
+          "source_ids": [
+            "F2"
+          ],
+          "meaning": "The Fed's CPI and PCE targets and methodology must be separated.",
+          "status": "DOCUMENTED_LIMITATION_NOT_DISPROOF_OF_SOURCE_EVENT"
+        }
+      ],
+      "mechanism": [
+        {
+          "step": 1,
+          "link": "Policy vote and statement may affect expected short-rate path; directional effect not calculated in dossier.",
+          "source_ids": [
+            "F1"
+          ],
+          "status": "PLAUSIBLE_MECHANISM_NOT_MARKET_ESTIMATE"
+        },
+        {
+          "step": 2,
+          "link": "Term yields also depend on term premium and fiscal/geopolitical risks; no event-study evidence for Oct28 yield movement.",
+          "source_ids": [
+            "F1",
+            "F3"
+          ],
+          "status": "UNTESTED_CHAIN"
+        },
+        {
+          "step": 3,
+          "link": "Corporate/household borrowing costs transmit through funding rates and credit spreads with lags.",
+          "source_ids": [
+            "F1"
+          ],
+          "status": "CONCEPTUAL_ONLY"
+        }
+      ],
+      "falsification": [
+        "Nov 18 minutes reveal internal decision reasoning",
+        "November 10 October CPI can validate or challenge inflation persistence",
+        "Daily 2yr/10yr Treasury and OIS responses versus contemporaneous market expectations"
+      ],
+      "remaining_gaps": [
+        "Oct28 contemporaneous OIS, Treasury, dollar and equity reaction not measured",
+        "Claims about market direction and Fed future rate probabilities remain unsupported"
+      ],
+      "narrative_status": "INTERNAL_RESEARCH_TEXT_ELIGIBLE_NOT_EDITOR_APPROVED",
+      "primary_sources_verified_by_automated_claim_hashes": false,
+      "human_reviewed": false,
+      "ready_for_gemini": false
+    },
+    {
+      "topic": "germany",
+      "event_id": "269bcc066124cf2b",
+      "event_kind": "DATE_LINKED_CURRENT_HEADLINE",
+      "sources": [
+        {
+          "id": "D1",
+          "url": "https://www.nim.org/en/press/article/konsumklima-konjunkturerwartungen-steigen-kauflaune-zieht-nicht-mit-1",
+          "issuer": "NIM / GfK",
+          "publication_date": "2026-10-28",
+          "role": "SURVEY_PRIMARY"
+        },
+        {
+          "id": "D2",
+          "url": "https://www.destatis.de/EN/Press/2026/10/PE26_364_611.html",
+          "issuer": "Destatis",
+          "publication_date": "2026-10-13",
+          "role": "INDEPENDENT_STATISTICS"
+        },
+        {
+          "id": "D3",
+          "url": "https://www.destatis.de/DE/Presse/Pressemitteilungen/2026/09/PD26_346_45212.html",
+          "issuer": "Destatis",
+          "publication_date": "2026-09-30",
+          "role": "INDEPENDENT_REAL_RETAIL_SALES"
+        }
+      ],
+      "claims": [
+        {
+          "id": "D01",
+          "statement": "NIM Oct28 reports November outlook Consumer Climate at -30.8 points, down 0.2 from previous -30.6 and below -22.5 a year earlier.",
+          "source_ids": [
+            "D1"
+          ],
+          "observation_date": "2026-10 survey / 2026-11 expectations",
+          "claim_kind": "SURVEY_INDICATOR",
+          "limitation": "Survey-based forecast indicator, not actual November consumption.",
+          "source_match_status": "RESEARCHER_LOCATED_PUBLIC_DOCUMENT_NOT_SIGNED_FACT_VERIFICATION",
+          "editor_signed": false
+        },
+        {
+          "id": "D02",
+          "statement": "NIM reports economic expectations rose for a sixth month but purchase willingness fell to -11.9.",
+          "source_ids": [
+            "D1"
+          ],
+          "observation_date": "2026-10",
+          "claim_kind": "SURVEY_COMPONENT",
+          "limitation": "Improving macro optimism does not mean consumer spending already rebounded.",
+          "source_match_status": "RESEARCHER_LOCATED_PUBLIC_DOCUMENT_NOT_SIGNED_FACT_VERIFICATION",
+          "editor_signed": false
+        },
+        {
+          "id": "D03",
+          "statement": "Destatis confirmed September CPI +3.3% y/y, energy prices pushed inflation higher.",
+          "source_ids": [
+            "D2"
+          ],
+          "observation_date": "2026-09",
+          "claim_kind": "OBSERVED_CPI",
+          "limitation": "Correlation with confidence is not a causal estimate.",
+          "source_match_status": "RESEARCHER_LOCATED_PUBLIC_DOCUMENT_NOT_SIGNED_FACT_VERIFICATION",
+          "editor_signed": false
+        },
+        {
+          "id": "D04",
+          "statement": "Destatis reported August real retail sales +1.3% month on month but -0.4% year on year.",
+          "source_ids": [
+            "D3"
+          ],
+          "observation_date": "2026-08",
+          "claim_kind": "OBSERVED_RETAIL",
+          "limitation": "Monthly and annual metrics have different baselines; retail != total household consumption.",
+          "source_match_status": "RESEARCHER_LOCATED_PUBLIC_DOCUMENT_NOT_SIGNED_FACT_VERIFICATION",
+          "editor_signed": false
+        }
+      ],
+      "counterevidence": [
+        {
+          "id": "DX1",
+          "statement": "Rising macroeconomic expectations despite worsening purchase willingness means the survey does not support a universal collapse narrative.",
+          "source_ids": [
+            "D1"
+          ],
+          "meaning": "Consumer climate aggregates divergent household channels.",
+          "status": "DOCUMENTED_LIMITATION_NOT_DISPROOF_OF_SOURCE_EVENT"
+        },
+        {
+          "id": "DX2",
+          "statement": "Positive August seasonally adjusted monthly retail growth is a measured counterpoint to weak sentiment, without disproving the forward-looking NIM signal.",
+          "source_ids": [
+            "D3"
+          ],
+          "meaning": "Retail sales precede the October survey and cannot prove November consumption.",
+          "status": "DOCUMENTED_LIMITATION_NOT_DISPROOF_OF_SOURCE_EVENT"
+        }
+      ],
+      "mechanism": [
+        {
+          "step": 1,
+          "link": "Energy prices may erode perceived real income and major-purchase willingness.",
+          "source_ids": [
+            "D1",
+            "D2"
+          ],
+          "status": "PLAUSIBLE_IN_SOURCE_NOT_CAUSALLY_IDENTIFIED"
+        },
+        {
+          "step": 2,
+          "link": "Sentiment measures may precede discretionary consumption; require later retail/private consumption statistics.",
+          "source_ids": [
+            "D1",
+            "D3"
+          ],
+          "status": "LEADING_INDICATOR_NOT_DETERMINISTIC"
+        },
+        {
+          "step": 3,
+          "link": "Saving intention and actual household saving rate are distinct constructs.",
+          "source_ids": [
+            "D1"
+          ],
+          "status": "MEASUREMENT_LIMIT"
+        }
+      ],
+      "falsification": [
+        "Subsequent November actual retail sales and private consumption versus October survey",
+        "Household real income and employment adjustments",
+        "NIM November 26 survey release change"
+      ],
+      "remaining_gaps": [
+        "October/November actual consumption not available by Oct29",
+        "No individual panel data or econometric causal analysis"
+      ],
+      "narrative_status": "INTERNAL_RESEARCH_TEXT_ELIGIBLE_NOT_EDITOR_APPROVED",
+      "primary_sources_verified_by_automated_claim_hashes": false,
+      "human_reviewed": false,
+      "ready_for_gemini": false
+    },
+    {
+      "topic": "canada",
+      "event_id": "5dc602fc74652df4",
+      "event_kind": "DATE_LINKED_CURRENT_HEADLINE",
+      "sources": [
+        {
+          "id": "C1",
+          "url": "https://www.bankofcanada.ca/2026/10/fad-press-release-2026-10-28/",
+          "issuer": "Bank of Canada",
+          "publication_date": "2026-10-28",
+          "role": "POLICY_PRIMARY"
+        },
+        {
+          "id": "C2",
+          "url": "https://www.bankofcanada.ca/2026/10/opening-statement-2026-10-28/",
+          "issuer": "Bank of Canada",
+          "publication_date": "2026-10-28",
+          "role": "POLICY_DECISION_ALTERNATIVE_SAME_ISSUER"
+        },
+        {
+          "id": "C3",
+          "url": "https://www150.statcan.gc.ca/n1/daily-quotidien/261019/dq261019a-eng.htm?HPA=1",
+          "issuer": "Statistics Canada",
+          "publication_date": "2026-10-19",
+          "role": "INDEPENDENT_STATISTICS"
+        },
+        {
+          "id": "C4",
+          "url": "https://www.bankofcanada.ca/publications/mpr/mpr-2026-10-28/canadian-conditions/",
+          "issuer": "Bank of Canada",
+          "publication_date": "2026-10-28",
+          "role": "MODEL_BUSINESS_SURVEY"
+        },
+        {
+          "id": "C5",
+          "url": "https://www.bankofcanada.ca/publications/mpr/mpr-2026-10-28/canadian-outlook/",
+          "issuer": "Bank of Canada",
+          "publication_date": "2026-10-28",
+          "role": "POLICY_FORECAST_NOT_OBSERVED"
+        }
+      ],
+      "claims": [
+        {
+          "id": "C01",
+          "statement": "Bank of Canada on Oct28 raised overnight policy target by 25bp to 2.50%.",
+          "source_ids": [
+            "C1"
+          ],
+          "observation_date": "2026-10-28",
+          "claim_kind": "OBSERVED_POLICY_DECISION",
+          "limitation": "Do not misstate bank rate 2.75 and deposit rate 2.45 as the policy target.",
+          "source_match_status": "RESEARCHER_LOCATED_PUBLIC_DOCUMENT_NOT_SIGNED_FACT_VERIFICATION",
+          "editor_signed": false
+        },
+        {
+          "id": "C02",
+          "statement": "The Bank published 2026 growth estimate 1% and 2027–2028 projections 2% each, conditional on tariffs and energy prices.",
+          "source_ids": [
+            "C1",
+            "C5"
+          ],
+          "observation_date": "2026-10-28 forecast",
+          "claim_kind": "MODEL_PROJECTION",
+          "limitation": "GDP growth numbers are model projections, not observed annual outcomes.",
+          "source_match_status": "RESEARCHER_LOCATED_PUBLIC_DOCUMENT_NOT_SIGNED_FACT_VERIFICATION",
+          "editor_signed": false
+        },
+        {
+          "id": "C03",
+          "statement": "Statistics Canada September all-items CPI was 3.1% y/y and CPI excluding gasoline 2.2% y/y.",
+          "source_ids": [
+            "C3"
+          ],
+          "observation_date": "2026-09",
+          "claim_kind": "INDEPENDENT_OBSERVED_STATISTICS",
+          "limitation": "Shows energy contribution, but not that all non-energy items have no pass-through.",
+          "source_match_status": "RESEARCHER_LOCATED_PUBLIC_DOCUMENT_NOT_SIGNED_FACT_VERIFICATION",
+          "editor_signed": false
+        },
+        {
+          "id": "C04",
+          "statement": "BoC governor explicitly discussed arguments for holding versus hiking; holding case cites relatively concentrated energy inflation, policy-hike case cites future pass-through.",
+          "source_ids": [
+            "C2"
+          ],
+          "observation_date": "2026-10-28",
+          "claim_kind": "POLICY_DELIBERATIVE_ALTERNATIVES",
+          "limitation": "Same-issuer counterargument, not an independent adversarial analyst.",
+          "source_match_status": "RESEARCHER_LOCATED_PUBLIC_DOCUMENT_NOT_SIGNED_FACT_VERIFICATION",
+          "editor_signed": false
+        },
+        {
+          "id": "C05",
+          "statement": "BoC survey-based pass-through chart uses 35 consumer-facing and 190 other businesses, last observation Aug 2026.",
+          "source_ids": [
+            "C4"
+          ],
+          "observation_date": "2026-08 survey",
+          "claim_kind": "SURVEY_SCOPE",
+          "limitation": "Survey responses and forecast shares are not realized future CPI observations.",
+          "source_match_status": "RESEARCHER_LOCATED_PUBLIC_DOCUMENT_NOT_SIGNED_FACT_VERIFICATION",
+          "editor_signed": false
+        }
+      ],
+      "counterevidence": [
+        {
+          "id": "CX1",
+          "statement": "Statistics Canada's 2.2% excluding gasoline checks and constrains the Bank's inflation-generalization claim.",
+          "source_ids": [
+            "C3"
+          ],
+          "meaning": "Independent statistics corroborate gasoline concentration, not the inflation forecast.",
+          "status": "DOCUMENTED_LIMITATION_NOT_DISPROOF_OF_SOURCE_EVENT"
+        },
+        {
+          "id": "CX2",
+          "statement": "The Bank's own explicit hold case and excess supply are plausible reasons against immediate further tightening.",
+          "source_ids": [
+            "C2",
+            "C5"
+          ],
+          "meaning": "Decision uncertainty cannot be edited out as a one-way hike path.",
+          "status": "DOCUMENTED_LIMITATION_NOT_DISPROOF_OF_SOURCE_EVENT"
+        }
+      ],
+      "mechanism": [
+        {
+          "step": 1,
+          "link": "Fuel costs immediately raise transport and production inputs.",
+          "source_ids": [
+            "C4",
+            "C5"
+          ],
+          "status": "SOURCE_MODEL_DESCRIBED"
+        },
+        {
+          "step": 2,
+          "link": "Businesses may initially absorb costs, later pass through with demand resilience; survey reports expectations only.",
+          "source_ids": [
+            "C4"
+          ],
+          "status": "FORECAST_INFERRED_FROM_SURVEY"
+        },
+        {
+          "step": 3,
+          "link": "Wider CPI persistence could influence policy path; no evidence actual post-Oct decision changes yet.",
+          "source_ids": [
+            "C1",
+            "C5"
+          ],
+          "status": "CONDITIONAL_SCENARIO"
+        }
+      ],
+      "falsification": [
+        "Next Statistics Canada CPI composition and monthly seasonally adjusted core measures",
+        "Bank company survey expected vs realized price changes",
+        "December 9 BoC meeting and further tariff/oil price information"
+      ],
+      "remaining_gaps": [
+        "Independent model of future energy price pass-through not verified",
+        "Numerical probability of additional hikes not estimable from this source set"
+      ],
+      "narrative_status": "INTERNAL_RESEARCH_TEXT_ELIGIBLE_NOT_EDITOR_APPROVED",
+      "primary_sources_verified_by_automated_claim_hashes": false,
+      "human_reviewed": false,
+      "ready_for_gemini": false
+    },
+    {
+      "topic": "tanzania",
+      "event_id": "4ada865e9de2e48a",
+      "event_kind": "DATE_LINKED_CURRENT_HEADLINE",
+      "sources": [
+        {
+          "id": "T1",
+          "url": "https://www.maureletprom.fr/en/documents/download/1931/activity-for-the-first-nine-months-of-2026",
+          "issuer": "Maurel & Prom",
+          "publication_date": "2026-10-22",
+          "role": "OPERATING_COMPANY_PDF_PAGE_4"
+        },
+        {
+          "id": "T2",
+          "url": "https://www.nishati.go.tz/news/historia-yaandikwa-mnazi-bay-waziri-homera-atangaza-ugunduzi-wa-gesi-asilia-wa-futi-za-ujazo-bilioni-223",
+          "issuer": "Tanzania Ministry of Energy",
+          "publication_date": "2026-10-28",
+          "role": "INDEPENDENT_GOVERNMENT_ESTIMATE"
+        },
+        {
+          "id": "T3",
+          "url": "https://www.boem.gov/oil-gas-energy/resource-evaluation/classification-and-methodology-reserves-calculations",
+          "issuer": "U.S. Bureau of Ocean Energy Management",
+          "publication_date": null,
+          "role": "RESERVES_CLASSIFICATION_REFERENCE"
+        }
+      ],
+      "claims": [
+        {
+          "id": "T01",
+          "statement": "Maurel & Prom Oct22 document page 4 described Kasa-1X discovered gas and estimates approximately 200 billion cubic feet gross, 120 bcf on 60% working-interest basis.",
+          "source_ids": [
+            "T1"
+          ],
+          "observation_date": "2026-10-22",
+          "claim_kind": "OPERATOR_PRELIMINARY_RESOURCE_ESTIMATE",
+          "limitation": "Volume language does not independently establish SPE-PRMS proved reserves.",
+          "source_match_status": "RESEARCHER_LOCATED_PUBLIC_DOCUMENT_NOT_SIGNED_FACT_VERIFICATION",
+          "editor_signed": false
+        },
+        {
+          "id": "T02",
+          "statement": "Tanzania Ministry Oct28 statement reported 223 billion cubic feet and dates minister announcement to Oct27.",
+          "source_ids": [
+            "T2"
+          ],
+          "observation_date": "2026-10-27 announcement, 2026-10-28 publication",
+          "claim_kind": "GOVERNMENT_ESTIMATE",
+          "limitation": "Different report dates; reserve basis and calculation precision not reconciled.",
+          "source_match_status": "RESEARCHER_LOCATED_PUBLIC_DOCUMENT_NOT_SIGNED_FACT_VERIFICATION",
+          "editor_signed": false
+        },
+        {
+          "id": "T03",
+          "statement": "Absolute difference of the reported gross figures is approximately 23 bcf; not necessarily a change or correction of same underlying reserve estimate.",
+          "source_ids": [
+            "T1",
+            "T2"
+          ],
+          "observation_date": "2026-10-22 and 2026-10-28",
+          "claim_kind": "DERIVED_ARITHMETIC",
+          "limitation": "Different issuers may use distinct estimate methods or resource classes.",
+          "source_match_status": "RESEARCHER_LOCATED_PUBLIC_DOCUMENT_NOT_SIGNED_FACT_VERIFICATION",
+          "editor_signed": false
+        },
+        {
+          "id": "T04",
+          "statement": "M&P expected possible first production as early as November 2026 with gross potential of 50 mmcfd; this is forward guidance not achieved output.",
+          "source_ids": [
+            "T1"
+          ],
+          "observation_date": "2026-10-22 forward looking",
+          "claim_kind": "OPERATOR_FORECAST",
+          "limitation": "No completed production report supports first-flow claim as of cutoff.",
+          "source_match_status": "RESEARCHER_LOCATED_PUBLIC_DOCUMENT_NOT_SIGNED_FACT_VERIFICATION",
+          "editor_signed": false
+        },
+        {
+          "id": "T05",
+          "statement": "BOEM's SPE-PRMS-aligned reserve classification requires discovered, recoverable, commercial and remaining under a defined approved development project.",
+          "source_ids": [
+            "T3"
+          ],
+          "observation_date": null,
+          "claim_kind": "RESOURCE_CLASSIFICATION_DEFINITION",
+          "limitation": "BOEM method is background classification, not direct certification of Tanzania project.",
+          "source_match_status": "RESEARCHER_LOCATED_PUBLIC_DOCUMENT_NOT_SIGNED_FACT_VERIFICATION",
+          "editor_signed": false
+        }
+      ],
+      "counterevidence": [
+        {
+          "id": "TX1",
+          "statement": "Government 223 bcf vs operator approx 200 bcf are separate issuer statements; the difference cannot be resolved without shared interpretation of gross resources and measurement date.",
+          "source_ids": [
+            "T1",
+            "T2"
+          ],
+          "meaning": "Not proof either publisher was mistaken.",
+          "status": "DOCUMENTED_LIMITATION_NOT_DISPROOF_OF_SOURCE_EVENT"
+        },
+        {
+          "id": "TX2",
+          "statement": "Resource and reserves technical distinction undercuts conversion of discovery headline into readily bankable, economically recoverable supply.",
+          "source_ids": [
+            "T3"
+          ],
+          "meaning": "Must analyze sanctioned development, recoverability and infrastructure.",
+          "status": "DOCUMENTED_LIMITATION_NOT_DISPROOF_OF_SOURCE_EVENT"
+        }
+      ],
+      "mechanism": [
+        {
+          "step": 1,
+          "link": "Discovery/proved reservoir must be evaluated through appraisal, recovery fraction and commercial decision before recoverable reserves can be stated.",
+          "source_ids": [
+            "T1",
+            "T3"
+          ],
+          "status": "FRAMEWORK_ONLY_NOT_PROJECT_CERTIFICATION"
+        },
+        {
+          "step": 2,
+          "link": "Field to end-use electricity requires processing capacity, transmission/pipeline and reliable dispatch.",
+          "source_ids": [
+            "T1",
+            "T2"
+          ],
+          "status": "PHYSICAL_CHAIN_NOT_PROJECT_CASH_FLOW"
+        },
+        {
+          "step": 3,
+          "link": "Possible downstream price benefit requires tested additional flow, alternative fuel displacement and tariff mechanism.",
+          "source_ids": [
+            "T2"
+          ],
+          "status": "GOVERNMENT_POLICY_EXPECTATION_NOT_REALIZED_BENEFIT"
+        }
+      ],
+      "falsification": [
+        "Operator resource classification update and reserve auditor methodology",
+        "Actual Kasa well flow/initial production confirmation after Oct29",
+        "TPDC/gas transporter/utility capacity and tariff data"
+      ],
+      "remaining_gaps": [
+        "Whether 200/223 represent same resource class and scope remains unresolved",
+        "Commercial production/cost and project financing not verified",
+        "No independent reserve audit located"
+      ],
+      "narrative_status": "INTERNAL_RESEARCH_TEXT_ELIGIBLE_NOT_EDITOR_APPROVED",
+      "primary_sources_verified_by_automated_claim_hashes": false,
+      "human_reviewed": false,
+      "ready_for_gemini": false
+    }
+  ],
+  "quality_gates": {
+    "sources_index_only_is_not_fact_approval": true,
+    "independent_statistics_are_not_independent_signoff": true,
+    "require_human_editor_attestation": true,
+    "no_gemini_before_verified_evidence": true,
+    "no_reader_artifacts_before_content_acceptance": true,
+    "status": "RESEARCHER_CROSS_SOURCE_LOCATIONS_READY_FOR_MANUAL_FACT_CHECK_NOT_G2_PASS"
+  }
+}

@@ -10,6 +10,11 @@ on:
       - 'qa/r2_build_packets.py'
       - 'gib/r2_evidence_packets.py'
       - 'tests/test_r2_evidence_packets.py'
+      - 'qa/r2_crosssource_claim_ledger_20261029.json'
+      - 'qa/r2_four_analyses_internal_20261029.json'
+      - 'qa/r2_two_deep_studies_internal_20261029.json'
+      - 'qa/r2_editorial_draft_audit.py'
+      - 'tests/test_r2_editorial_draft_audit.py'
       - 'tests/test_r2_primary_links.py'
       - 'config/r2_primary_research_links_20261029.json'
       - 'qa/p2_content_gate.py'
@@ -46,6 +51,11 @@ on:
       - 'qa/r2_build_packets.py'
       - 'gib/r2_evidence_packets.py'
       - 'tests/test_r2_evidence_packets.py'
+      - 'qa/r2_crosssource_claim_ledger_20261029.json'
+      - 'qa/r2_four_analyses_internal_20261029.json'
+      - 'qa/r2_two_deep_studies_internal_20261029.json'
+      - 'qa/r2_editorial_draft_audit.py'
+      - 'tests/test_r2_editorial_draft_audit.py'
       - 'tests/test_r2_primary_links.py'
       - 'config/r2_primary_research_links_20261029.json'
       - 'qa/p2_content_gate.py'
@@ -216,6 +226,23 @@ jobs:
                 'primary matched=',record.get('focus_with_located_primary_context',0),
                 'issuer documents matched=',record.get('curated_primary_documents_located',0),
                 'claim phrases located=',record.get('curated_primary_claim_phrases_matched',0))
+          PY
+      - name: R2 four-analysis and two-deep-source internal draft / claim-lineage QA (never a release)
+        run: |
+          python qa/r2_editorial_draft_audit.py             --output qa_outputs/p2_integrated/R2_INTERNAL_EDITORIAL_DRAFT_QA.json
+          python - <<'PY'
+          import json,pathlib
+          r=json.loads(pathlib.Path(
+              'qa_outputs/p2_integrated/R2_INTERNAL_EDITORIAL_DRAFT_QA.json'
+          ).read_text(encoding='utf-8'))
+          assert r['source_lineage_and_draft_structure_pass']
+          assert r['distinct_news_focus_articles']==4
+          assert r['headline_linked_deep_studies']==2
+          assert not r['independent_human_fact_verification_completed']
+          assert not r['gemini_pass_one_called'] and not r['gemini_pass_two_called']
+          assert not r['release_approved']
+          assert r['g2_status'].startswith('HOLD_')
+          print('R2_INTERNAL_SOURCE_CONSTRAINED_EDITORIAL_QA_PASS_G2_REMAINS_HOLD')
           PY
       - name: Upload one consolidated P2 QA bundle (including blockers)
         if: always()
