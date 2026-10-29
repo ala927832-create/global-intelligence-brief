@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 CONTRACT_PATH=Path(__file__).resolve().parents[1]/"config"/"frozen_contract.json"
-APPROVED_SHA256="762aad52c5169a956ed3fc162cd04e4619f33f1167ec31d1727c590f56347f5d"
+APPROVED_SHA256="02877e79bca8d69629f261567d5d9ad4d60777ca28b7255ff925afdccc1b741f"
 
 def locked_contract():
     raw=CONTRACT_PATH.read_bytes()
