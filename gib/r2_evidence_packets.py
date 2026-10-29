@@ -44,7 +44,10 @@ def fetch_curated_primary_page(url, session=None):
         raise ValueError("R2_ORIGINAL_DOCUMENT_NOT_ALLOWLISTED")
     client = session or requests.Session()
     response = client.get(
-        url, timeout=(6, 14), allow_redirects=False, verify=True,
+        # A publisher occasionally needs longer TLS connection setup.
+        # One bounded HTTPS request only; never disable TLS, redirect, repeat
+        # failed calls automatically, or expand approved document count.
+        url, timeout=(12, 22), allow_redirects=False, verify=True,
         headers={"User-Agent": "GIB-R2-Source-Verification/1.0",
                  "Accept": "text/html,text/plain,application/xhtml+xml,application/pdf"})
     response.raise_for_status()
@@ -188,6 +191,13 @@ def _attach_curated_original_research(packets, now, fetcher, budget):
                 # Do NOT retry via HTTP or disable certificate validation.
                 row["retrieval_status"] = "SOURCE_TLS_CERTIFICATE_REJECTED"
                 row["error_type"] = "SSLError"
+                row["claim_fact_checked"] = False
+            except (requests.exceptions.ConnectTimeout,
+                    requests.exceptions.ReadTimeout) as error:
+                # Distinguish a temporary source outage from false facts or
+                # a claim mismatch. Never promote this into verified evidence.
+                row["retrieval_status"] = "SOURCE_TEMPORARY_NETWORK_TIMEOUT_HOLD"
+                row["error_type"] = type(error).__name__
                 row["claim_fact_checked"] = False
             except (requests.RequestException, ValueError, KeyError, TypeError) as error:
                 row["retrieval_status"] = "SOURCE_FETCH_OR_MATCH_FAILED"
