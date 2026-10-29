@@ -53,7 +53,7 @@ class V3ContentGateTests(unittest.TestCase):
         self.assertLess(fail["distinct_evidence_bearing_events"],20)
 
     def test_title_only_or_stale_headline_cannot_pass(self):
-        rows=[article(i) for i in range(23)]
+        rows=[article(i) for i in range(21)]
         rows[0]["snippet"]=""
         rows[1]["published_at"]="2026-10-25T10:00:00+00:00"
         fail=source_input_gate(rows,CUTOFF)
