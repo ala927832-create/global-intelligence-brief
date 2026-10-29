@@ -8,6 +8,7 @@ import hashlib
 import json
 from urllib.parse import urlsplit
 from .editorial import cluster, rank, diversified, diversified_v3, sig, material_news_candidate
+from .subscription_news_policy import news_evidence_policy
 
 TOPICS = {
     'macro': '全球宏觀', 'central_banks': '央行與金融',
@@ -76,6 +77,7 @@ def canonical_issue(raw, edition, now, weights=None, prior=None, max_items=12, r
         sources=article_sources(a)
         if not sources: continue
         date=_date(a.get('published_at'))
+        subscribed=news_evidence_policy(a)
         change_kind=('OFFICIAL_UPDATE_UNVERIFIED' if sig(a['title']) in old else 'NEW_REPORTED_EVENT') if edition=='evening' else 'MORNING_CANDIDATE'
         rows.append({
           'change_kind':change_kind,
@@ -83,6 +85,11 @@ def canonical_issue(raw, edition, now, weights=None, prior=None, max_items=12, r
           'event_id':sig(a['title']), 'topic':a['section'], 'topic_label':TOPICS.get(a['section'],'全球新聞'),
           'title_original':a['title'], 'event_time_utc':None,
           'article_published_at':date.isoformat() if date else None,
+          'news_source_policy':subscribed,
+          'news_reporting_eligible':subscribed['subscription_news_eligible'],
+          'news_summary_generation_allowed':(
+              len(str(a.get('snippet') or '').strip())>=50),
+          'analysis_requires_independent_verification':True,
           'headline_summary':a.get('snippet','')[:450], 'rank_score':a.get('score',0),
           'sources': sources, 'evidence': [{
             'claim_id':sig(a['title'])+'-reported-01',
@@ -94,7 +101,9 @@ def canonical_issue(raw, edition, now, weights=None, prior=None, max_items=12, r
             'note':'來源所聲稱內容，尚未與原始全文核對，禁止標示 VERIFIED'
           }],
           'source_count':len(sources), 'interpretations':[],
-          'editorial_note':'候選新聞；研究與核實前不可推定因果關係'
+          'editorial_note':('訂閱媒體原始報導可作新聞；補充分析與因果主張仍需查證'
+                           if subscribed['subscription_news_eligible'] else
+                           '候選新聞；研究與核實前不可推定因果關係')
         })
         if edition=='evening':updates.append({'event_id':sig(a['title']),'event_title':a['title'],
           'change_kind':change_kind,'summary':(a.get('snippet','') or '原始消息尚無摘要')[:300]+'（來源聲稱，尚未逐項核實）'})
@@ -103,6 +112,11 @@ def canonical_issue(raw, edition, now, weights=None, prior=None, max_items=12, r
       'material_candidate_count':len(eligible),
       'unrelated_candidate_excluded':len(candidates)-len(eligible),
       'selected_count':len(rows),
+      'subscribed_news_count':sum(x['news_reporting_eligible'] for x in rows),
+      'subscribed_headline_only_count':sum(
+          x['news_reporting_eligible'] and not x['news_summary_generation_allowed']
+          for x in rows),
+      'subscribed_news_not_conditional_on_ai_debate':True,
       'editorial_tiering_mode':'V3_TWO_LEVEL_NEWS_ONLY_NOT_EDITOR_APPROVED' if tiered else 'LEGACY',
       'selected_main_count':sum(x.get('editorial_tier')=='main' for x in rows),
       'selected_supplement_count':sum(x.get('editorial_tier')=='supplement' for x in rows),
