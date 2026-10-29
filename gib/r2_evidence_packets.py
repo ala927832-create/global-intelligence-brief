@@ -201,6 +201,50 @@ def _attach_curated_original_research(packets, now, fetcher, budget):
 
 
 
+def _original_source_feed_matches(packet, index_rows, cutoff):
+    """Locate a curated issuer URL already carried by the original RSS index.
+
+    RSS discovery is distinct from fetching a full, hashable official page.
+    An exact issuer URL and valid source timestamp support provenance, not
+    independent editorial certification. Crucially, do not apply G0's 50-char
+    news-excerpt threshold: many official RSS feeds only provide short titles.
+    """
+    manifest=_load_issue_manifest().get(packet.get("event_id"))
+    if not manifest or manifest.get("exact_news_title")!=packet.get("original_title"):
+        return []
+    expected={d["url"] for d in manifest.get("primary_documents",[])}
+    hits=[]
+    seen=set()
+    begin=cutoff-dt.timedelta(hours=14)
+    for item in index_rows:
+        url=item.get("url")
+        if url not in expected or url in seen:
+            continue
+        if not item.get("official"):
+            continue
+        try:
+            source_date=dt.datetime.fromisoformat(
+                str(item.get("published_at") or "").replace("Z","+00:00"))
+            if source_date.tzinfo is None or not begin<source_date<=cutoff:
+                continue
+        except (TypeError,ValueError):
+            continue
+        seen.add(url)
+        hits.append({
+            "issuer_url":url,
+            "original_source_feed_title":str(item.get("title") or "")[:250],
+            "source_discovery_id":item.get("source_id"),
+            "source_published_at_utc":source_date.astimezone(dt.timezone.utc).isoformat(),
+            "discovery_provider":item.get("provider"),
+            "source_excerpt_sha256":_sha(item.get("snippet") or ""),
+            "official_feed_url_matched":True,
+            "claim_fact_checked":False,
+            "article_body_retrieved_from_feed":False
+        })
+    return hits
+
+
+
 def _match_independent_index_for_review(packet, all_eligible_rows, cutoff):
     """Exact same-window *potential* publisher match, NOT verified corroboration.
 
@@ -426,6 +470,8 @@ def build_packets(rows, now, weights=None, fetcher=None, max_documents=6, curate
         focus_issue, fetcher=official_fetcher, max_documents=max_documents)
     packets = [_dossier(x) for x in focus_issue["articles"]]
     for item in packets:
+        item["original_issuer_urls_found_in_current_rss_source_index"] = (
+            _original_source_feed_matches(item, rows, cutoff))
         item["additional_publisher_index_matches_not_fact_verified"] = (
             _match_independent_index_for_review(item, eligible, cutoff))
         item["independent_publisher_source_comparison_status"] = (
@@ -434,6 +480,9 @@ def build_packets(rows, now, weights=None, fetcher=None, max_documents=6, curate
             else "NO_SECOND_INDEPENDENT_NEWS_INDEX_CANDIDATE")
     output["potential_additional_independent_publisher_sources"] = sum(
         len(p["additional_publisher_index_matches_not_fact_verified"])
+        for p in packets)
+    output["original_issuer_urls_also_seen_in_current_rss"] = sum(
+        len(p["original_issuer_urls_found_in_current_rss_source_index"])
         for p in packets)
     already_fetched = focus_issue.get("source_health", {}).get(
         "primary_source_review", {}).get("fetched_count", 0)
