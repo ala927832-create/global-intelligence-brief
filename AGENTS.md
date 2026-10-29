@@ -2,6 +2,8 @@
 
 These rules are binding for all GIB changes and reviews.
 
+**2026-10-29 owner R1→R2 STOP RULE (mandatory):** R1 source/selection remediation may continue using approved existing read-only sources and QA. Notify the owner **exactly once after** G0/G1 are truly demonstrated on real dated data, with at least 20 distinct source-supported events, 4 publisher domains, 4 editorial groups and 10–12 main + 10–12 distinct supplement selections. Explicitly distinguish actual timely authorized capture artifacts from retrospective RSS pulls; do not claim a skipped six-slot capture occurred. If on-time capture cannot be proven, R1 cannot be reported fully complete. On any G0/G1 failure, keep diagnostics internal and continue source/selection fixes; do not hand off incomplete previews or repeatedly ask the owner to review them. **After full R1 pass, STOP; do NOT start R2, Gemini-based full article generation, deep research writing or reader-facing output until the owner explicitly confirms R2.** If extra source permissions or changes to the approved schedule/cost are unavoidable, ask the specific permission question immediately instead of silently changing them.
+
 ## OWNER-APPROVED V3 — 2026-10-29: STRICT CONTENT QUANTITY AND FAIL-CLOSED REVIEW (CURRENT RULE)
 
 **Precedence:** This V3 clause and `config/frozen_contract.json` (`2026-10-29-owner-approved-v3`) override all earlier V1/V2 counts and editorial QA handoff permissions. They do not change the existing 07:30/17:30 schedule, 6-section ordering, Style C design, free-only/API budget, Zinc independence, human signoff, or publication OFF status.
