@@ -98,11 +98,56 @@ class ThreeDayQA(unittest.TestCase):
             self.assertFalse(snap["gemini_used"])
             self.assertFalse(snap["release_approved"])
             self.assertFalse(snap["p2_editorial_approved"])
+            self.assertEqual(snap["round1_source_selection_quality"]["scope"],
+                             "MORNING_ONLY_G0_G1_READ_ONLY")
+            self.assertFalse(snap["round1_source_selection_quality"]["structural_pass"])
+            self.assertFalse(snap["round1_source_selection_quality"]["p2_editorial_pass"])
             self.assertEqual(report["original_opml_source_gate"],"PASS_DIRECT_RSS_DISCOVERY")
             self.assertTrue((Path(folder)/"snapshot_window.json").is_file())
             self.assertEqual(
                 json.loads((Path(folder)/"source_index_all.json").read_text(encoding="utf-8"))[0]["verification_status"],
                 "INDEX_ONLY_NOT_FACT_CHECKED")
+
+    def test_approved_cutoff_archive_records_g0_and_g1_with_real_feed_fields(self):
+        now=self.ts("2026-10-30","07:35")
+        from qa.p2_three_day_snapshot import validate_config
+        feed_config=json.loads(Path("config/inoreader_free_feeds.json").read_text(encoding="utf-8"))
+        configured=validate_config(feed_config)
+        feed_index={feed["url"]:idx for idx,feed in enumerate(configured)}
+        themes=["global war","central bank","china asia","semiconductor technology",
+                "energy oil","GDP inflation","merger earnings"]
+        def feed(url):
+            idx=feed_index[url]
+            unique=hashlib.sha256(str(idx).encode()).hexdigest()
+            stamp=format_datetime(now-dt.timedelta(minutes=25))
+            title=themes[idx%len(themes)]+" independently reported "+unique
+            synopsis=("Source-attributed original event "+str(idx)+
+                      " includes observed details and described developments. "*3)
+            return ('<rss><channel><item><title>'+escape(title)+
+                    '</title><link>https://publisher'+str(idx%6)+'.example/story/'+str(idx)+
+                    '</link><pubDate>'+stamp+
+                    '</pubDate><description>'+escape(synopsis)+
+                    '</description></item></channel></rss>').encode()
+        providers={"official_rss":lambda errors:[],
+                   "gdelt":lambda errors:[],
+                   "freenews":lambda errors:[]}
+        with tempfile.TemporaryDirectory() as folder:
+            snap,summary=execute_capture(now=now,cron="30 23 * * 0-4",
+                                         opml_fetcher=feed,extra_fetchers=providers,
+                                         out=folder)
+            r1=snap["round1_source_selection_quality"]
+            self.assertTrue(r1["time_verified"])
+            self.assertTrue(r1["structural_pass"],r1)
+            self.assertEqual(r1["g1"]["main_news"],12)
+            self.assertEqual(r1["g1"]["supplementary_news"],12)
+            self.assertGreaterEqual(r1["g1"]["selected_primary_publisher_domains"],4)
+            self.assertGreaterEqual(r1["g1"]["selected_editorial_topics"],4)
+            self.assertFalse(r1["p2_editorial_pass"])
+            self.assertEqual(summary["round1_source_selection_quality"]["g1"]["unique_events"],24)
+            self.assertFalse(snap["gemini_used"])
+            self.assertFalse(snap["release_approved"])
+            self.assertFalse(list(Path(folder).rglob("*.html")))
+            self.assertFalse(list(Path(folder).rglob("*.epub")))
 
     def test_evening_delta_without_morning_is_hold(self):
         morning=[{"url":"https://example.com/original","title":"First","snippet":"Source text"}]
