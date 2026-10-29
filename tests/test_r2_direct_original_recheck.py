@@ -12,15 +12,17 @@ class DirectPrimaryRecheckTests(unittest.TestCase):
         src=json.loads(RECHECK.read_text(encoding="utf-8"))
         r=json.loads(REVIEW.read_text(encoding="utf-8"))
         self.assertEqual((src["direct_primary_count_for_eighteen_claims"],
-                          src["indexed_original_limited_count_for_eighteen_claims"],
+                          src["original_author_distributor_count_for_eighteen_claims"],
                           src["conditional_derived_count_for_eighteen_claims"]),(16,1,1))
         self.assertEqual(len(r["claim_reviews"]),18)
         self.assertEqual(r["ai_fact_source_direct_count"],16)
-        self.assertEqual(r["indexed_original_limited_count"],1)
+        self.assertEqual(r["indexed_original_limited_count"],0)
+        self.assertEqual(r["original_author_source_distribution_count"],1)
         self.assertEqual(r["conditional_derivation_count"],1)
         x={i["claim_id"]:i for i in src["source_rechecks"]}
         self.assertEqual(set(x),{"D03","D04","T02","T03"})
-        self.assertEqual(x["D04"]["direct_original_response"],"HTTP_403_NOT_DIRECTLY_RETRIEVED")
+        self.assertIn("ORIGIN_HTTP_403",x["D04"]["direct_original_response"])
+        self.assertIn("presseportal.de",x["D04"]["original_issuer_authored_distribution_url"])
         self.assertFalse(src["human_editorial_signoff"])
         self.assertFalse(src["automated_claim_signature"])
         self.assertFalse(src["two_pass_gemini_authorized"])
