@@ -15,6 +15,10 @@ from types import SimpleNamespace
 from qa.opml_free_p1 import collect
 from qa.p2_source_fusion import collect_existing_free_sources, fuse_with_original_opml
 from run_newsroom_v16 import run
+from qa.p2_content_gate import source_input_gate, selected_story_gate
+from gib.newsroom_v16 import canonical_issue
+from gib.contract import locked_contract
+from tools.gib_style_c_rc.live_html_qa import filter_raw_before_ranking, bounds
 
 TZ=ZoneInfo("Asia/Taipei")
 ROOT=Path(__file__).resolve().parents[1]
@@ -63,12 +67,62 @@ def run_batch(report_date=None,gemini=False,source_fetcher=None,now=None,extra_f
     source_index.write_text(json.dumps(articles,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     source_report.write_text(json.dumps(source_health,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     snapshot_hash=digest(source_index)
+    # V3: strict live RSS preflight, BEFORE Gemini, HTML, EPUB or owner preview.
+    # Controlled source_fetcher fixtures are strictly internal integration tests,
+    # NEVER owner-facing editions and NEVER eligible for publication approval.
+    if source_fetcher is None:
+        contract=locked_contract()
+        morning_cutoff=local_cutoff(date,"morning")
+        first=source_input_gate(articles,morning_cutoff,"morning",contract)
+        selected=None
+        if not first["blockers"]:
+            day_start,day_end=bounds(date,"morning")
+            inside,_=filter_raw_before_ranking(articles,day_start,day_end)
+            issue_probe=canonical_issue(inside,"morning",morning_cutoff,
+                                        json.loads((ROOT/"config/sources.json").read_text(encoding="utf-8")
+                                                   ).get("section_weights"),require_material_relevance=True)
+            selected=selected_story_gate(issue_probe,contract)
+        if first["blockers"] or (selected and selected["blockers"]):
+            blockers=first["blockers"]+(selected["blockers"] if selected else [])
+            # Explicitly DO NOT call run(), Gemini, pandoc, HTML or EPUB.
+            hold={
+                "kind":"GIB_P2_V3_SOURCE_FIRST_FAIL_CLOSED_DIAGNOSTIC",
+                "report_date_tpe":date.isoformat(),
+                "run_mode":"LIVE_PUBLIC_RSS_BACKFILL_DIAGNOSTICS_ONLY",
+                "stage":"G0_SOURCE_INPUT" if first["blockers"] else "G1_STORY_SELECTION",
+                "gate":"HOLD_NO_READER_PREVIEW",
+                "source_gate":source_health.get("gate"),
+                "p2_original_opml_source_gate":source_health.get("original_opml_p1_gate"),
+                "source_index_sha256":snapshot_hash,
+                "source_configured":source_health.get("configured_sources"),
+                "source_index_total":len(articles),
+                "first_source_gate":first,
+                "selected_news_gate":selected,
+                "blockers":blockers,
+                "diagnosis":"SOURCE_OR_RANKING_PIPELINE_DEFECT_NOT_WORLD_NEWS_SHORTAGE",
+                "editions":{},"nonpublished_preview_generated":False,
+                "gemini_requested":False,"gemini_called":False,
+                "p2_content_accepted":False,"release_approved":False,
+                "owner_review_required_now":False,
+                "next_action":"INTERNAL_SOURCE_AND_EDITORIAL_FIX_ONLY_NO_INCOMPLETE_PREVIEW"
+            }
+            report_path=out/"P2_V3_CONTENT_HOLD.json"
+            report_path.write_text(json.dumps(hold,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+            print(json.dumps({"p2":"HOLD_SOURCE_FIRST_NO_PREVIEW",
+                              "stage":hold["stage"],
+                              "source_candidates":first["distinct_evidence_bearing_events"],
+                              "selected_news":selected["unique_events"] if selected else None,
+                              "blockers":blockers,"gemini_called":False,
+                              "reader_preview_generated":False,
+                              "diagnostics":str(report_path)},ensure_ascii=False))
+            return hold
     deliveries={}
     earlier=None
     for edition in ("morning","evening"):
         as_of=local_cutoff(date,edition).isoformat()
         args=SimpleNamespace(
             edition=edition,fixture=None,cached_issue=None,
+            strict_reader_gate=False, # G0/G1 already checked in batch above; fixture internal only
             source_mode="opml",source_index=str(source_index),source_health=str(source_report),
             morning_issue=earlier,as_of=as_of,gemini=gemini,verify_official=True)
         result=run(args)
@@ -132,9 +186,10 @@ def run_batch(report_date=None,gemini=False,source_fetcher=None,now=None,extra_f
         "canonical_model":"gib.newsroom_v16.canonical_issue",
         "style_c_and_dual_reading_source":"SAME_CANONICAL_ISSUE_PER_EDITION",
         "format_layout":"FROZEN_STYLE_C_AND_V16_ESSENTIAL_DEEP_QA",
-        "deep_research_standard":"REQUIRES_2_TO_3_INDEPENDENTLY_VERIFIED_RESEARCH_PIECES",
+        "deep_research_standard":"REQUIRES_1_TO_2_CURRENT_HEADLINE_LINKED_EVIDENCED_RESEARCH_PIECES",
         "editorial_and_fact_check_status":"HOLD_PENDING_HUMAN_PRIMARY_SOURCE_VERIFICATION",
         "nonpublished_preview_generated":True,
+        "fixture_only_not_for_owner":bool(source_fetcher is not None),
         "gemini_requested":bool(gemini),
         "editions":deliveries,
         "p2_content_accepted":False,
