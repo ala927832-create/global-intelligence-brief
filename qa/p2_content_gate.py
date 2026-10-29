@@ -10,7 +10,7 @@ from collections import Counter
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 from gib.contract import locked_contract
-from gib.editorial import cluster, classify, material_news_candidate
+from gib.editorial import cluster, classify, material_news_candidate, SPORTS_LEISURE
 
 TZ=ZoneInfo("Asia/Taipei")
 UTC=dt.timezone.utc
@@ -64,6 +64,8 @@ def eligible_source_rows(rows,cutoff,edition="morning"):
             rejected["OUTSIDE_WINDOW_OR_MISSING_DATETIME"]+=1;continue
         if not _usable_source_summary(row):
             rejected["TITLE_ONLY_OR_INSUFFICIENT_SOURCE_TEXT"]+=1;continue
+        if SPORTS_LEISURE.search(title):
+            rejected["SPORTS_NOT_NEWS_DESK"]+=1;continue
         if not material_news_candidate(row):
             # A leading story on an approved WORLD newsroom feed need not
             # mention inflation/war/AI to be newsworthy. This relaxes only
@@ -114,7 +116,10 @@ def source_input_gate(rows,cutoff,edition="morning",contract=None,observed_at=No
         "edition":edition,
         "source_cutoff_utc":end.isoformat(),"source_window_start_utc":start.isoformat(),
         "source_capture_lag_minutes":lag,
-        "is_timely_cutoff_snapshot_proven":bool(lag is not None and 0<=lag<=45),
+        # A near-cutoff timestamp on a retrospective batch does not prove
+        # the six owner-approved scheduled captures actually ran.
+        "is_timely_cutoff_snapshot_proven":False,
+        "source_timestamp_within_45m_only":bool(lag is not None and 0<=lag<=45),
         "input_original_rows":len(rows),"eligible_original_rows":len(eligible),
         "distinct_eligible_provider_domains":len({urlsplit(x["url"]).hostname for x in eligible}),
         "sample_eligible_source_groups":dict(sorted(Counter(
