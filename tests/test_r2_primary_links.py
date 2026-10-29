@@ -47,9 +47,11 @@ class CuratedOriginalEvidenceTests(unittest.TestCase):
                             for p in packets for doc in p["curated_original_research"]))
         self.assertTrue(all(doc["original_document_date_located"]
                             for p in packets for doc in p["curated_original_research"]))
-        self.assertTrue(all(doc["contrasting_position_located"]
-                            for p in packets for doc in p["curated_original_research"]
-                            if doc["matched_primary_text_phrases"]))
+        # A contrary position may be in a DIFFERENT release by the same
+        # issuer (e.g. Bank of Canada governor Q&A vs rate press release).
+        self.assertTrue(all(any(doc["contrasting_position_located"]
+                                for doc in p["curated_original_research"])
+                            for p in packets))
 
     def test_no_matching_news_title_never_receives_an_external_document(self):
         packets=self.samples()
