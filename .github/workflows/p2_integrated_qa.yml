@@ -299,7 +299,7 @@ jobs:
           r=json.loads(p.read_text(encoding='utf-8'))
           assert len(r['source_rechecks'])==4
           assert (r['direct_primary_count_for_eighteen_claims'],
-                  r['indexed_original_limited_count_for_eighteen_claims'],
+                  r['original_author_distributor_count_for_eighteen_claims'],
                   r['conditional_derived_count_for_eighteen_claims'])==(16,1,1)
           assert not r['human_editorial_signoff']
           assert not r['two_pass_gemini_authorized']
