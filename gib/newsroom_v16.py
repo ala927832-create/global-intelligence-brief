@@ -8,7 +8,7 @@ import hashlib
 import json
 from urllib.parse import urlsplit
 from .editorial import cluster, rank, diversified, diversified_v3, sig, material_news_candidate
-from .subscription_news_policy import news_evidence_policy
+from .subscription_news_policy import news_evidence_policy, is_subscribed_news
 
 TOPICS = {
     'macro': '全球宏觀', 'central_banks': '央行與金融',
@@ -64,7 +64,7 @@ def canonical_issue(raw, edition, now, weights=None, prior=None, max_items=12, r
     # Earlier six of twelve selected candidates were dropped afterwards
     # because URLs were non-HTTPS/missing, wasting slots.
     eligible=[a for a in candidates if article_sources(a) and _date(a.get('published_at'))
-              and (not require_material_relevance or material_news_candidate(a))]
+              and (not require_material_relevance or material_news_candidate(a) or is_subscribed_news(a))]
     # V3 morning has two distinct editorial tiers. Preserve the old
     # 12-story mode for retrospective legacy fixtures and evening.
     tiered=bool(tiered_v3 and edition=="morning")
