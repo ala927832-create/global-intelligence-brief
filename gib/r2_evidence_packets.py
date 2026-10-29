@@ -8,14 +8,164 @@ from __future__ import annotations
 
 import datetime as dt
 import hashlib
+import io
+import json
 from collections import Counter
 from copy import deepcopy
+from pathlib import Path
 from urllib.parse import urlsplit
 
+import requests
 from gib.newsroom_v16 import canonical_issue
-from gib.evidence_review import APPROVED_HOSTS, review_official_excerpts, fetch_official_page
+from gib.evidence_review import (
+    APPROVED_HOSTS, MAX_BYTES, VisibleText, normalize_text,
+    review_official_excerpts, fetch_official_page
+)
 from qa.p2_content_gate import eligible_source_rows, source_input_gate, selected_story_gate
 from qa.r2_evidence_preflight import latest_morning_cutoff
+
+
+# Dedicated, narrowly pre-approved original-research document URLs.
+# NOT an extension of the 24 RSS feeds or official_rss source providers.
+R2_PRIMARY_HOSTS = frozenset({
+    "www.federalreserve.gov", "www.bankofcanada.ca",
+    "www.nim.org", "www.maureletprom.fr"
+})
+R2_MANIFEST = (Path(__file__).resolve().parents[1] /
+               "config/r2_primary_research_links_20261029.json")
+
+
+def fetch_curated_primary_page(url, session=None):
+    """Bounded original research document, no redirect/crawl/full-text archive."""
+    parsed = urlsplit(url)
+    if (parsed.scheme != "https" or parsed.hostname not in R2_PRIMARY_HOSTS
+            or parsed.port not in (None, 443)
+            or parsed.username or parsed.password):
+        raise ValueError("R2_ORIGINAL_DOCUMENT_NOT_ALLOWLISTED")
+    client = session or requests.Session()
+    response = client.get(
+        url, timeout=(6, 14), allow_redirects=False,
+        headers={"User-Agent": "GIB-R2-Source-Verification/1.0",
+                 "Accept": "text/html,text/plain,application/xhtml+xml,application/pdf"})
+    response.raise_for_status()
+    if response.status_code in (301, 302, 303, 307, 308):
+        raise ValueError("R2_REDIRECT_REQUIRES_SEPARATE_VALIDATION")
+    if len(response.content) > MAX_BYTES:
+        raise ValueError("R2_DOCUMENT_TOO_LARGE")
+    kind = response.headers.get("Content-Type", "").lower()
+    if not any(t in kind for t in ("text/html","application/xhtml","text/plain","application/pdf")):
+        raise ValueError("R2_UNSUPPORTED_PRIMARY_DOCUMENT_TYPE")
+    if "application/pdf" in kind:
+        # Original issuer PDF only, <=800KB and <=8 pages: do not store or
+        # mirror the copyrighted full PDF/text in the evidence artifact.
+        from pypdf import PdfReader
+        reader = PdfReader(io.BytesIO(response.content), strict=False)
+        if reader.is_encrypted or len(reader.pages) > 8:
+            raise ValueError("R2_PDF_ENCRYPTED_OR_TOO_MANY_PAGES")
+        body = normalize_text(" ".join(
+            (page.extract_text() or "") for page in reader.pages))[:80000]
+    else:
+        parsed_text = VisibleText()
+        if "html" in kind:
+            parsed_text.feed(response.text)
+            body = normalize_text(" ".join(parsed_text.parts))
+        else:
+            body = normalize_text(response.text)
+    return {
+        "url": url, "text": body,
+        "sha256": hashlib.sha256(response.content).hexdigest(),
+        "retrieved_at": dt.datetime.now(dt.timezone.utc).isoformat()
+    }
+
+
+def _load_issue_manifest():
+    # Hardcoded manifest path; no user-controlled file or arbitrary URL fetch.
+    with R2_MANIFEST.open(encoding="utf-8") as file:
+        data = json.load(file)
+    if data.get("schema") != "GIB_R2_CURRENT_ISSUE_PRIMARY_RESEARCH_URLS_V1":
+        raise ValueError("R2_RESEARCH_MANIFEST_SCHEMA_NOT_APPROVED")
+    return {x["event_id"]: x for x in data["selected_events"]}
+
+
+def _attach_curated_original_research(packets, now, fetcher, budget):
+    """Locate explicitly identified primary content and record EXACT proof limits.
+
+    A page-text match is evidence of document provenance only. It does not
+    certify the original newspaper's interpretation, economic transmission,
+    causation, authenticity of other outlets or an independent counterclaim.
+    """
+    registry = _load_issue_manifest()
+    audits = []
+    used = 0
+    for packet in packets:
+        packet["curated_original_research"] = []
+        manifest = registry.get(packet["event_id"])
+        if not manifest or manifest["exact_news_title"] != packet["original_title"]:
+            continue
+        packet["research_subject"] = manifest["research_subject"]
+        packet["counterevidence_question"] = manifest["counterevidence_search"]
+        packet["causal_mechanism_to_validate"] = manifest["causal_mechanism_to_test"]
+        for spec in manifest["primary_documents"]:
+            row = {
+                "url": spec["url"], "issuer": spec["issuer"],
+                "source_kind": spec["source_kind"],
+                "source_location_hint": spec.get("locator_hint"),
+                "manifest_publication_date_not_independently_checked":
+                    spec["publication_date"],
+                "retrieval_status": "NOT_FETCHED",
+                "source_document_sha256": None,
+                "retrieved_at_utc": None,
+                "matched_primary_text_phrases": [],
+                "unmatched_primary_text_phrases": [],
+                "human_reviewed": False, "claim_fact_checked": False
+            }
+            packet["curated_original_research"].append(row)
+            try:
+                source_date = dt.date.fromisoformat(spec["publication_date"])
+                if source_date > now.astimezone(dt.timezone.utc).date():
+                    row["retrieval_status"] = "PRIMARY_SOURCE_DATED_IN_FUTURE"
+                    audits.append({"event_id": packet["event_id"],
+                                   "url":spec["url"],"status":row["retrieval_status"]})
+                    continue
+            except (ValueError, KeyError):
+                row["retrieval_status"] = "PRIMARY_SOURCE_DATE_INVALID"
+                audits.append({"event_id": packet["event_id"],
+                               "url":spec["url"],"status":row["retrieval_status"]})
+                continue
+            if used >= budget:
+                row["retrieval_status"] = "OFFICIAL_READ_ONLY_BUDGET_REACHED"
+                audits.append({"event_id": packet["event_id"],"url": spec["url"],
+                               "status":row["retrieval_status"]})
+                continue
+            used += 1
+            try:
+                page = fetcher(spec["url"])
+                original = normalize_text(page["text"])
+                if not original or len(page["sha256"]) < 32:
+                    raise ValueError("R2_EMPTY_OR_UNHASHED_DOCUMENT")
+                lower = original.casefold()
+                for phrase in spec["required_phrases"]:
+                    fragment = normalize_text(phrase)
+                    if len(fragment) >= 12 and fragment.casefold() in lower:
+                        row["matched_primary_text_phrases"].append(fragment)
+                    else:
+                        row["unmatched_primary_text_phrases"].append(fragment)
+                row["source_document_sha256"] = page["sha256"]
+                row["retrieved_at_utc"] = page["retrieved_at"]
+                row["retrieval_status"] = (
+                    "ORIGINAL_DOCUMENT_EXCERPT_MATCH_NOT_FACT_VERIFIED"
+                    if row["matched_primary_text_phrases"]
+                    else "PAGE_RETRIEVED_NO_EXACT_CLAIM_MATCH")
+                row["primary_document_directly_accessed"] = True
+            except (requests.RequestException, ValueError, KeyError, TypeError) as error:
+                row["retrieval_status"] = "SOURCE_FETCH_OR_MATCH_FAILED"
+                row["error_type"] = type(error).__name__
+            audits.append({
+                "event_id": packet["event_id"], "url": spec["url"],
+                "status": row["retrieval_status"],
+                "matched_claim_phrases": len(row["matched_primary_text_phrases"])
+            })
+    return audits
 
 
 def _sha(text):
@@ -142,7 +292,7 @@ def _dossier(article):
     }
 
 
-def build_packets(rows, now, weights=None, fetcher=None, max_documents=6):
+def build_packets(rows, now, weights=None, fetcher=None, max_documents=6, curated_fetcher=None):
     """Extract four analysis dossiers + two studies from the SAME real R1 index.
 
     A passed count gate permits *research triage*, not drafting. Fetcher can be
@@ -195,10 +345,32 @@ def build_packets(rows, now, weights=None, fetcher=None, max_documents=6):
     output["primary_source_fetch_results"] = review_official_excerpts(
         focus_issue, fetcher=official_fetcher, max_documents=max_documents)
     packets = [_dossier(x) for x in focus_issue["articles"]]
+    already_fetched = focus_issue.get("source_health", {}).get(
+        "primary_source_review", {}).get("fetched_count", 0)
+    # Use original issuer documents not already indexed by the news feeds.
+    # This does not add RSS sources or imply independent claim verification.
+    original_fetcher = curated_fetcher or fetch_curated_primary_page
+    output["curated_primary_research_audit"] = _attach_curated_original_research(
+        packets, now, original_fetcher, max(0, max_documents - already_fetched))
+    output["curated_primary_documents_located"] = sum(
+        item["retrieval_status"] ==
+        "ORIGINAL_DOCUMENT_EXCERPT_MATCH_NOT_FACT_VERIFIED"
+        for packet in packets for item in packet.get("curated_original_research", []))
+    output["curated_primary_claim_phrases_matched"] = sum(
+        len(item["matched_primary_text_phrases"])
+        for packet in packets for item in packet.get("curated_original_research", []))
+    output["focus_with_located_primary_context"] = sum(
+        bool(d["primary_official_context_not_fact_verified"]) or any(
+            row["retrieval_status"] == "ORIGINAL_DOCUMENT_EXCERPT_MATCH_NOT_FACT_VERIFIED"
+            for row in d.get("curated_original_research", []))
+        for d in packets)
     output["analysis_packets"] = packets
     # Deep subjects must be tied to current sourced headlines. Shortlisting
     # them is NEVER equivalent to finished research or original evidence.
     deep = sorted(packets, key=lambda d: (
+        -sum(item["retrieval_status"] ==
+             "ORIGINAL_DOCUMENT_EXCERPT_MATCH_NOT_FACT_VERIFIED"
+             for item in d.get("curated_original_research", [])),
         -len(d["primary_official_context_not_fact_verified"]),
         -len(d["source_domains"]), d["event_id"]))
     output["current_deep_research_shortlist"] = [{
@@ -208,6 +380,10 @@ def build_packets(rows, now, weights=None, fetcher=None, max_documents=6):
         "published_at": d["article_publication_utc"],
         "linked_source_count": len(d["linked_sources"]),
         "official_context_excerpt_count": len(d["primary_official_context_not_fact_verified"]),
+        "curated_original_document_matches": sum(
+            row["retrieval_status"] ==
+            "ORIGINAL_DOCUMENT_EXCERPT_MATCH_NOT_FACT_VERIFIED"
+            for row in d.get("curated_original_research", [])),
         "research_documented": False,
         "historical_comparator_verified": False,
         "counterevidence_verified": False,
@@ -215,8 +391,7 @@ def build_packets(rows, now, weights=None, fetcher=None, max_documents=6):
     } for d in deep[:2]]
     output["status"] = "HOLD_R2_EVIDENCE_BEFORE_GEMINI"
     output["focus_distinct_topics"] = len({d["topic"] for d in packets})
-    output["focus_with_located_primary_context"] = sum(
-        bool(d["primary_official_context_not_fact_verified"]) for d in packets)
+    # SOURCE DOCUMENT matching is not an independent validated counterclaim.
     output["focus_with_confirmed_contrary_evidence"] = 0
     output["focus_with_verified_causal_data"] = 0
     output["focus_with_signed_claims"] = sum(d["signed_verified_claims"] >= 3 for d in packets)
