@@ -29,6 +29,8 @@ def is_subscribed_news(row):
     if not isinstance(row,dict) or row.get("provider")!="direct_opml_rss":
         return False
     source_id=row.get("source_id")
+    if not isinstance(source_id,str):
+        return False
     config=subscribed_sources().get(source_id)
     if not config or row.get("source_group")!=config["lane"]:
         return False
