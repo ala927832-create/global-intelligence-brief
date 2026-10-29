@@ -7,7 +7,8 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-from qa.p2_content_gate import source_input_gate, selected_story_gate
+from qa.p2_content_gate import source_input_gate, selected_story_gate, eligible_source_rows
+from gib.newsroom_v16 import canonical_issue
 from gib.contract import locked_contract
 from qa import p2_integrated_batch as batch
 
@@ -73,6 +74,51 @@ class V3ContentGateTests(unittest.TestCase):
         ok=selected_story_gate(i)
         self.assertEqual(ok["gate"],"PASS_EDITORIAL_VOLUME_ONLY_NOT_EVIDENCE_VERIFIED")
         self.assertFalse(ok["publication_approved"])
+
+    def test_v3_newsroom_selection_actually_produces_20_tiered_events(self):
+        rows=[article(i) for i in range(22)]
+        valid,rejected,_,_=eligible_source_rows(rows,CUTOFF)
+        self.assertEqual(len(valid),22)
+        self.assertFalse(rejected)
+        issue=canonical_issue(valid,"morning",CUTOFF,tiered_v3=True,
+                              require_material_relevance=False)
+        outcome=selected_story_gate(issue)
+        self.assertEqual(outcome["gate"],"PASS_EDITORIAL_VOLUME_ONLY_NOT_EVIDENCE_VERIFIED",outcome)
+        self.assertEqual(outcome["unique_events"],22)
+        self.assertEqual(outcome["main_news"],10)
+        self.assertEqual(outcome["supplementary_news"],12)
+        self.assertEqual(len({x["event_id"] for x in issue["articles"]}),22)
+        self.assertFalse(issue.get("release_approved",False))
+
+    def test_legacy_evening_remains_unexpanded(self):
+        rows=[article(i) for i in range(22)]
+        issue=canonical_issue(rows,"evening",CUTOFF,require_material_relevance=True)
+        self.assertLessEqual(len(issue["articles"]),12)
+        self.assertTrue(all(x.get("editorial_tier") is None for x in issue["articles"]))
+
+    def test_historical_backfill_is_not_mistaken_for_approved_cutoff_capture(self):
+        old=CUTOFF-dt.timedelta(days=1)
+        capture=CUTOFF+dt.timedelta(minutes=50)
+        result=source_input_gate([article(i) for i in range(25)],old,
+                                  observed_at=capture)
+        self.assertIn("RETROSPECTIVE_CAPTURE_NOT_ON_TIME",result["blockers"])
+        self.assertFalse(result["is_timely_cutoff_snapshot_proven"])
+        current=source_input_gate([article(i) for i in range(25)],CUTOFF,
+                                  observed_at=capture)
+        self.assertEqual(current["distinct_evidence_bearing_events"],25)
+        self.assertFalse(current["is_timely_cutoff_snapshot_proven"])
+
+    def test_global_publisher_headline_wider_than_keyword_filter_but_not_sports(self):
+        news=article(0)
+        news["title"]="Historic parliamentary agreement reshapes society"
+        news["source_group"]="global"
+        news["source_groups"]=["global"]
+        news["provider"]="direct_opml_rss"
+        sport=dict(news,title="Tennis world cup football championship final",
+                   url="https://publisher9.example/sport/unique")
+        eligible,rejected,_,_=eligible_source_rows([news,sport],CUTOFF)
+        self.assertEqual(len(eligible),1)
+        self.assertEqual(rejected["SPORTS_NOT_NEWS_DESK"],1)
 
     def test_underfilled_live_batch_writes_diagnostic_and_never_calls_publishing(self):
         with tempfile.TemporaryDirectory() as folder:
