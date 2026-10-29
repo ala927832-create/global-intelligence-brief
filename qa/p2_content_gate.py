@@ -37,7 +37,7 @@ def _usable_source_summary(row):
     for item in (row.get("reported_key_points") or []) + (
             row.get("source_digest",{}).get("points",[])
             if isinstance(row.get("source_digest"),dict) else []):
-        if isinstance(item,dict) and item.get("source_id") in known and (
+        if isinstance(item,dict) and item.get("source_id") and item.get("source_id") in known and (
                 len(str(item.get("text") or "").strip())>=50):
             return True
     return False
