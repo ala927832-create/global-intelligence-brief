@@ -5,6 +5,8 @@ on:
     paths:
       - 'run_newsroom_v16.py'
       - 'qa/p2_integrated_batch.py'
+      - 'qa/r2_evidence_preflight.py'
+      - 'tests/test_r2_evidence_preflight.py'
       - 'qa/p2_content_gate.py'
       - 'tests/test_p2_v3_content_gate.py'
       - 'config/frozen_contract.json'
@@ -34,6 +36,8 @@ on:
     paths:
       - 'run_newsroom_v16.py'
       - 'qa/p2_integrated_batch.py'
+      - 'qa/r2_evidence_preflight.py'
+      - 'tests/test_r2_evidence_preflight.py'
       - 'qa/p2_content_gate.py'
       - 'tests/test_p2_v3_content_gate.py'
       - 'config/frozen_contract.json'
@@ -153,6 +157,27 @@ jobs:
                       raise AssertionError(f'{edition} {name} offline QA failed: {checks["issues"]}')
               assert row['release_approved'] is False
           print('P2_TECHNICAL_ARTIFACTS_AND_OFFLINE_QA_PASS; EDITORIAL_AND_RELEASE_HOLD')
+          PY
+      - name: R2 source-evidence and editorial-depth test ONLY after G0/G1 structural thresholds
+        # No new provider calls, Gemini, text generation or reader files.
+        # Reads exactly the live source index already produced by the prior step.
+        run: |
+          python - <<'PY'
+          import glob,subprocess,sys,pathlib,json
+          paths=sorted(glob.glob('qa_outputs/p2_integrated/*/source_index.json'))
+          assert len(paths)==1, 'R2 requires exactly one independently acquired source index'
+          source=pathlib.Path(paths[0])
+          report=source.parent/'R2_G2_EVIDENCE_PREFLIGHT.json'
+          subprocess.run([sys.executable,'qa/r2_evidence_preflight.py',
+                          '--source-index',str(source),
+                          '--output',str(report)],check=True)
+          record=json.loads(report.read_text(encoding='utf-8'))
+          assert not record['gemini_called'] and not record['generated_html']
+          assert not record['generated_epub'] and not record['release_approved']
+          if record['r2']['started']:
+              assert record['r1']['source_and_selection_structural_ready']
+          print('R2_REAL_SOURCE_DIAGNOSTIC_ONLY_NO_CONTENT_RELEASE',
+                record['r2']['status'])
           PY
       - name: Upload one consolidated P2 QA bundle (including blockers)
         if: always()
