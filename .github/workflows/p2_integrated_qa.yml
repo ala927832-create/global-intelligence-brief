@@ -15,6 +15,8 @@ on:
       - 'qa/r2_two_deep_studies_internal_20261029.json'
       - 'qa/r2_editorial_draft_audit.py'
       - 'tests/test_r2_editorial_draft_audit.py'
+      - 'qa/r2_fact_editor_review_sheet.py'
+      - 'tests/test_r2_fact_review_sheet.py'
       - 'tests/test_r2_primary_links.py'
       - 'config/r2_primary_research_links_20261029.json'
       - 'qa/p2_content_gate.py'
@@ -56,6 +58,8 @@ on:
       - 'qa/r2_two_deep_studies_internal_20261029.json'
       - 'qa/r2_editorial_draft_audit.py'
       - 'tests/test_r2_editorial_draft_audit.py'
+      - 'qa/r2_fact_editor_review_sheet.py'
+      - 'tests/test_r2_fact_review_sheet.py'
       - 'tests/test_r2_primary_links.py'
       - 'config/r2_primary_research_links_20261029.json'
       - 'qa/p2_content_gate.py'
@@ -243,6 +247,19 @@ jobs:
           assert not r['release_approved']
           assert r['g2_status'].startswith('HOLD_')
           print('R2_INTERNAL_SOURCE_CONSTRAINED_EDITORIAL_QA_PASS_G2_REMAINS_HOLD')
+          PY
+      - name: R2 source-to-claim human review checklist (empty signature cells by design)
+        run: |
+          python qa/r2_fact_editor_review_sheet.py             qa_outputs/p2_integrated/R2_EDITOR_FACT_REVIEW_UNSIGNED.md
+          python - <<'PY'
+          from pathlib import Path
+          sheet=Path('qa_outputs/p2_integrated/R2_EDITOR_FACT_REVIEW_UNSIGNED.md')
+          source=sheet.read_text(encoding='utf-8')
+          assert source.count('#### ') == 18
+          assert '已完成的人工簽章：0' in source
+          assert 'https://www.bls.gov/news.release/archives/cpi_10142026.htm' in source
+          assert 'https://www.bls.gov/news.release/cpi.nr0.htm' not in source
+          print('R2_UNSIGNED_FACT_REVIEW_SHEET_INTERNAL_ONLY')
           PY
       - name: Upload one consolidated P2 QA bundle (including blockers)
         if: always()
