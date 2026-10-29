@@ -10,6 +10,8 @@ on:
       - 'qa/r2_build_packets.py'
       - 'gib/r2_evidence_packets.py'
       - 'tests/test_r2_evidence_packets.py'
+      - 'tests/test_r2_primary_links.py'
+      - 'config/r2_primary_research_links_20261029.json'
       - 'qa/p2_content_gate.py'
       - 'tests/test_p2_v3_content_gate.py'
       - 'config/frozen_contract.json'
@@ -44,6 +46,8 @@ on:
       - 'qa/r2_build_packets.py'
       - 'gib/r2_evidence_packets.py'
       - 'tests/test_r2_evidence_packets.py'
+      - 'tests/test_r2_primary_links.py'
+      - 'config/r2_primary_research_links_20261029.json'
       - 'qa/p2_content_gate.py'
       - 'tests/test_p2_v3_content_gate.py'
       - 'config/frozen_contract.json'
@@ -209,7 +213,9 @@ jobs:
           print('R2_RESEARCH_PACKET_HOLD',record['status'],
                 'analysis candidates=',len(record['analysis_packets']),
                 'current deep topic candidates=',len(record['current_deep_research_shortlist']),
-                'primary matched=',record.get('focus_with_located_primary_context',0))
+                'primary matched=',record.get('focus_with_located_primary_context',0),
+                'issuer documents matched=',record.get('curated_primary_documents_located',0),
+                'claim phrases located=',record.get('curated_primary_claim_phrases_matched',0))
           PY
       - name: Upload one consolidated P2 QA bundle (including blockers)
         if: always()
