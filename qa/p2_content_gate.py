@@ -34,7 +34,10 @@ def _usable_source_summary(row):
     # Only actually returned publisher text, not the headline or AI prose.
     snippet=str(row.get("snippet") or row.get("description") or "").strip()
     if len(snippet)>=50: return True
-    known={row.get("source_id"),*list(row.get("source_ids") or [])}
+    source_ids=row.get("source_ids")
+    if not isinstance(source_ids,(list,tuple,set)):
+        source_ids=[]
+    known={x for x in [row.get("source_id"),*source_ids] if isinstance(x,str)}
     for item in (row.get("reported_key_points") or []) + (
             row.get("source_digest",{}).get("points",[])
             if isinstance(row.get("source_digest"),dict) else []):
