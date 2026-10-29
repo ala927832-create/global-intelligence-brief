@@ -29,7 +29,8 @@ class CuratedOriginalEvidenceTests(unittest.TestCase):
         def fake(url):
             doc=lookup[url]
             return {
-                "text":" Original primary document: "+" ".join(doc["required_phrases"]),
+                "text":(" Original primary document dated "+doc["publication_date"]+
+                        ": "+" ".join(doc["required_phrases"])),
                 "sha256":"a"*64,
                 "retrieved_at":NOW.isoformat(),
             }
@@ -44,6 +45,13 @@ class CuratedOriginalEvidenceTests(unittest.TestCase):
                             for p in packets for doc in p["curated_original_research"]))
         self.assertTrue(all(not doc["human_reviewed"]
                             for p in packets for doc in p["curated_original_research"]))
+        self.assertTrue(all(doc["original_document_date_located"]
+                            for p in packets for doc in p["curated_original_research"]))
+        # A contrary position may be in a DIFFERENT release by the same
+        # issuer (e.g. Bank of Canada governor Q&A vs rate press release).
+        self.assertTrue(all(any(doc["contrasting_position_located"]
+                                for doc in p["curated_original_research"])
+                            for p in packets))
 
     def test_no_matching_news_title_never_receives_an_external_document(self):
         packets=self.samples()
