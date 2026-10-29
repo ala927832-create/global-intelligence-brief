@@ -150,7 +150,13 @@ def rank(items,weights):
         speculative=sum(bool(x in t) for x in
             ('opinion:', 'op-ed', 'commentary:', 'rumor:', 'unconfirmed:',
              'price prediction'))
+        # Owner's Inoreader original publisher roster is the default
+        # newspaper reporting desk. Subscription is an editorial preference,
+        # not independent proof that a publisher claim is true.
+        from .subscription_news_policy import is_subscribed_news
+        subscribed=is_subscribed_news(a)
         a['editorial_rank_signals']={
+            'owner_subscribed_news_source':subscribed,
             'global_relevance':global_signals,
             'narrow_listing':narrow_signals,
             'commentary_or_speculation':speculative,
@@ -161,6 +167,7 @@ def rank(items,weights):
             +(4 if a.get('official') else 0)
             +min(2,len(a['publishers'])-1)*1.5
             +min(global_signals,3)*2.5
+            +(3 if subscribed else 0)
             -narrow_signals*5
             -speculative*3,2)
     return sorted(items,key=lambda a:(-a['score'],a.get('published_at') or ''))
