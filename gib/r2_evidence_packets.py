@@ -246,6 +246,13 @@ def _original_source_feed_matches(packet, index_rows, cutoff):
 
 
 
+def _distinct_primary_issuer_domains(docs):
+    """Two pages on one institution domain do not make two issuers."""
+    return {urlsplit(d.get("url") or "").hostname for d in docs
+            if urlsplit(d.get("url") or "").scheme=="https" and
+               urlsplit(d.get("url") or "").hostname}
+
+
 def _source_stated_quantity_comparison(packet, registry):
     """A paired *source-stated* numeric discrepancy, not a resolved reserve.
 
@@ -613,7 +620,7 @@ def build_packets(rows, now, weights=None, fetcher=None, max_documents=6, curate
         # An issuer's press release and governor's statement are TWO
         # documents but ONE publishing institution, despite differing labels.
         # Exact verified document host is the conservative issuer identity.
-        distinct_sources={urlsplit(d.get("url") or "").hostname for d in docs}
+        distinct_sources=_distinct_primary_issuer_domains(docs)
         two_issuers=len(distinct_sources)>=2
         packet["cross_issuer_primary_source_comparison"]={
             "distinct_issuers_with_dated_primary_matches":len(distinct_sources),
