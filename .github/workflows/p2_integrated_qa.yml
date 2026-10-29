@@ -17,6 +17,8 @@ on:
       - 'tests/test_r2_editorial_draft_audit.py'
       - 'qa/r2_fact_editor_review_sheet.py'
       - 'tests/test_r2_fact_review_sheet.py'
+      - 'qa/r2_ai_editor_review_18_claims_20261029.json'
+      - 'tests/test_r2_ai_editor_review.py'
       - 'tests/test_r2_primary_links.py'
       - 'config/r2_original_issuer_document_archive_20261029.json'
       - 'tests/test_r2_primary_archive.py'
@@ -62,6 +64,8 @@ on:
       - 'tests/test_r2_editorial_draft_audit.py'
       - 'qa/r2_fact_editor_review_sheet.py'
       - 'tests/test_r2_fact_review_sheet.py'
+      - 'qa/r2_ai_editor_review_18_claims_20261029.json'
+      - 'tests/test_r2_ai_editor_review.py'
       - 'tests/test_r2_primary_links.py'
       - 'config/r2_original_issuer_document_archive_20261029.json'
       - 'tests/test_r2_primary_archive.py'
@@ -265,6 +269,23 @@ jobs:
           assert 'https://www.bls.gov/news.release/archives/cpi_10142026.htm' in source
           assert 'https://www.bls.gov/news.release/cpi.nr0.htm' not in source
           print('R2_UNSIGNED_FACT_REVIEW_SHEET_INTERNAL_ONLY')
+          PY
+      - name: Read-only AI editorial review integrity and NO human signature impersonation
+        run: |
+          python - <<'PY'
+          import json,pathlib
+          p=pathlib.Path('qa/r2_ai_editor_review_18_claims_20261029.json')
+          r=json.loads(p.read_text(encoding='utf-8'))
+          assert len(r['claim_reviews'])==18
+          assert r['ai_reviewer_work_completed']
+          assert r['verified_human_editorial_signatures']==0
+          assert not r['gemini_pass_1_permitted']
+          assert not r['gemini_pass_2_permitted']
+          assert not r['release_approved']
+          output=pathlib.Path('qa_outputs/p2_integrated/R2_AI_EDITORIAL_FACT_REVIEW_NO_HUMAN_SIGNOFF.json')
+          output.parent.mkdir(parents=True,exist_ok=True)
+          output.write_text(json.dumps(r,ensure_ascii=False,indent=2),encoding='utf-8')
+          print('R2_AI_18_CLAIMS_REVIEW_RECORDED_HUMAN_SIGNOFF_REMAINS_ZERO')
           PY
       - name: Upload one consolidated P2 QA bundle (including blockers)
         if: always()
