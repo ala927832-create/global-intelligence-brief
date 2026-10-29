@@ -18,7 +18,7 @@ def article(i):
     topics=["government election","central bank inflation","technology semiconductor",
             "energy oil refinery","climate cyclone"]
     label=topics[i%len(topics)]
-    distinct=hashlib.sha256(str(i).encode()).hexdigest()[:24]
+    distinct=hashlib.sha256(str(i).encode()).hexdigest()
     return {
         "title":f"{label} confirmed developments {distinct} separate international event",
         "url":f"https://publisher{i%5}.example/world/story-{i}",
