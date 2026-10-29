@@ -53,6 +53,42 @@ class CuratedOriginalEvidenceTests(unittest.TestCase):
                                 for doc in p["curated_original_research"])
                             for p in packets))
 
+    def test_original_fed_source_feed_with_only_short_headline_is_not_lost(self):
+        from gib.r2_evidence_packets import _original_source_feed_matches
+        cutoff=dt.datetime(2026,10,28,23,30,tzinfo=dt.timezone.utc)
+        packet=next(p for p in self.samples()
+                    if p["event_id"]=="518b083502af6be8")
+        original="https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a.htm"
+        official={
+            "title":"Federal Reserve issues FOMC statement",
+            "url":original,
+            "published_at":"2026-10-28T18:00:00+00:00",
+            "official":True,"source_id":"macro_03",
+            "snippet":"Federal Reserve issues FOMC statement",
+            "provider":"direct_opml_rss"
+        }
+        hits=_original_source_feed_matches(packet,[official],cutoff)
+        self.assertEqual(len(hits),1)
+        self.assertEqual(hits[0]["source_discovery_id"],"macro_03")
+        self.assertFalse(hits[0]["claim_fact_checked"])
+        self.assertFalse(hits[0]["article_body_retrieved_from_feed"])
+        untrusted=dict(official,official=False)
+        unrelated=dict(official,url=original+"-unrelated")
+        stale=dict(official,published_at="2026-10-01T18:00:00+00:00")
+        for invalid in (untrusted,unrelated,stale):
+            self.assertFalse(_original_source_feed_matches(packet,[invalid],cutoff))
+
+    def test_source_fetch_always_validates_tls_certificate(self):
+        class CheckingSession:
+            def get(self,url,**kwargs):
+                self.k=kwargs
+                raise __import__("requests").exceptions.SSLError("mock certificate chain failure")
+        session=CheckingSession()
+        with self.assertRaises(__import__("requests").exceptions.SSLError):
+            fetch_curated_primary_page("https://www.nishati.go.tz/news/article",session=session)
+        self.assertTrue(session.k["verify"])
+        self.assertFalse(session.k["allow_redirects"])
+
     def test_tanzania_two_independent_original_issuers_keep_volume_difference_unresolved(self):
         registry=_load_issue_manifest()
         tz=next(x for x in registry.values() if x["event_id"]=="4ada865e9de2e48a")
@@ -108,6 +144,7 @@ class CuratedOriginalEvidenceTests(unittest.TestCase):
         self.assertEqual(result["url"],source)
         self.assertEqual(len(result["sha256"]),64)
         self.assertFalse(session.arguments["allow_redirects"])
+        self.assertTrue(session.arguments["verify"])
 
     def test_cross_newsroom_source_must_be_exact_distinct_domain_same_window(self):
         from gib.r2_evidence_packets import _match_independent_index_for_review
