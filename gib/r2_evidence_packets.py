@@ -44,7 +44,7 @@ def fetch_curated_primary_page(url, session=None):
         raise ValueError("R2_ORIGINAL_DOCUMENT_NOT_ALLOWLISTED")
     client = session or requests.Session()
     response = client.get(
-        url, timeout=(6, 14), allow_redirects=False,
+        url, timeout=(6, 14), allow_redirects=False, verify=True,
         headers={"User-Agent": "GIB-R2-Source-Verification/1.0",
                  "Accept": "text/html,text/plain,application/xhtml+xml,application/pdf"})
     response.raise_for_status()
@@ -542,6 +542,31 @@ def build_packets(rows, now, weights=None, fetcher=None, max_documents=6, curate
         bool(d["contrasting_position_source_documents"]) for d in packets)
     output["focus_with_located_observations_not_causal_proofs"] = sum(
         bool(d["observational_data_source_documents"]) for d in packets)
+    # Distinguish an actual two-issuer primary-source comparison from
+    # repeated documents by the same issuer (e.g. two Bank of Canada pages).
+    output["cross_issuer_original_document_pairs_ready_for_review"] = 0
+    for packet in packets:
+        docs=[d for d in packet.get("curated_original_research",[])
+              if d["retrieval_status"] ==
+              "ORIGINAL_DOCUMENT_EXCERPT_MATCH_NOT_FACT_VERIFIED"
+              and d.get("source_document_sha256") and d.get("original_document_date_located")]
+        issuers={d.get("issuer") for d in docs}
+        distinct_sources={urlsplit(d.get("url") or "").hostname for d in docs}
+        two_issuers=(len(issuers)>=2 and len(distinct_sources)>=2)
+        packet["cross_issuer_primary_source_comparison"]={
+            "distinct_issuers_with_dated_primary_matches":len(issuers),
+            "distinct_original_domains":len(distinct_sources),
+            "two_independent_primary_issuers_located":bool(two_issuers),
+            "source_claims_need_manual_reconciliation":True,
+            "contradiction_or_difference_explained":False,
+            "fact_verification_signed":False,
+            "status":("TWO_PRIMARY_ISSUERS_READY_FOR_MANUAL_RECONCILIATION"
+                      if two_issuers else "MISSING_SECOND_DISTINCT_PRIMARY_ISSUER")
+        }
+        if two_issuers:
+            output["cross_issuer_original_document_pairs_ready_for_review"]+=1
+        else:
+            packet["blockers"].append("SECOND_PRIMARY_ISSUER_NOT_FETCHED_OR_MATCHED")
     output["analysis_packets"] = packets
     # Deep subjects must be tied to current sourced headlines. Shortlisting
     # them is NEVER equivalent to finished research or original evidence.
