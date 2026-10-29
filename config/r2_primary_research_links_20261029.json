@@ -113,6 +113,18 @@
             "120 bcf on an M&P working interest basis"
           ],
           "locator_hint": "PDF page 4 (zero-based page 3), Tanzania subsection; volume estimates are preliminary gas volumes and not independently certified reserves"
+        },
+        {
+          "url": "https://nishati.go.tz/news/historia-yaandikwa-mnazi-bay-waziri-homera-atangaza-ugunduzi-wa-gesi-asilia-wa-futi-za-ujazo-bilioni-223",
+          "issuer": "Tanzania Ministry of Energy (Wizara ya Nishati)",
+          "publication_date": "2026-10-28",
+          "source_kind": "TANZANIA_GOVERNMENT_PRIMARY_RELEASE",
+          "required_phrases": [
+            "ugunduzi mpya wa Gesi Asilia yenye futi za ujazo Billion 223",
+            "kisima cha Kasa",
+            "tarehe 27 Oktoba, 2026"
+          ],
+          "locator_hint": "Swahili official release; title references 223 billion cubic feet and ministry minister's 27 October Kasa visit; independent source/date/measurement vocabulary must be reconciled with 22 October operator PDF"
         }
       ],
       "counterevidence_search": "Compare dated government estimate 223 Bcf, operator preliminary approximately 200 Bcf gross, and resource classification before calling it reserves",
@@ -123,7 +135,16 @@
       "original_observation_phrase": "120 bcf on an M&P working interest basis",
       "independent_counterargument_not_yet_verified": true,
       "independent_original_news_index_titles": [],
-      "independent_comparison_needed": "Search additional independent primary sources / reporters published in the same cutoff window; a separate publisher URL alone is not proof of an independently sourced claim"
+      "independent_comparison_needed": "Search additional independent primary sources / reporters published in the same cutoff window; a separate publisher URL alone is not proof of an independently sourced claim",
+      "estimate_reconciliation": {
+        "government_reported_gross_volume_bcf": 223,
+        "operator_preliminary_gross_volume_bcf_approx": 200,
+        "operator_60pct_working_interest_bcf_approx": 120,
+        "do_not_confuse_field_estimate_with_proved_reserves": true,
+        "publication_and_event_dates_must_be_preserved": "Government published 28 Oct and announced 27 Oct; operator PDF published 22 Oct",
+        "numerical_discrepancy_must_not_be_silently_resolved": true,
+        "status": "TWO_INDEPENDENT_ORIGINAL_ISSUERS_NEED_CLASSIFICATION_AND_METHOD_REVIEW"
+      }
     }
   ],
   "controls": {
