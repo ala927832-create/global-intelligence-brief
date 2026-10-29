@@ -80,15 +80,16 @@
       "research_subject": "Mnazi Bay Kasa-1X discovery: reported 223 Bcf versus operator preliminary ~200 Bcf",
       "primary_documents": [
         {
-          "url": "https://www.maureletprom.fr/en/article/activity-for-the-first-nine-months-of-2026",
+          "url": "https://www.maureletprom.fr/en/documents/download/1931/activity-for-the-first-nine-months-of-2026",
           "issuer": "Maurel & Prom (operator; primary technical corporate release)",
           "publication_date": "2026-10-22",
-          "source_kind": "OPERATING_COMPANY_PRIMARY_RELEASE",
+          "source_kind": "OPERATING_COMPANY_PRIMARY_PDF_RELEASE",
           "required_phrases": [
             "confirmed the presence of a gas reservoir with encouraging characteristics",
             "approximately 200 bcf gross",
             "120 bcf on an M&P working interest basis"
-          ]
+          ],
+          "locator_hint": "PDF page 4 (zero-based page 3), Tanzania subsection; volume estimates are preliminary gas volumes and not independently certified reserves"
         }
       ],
       "counterevidence_search": "Compare dated government estimate 223 Bcf, operator preliminary approximately 200 Bcf gross, and resource classification before calling it reserves",
