@@ -2,6 +2,7 @@
 from __future__ import annotations
 import datetime as dt
 import json
+import hashlib
 import tempfile
 import unittest
 from pathlib import Path
@@ -17,8 +18,9 @@ def article(i):
     topics=["government election","central bank inflation","technology semiconductor",
             "energy oil refinery","climate cyclone"]
     label=topics[i%len(topics)]
+    distinct=hashlib.sha256(str(i).encode()).hexdigest()[:24]
     return {
-        "title":f"Breaking {label} major event number {i} with distinct facts",
+        "title":f"{label} confirmed developments {distinct} separate international event",
         "url":f"https://publisher{i%5}.example/world/story-{i}",
         "published_at":FRESH,
         "snippet":f"Publisher report {i}: "+("Detailed source-attributed news facts " * 4),
