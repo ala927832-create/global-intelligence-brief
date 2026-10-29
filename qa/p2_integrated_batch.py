@@ -86,23 +86,40 @@ def run_batch(report_date=None,gemini=False,source_fetcher=None,now=None,extra_f
         current_cutoff=local_cutoff(current_date,"morning")
         current=source_input_gate(articles,current_cutoff,"morning",contract,
                                   observed_at=now)
-        selected=None
-        # Even if the historical replay is not on time, separately diagnose
-        # its story tier capacity whenever sufficiently many unique candidates
-        # exist. Do not use this to waive the timestamp blocker.
-        if first["distinct_evidence_bearing_events"]>=20:
-            within,_rejected,_start,_end=eligible_source_rows(
-                articles,morning_cutoff,"morning")
+        def assess_selection(cutoff, source_gate):
+            # Source eligibility and actual editorial selection MUST share
+            # exactly the same source-text, time, URL and content filters.
+            source_blockers=[b for b in source_gate["blockers"]
+                             if not b.startswith(("RETROSPECTIVE_CAPTURE_",
+                                                  "SOURCE_SNAPSHOT_BEFORE_"))]
+            if source_blockers:
+                return None
+            eligible,_,_,_=eligible_source_rows(articles,cutoff,"morning")
             issue_probe=canonical_issue(
-                within,"morning",morning_cutoff,
+                eligible,"morning",cutoff,
                 json.loads((ROOT/"config/sources.json").read_text(encoding="utf-8")
                            ).get("section_weights"),
                 require_material_relevance=False,tiered_v3=True)
-            selected=selected_story_gate(issue_probe,contract)
+            assessment=selected_story_gate(issue_probe,contract)
+            assessment["selection_domains"]=len({
+                (x["sources"][0]["publisher"]) for x in issue_probe["articles"]
+                if x.get("sources")})
+            assessment["selection_topics"]=len({
+                x.get("topic") for x in issue_probe["articles"] if x.get("topic")})
+            assessment["is_editorially_or_fact_checked"]=False
+            return assessment
+        selected=assess_selection(morning_cutoff,first)
+        current_selected=assess_selection(current_cutoff,current)
+        current_source_count_ready=(
+            current["distinct_evidence_bearing_events"]>=
+            contract["editorial_acceptance"]["source_intake_hard_gate"]["min_distinct_current_events"]
+            and current["original_publisher_domains"]>=4
+            and current["editorial_topic_groups"]>=4)
+        current_selection_ready=bool(current_selected and not current_selected["blockers"])
         blockers=first["blockers"]+(selected["blockers"] if selected else [])
+        # Even when the RSS candidate pools and V3 tiers are fully populated,
+        # G2 article-level evidence/reading-depth review is NOT implemented.
         if not blockers:
-            # G0/G1 may now pass. That is NOT permission to bypass G2
-            # article/claim verification, research depth or reading time.
             blockers=["G2_EDITORIAL_EVIDENCE_AND_DEPTH_NOT_YET_ACCEPTED"]
         if first["blockers"]:
             stage="G0_SOURCE_INPUT"
@@ -125,6 +142,12 @@ def run_batch(report_date=None,gemini=False,source_fetcher=None,now=None,extra_f
             "latest_morning_source_window_diagnostic_only":current,
             "latest_morning_report_date_tpe":current_date.isoformat(),
             "selected_news_gate":selected,
+            "latest_morning_selected_news_gate":current_selected,
+            "latest_morning_source_count_threshold_met":current_source_count_ready,
+            "latest_morning_selection_count_threshold_met":current_selection_ready,
+            "round1_structural_source_and_selection_met":bool(
+                current_source_count_ready and current_selection_ready),
+            "actual_cutoff_capture_verified":False,
             "blockers":blockers,
             "diagnosis":"CLASSIFY_SOURCE_WINDOW_AND_SELECTION_FAILURE_NOT_NEWS_SCARCITY",
             "editions":{},"nonpublished_preview_generated":False,
@@ -140,6 +163,12 @@ def run_batch(report_date=None,gemini=False,source_fetcher=None,now=None,extra_f
                           "historical_replay_candidates":first["distinct_evidence_bearing_events"],
                           "current_morning_candidates":current["distinct_evidence_bearing_events"],
                           "selected_news":selected["unique_events"] if selected else None,
+                          "latest_selected_news":current_selected["unique_events"] if current_selected else None,
+                          "latest_selected_main":current_selected["main_news"] if current_selected else None,
+                          "latest_selected_supplement":current_selected["supplementary_news"] if current_selected else None,
+                          "latest_source_domains":current["original_publisher_domains"],
+                          "latest_source_topics":current["editorial_topic_groups"],
+                          "round1_structural_ready":hold["round1_structural_source_and_selection_met"],
                           "blockers":blockers,
                           "gemini_called":False,
                           "reader_preview_generated":False,
