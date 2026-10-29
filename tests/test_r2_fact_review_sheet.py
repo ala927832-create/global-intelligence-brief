@@ -29,7 +29,7 @@ class EditorialReviewSheetTests(unittest.TestCase):
             if src["id"]=="F2":src["url"]="https://www.bls.gov/news.release/cpi.nr0.htm"
         result=inspect(altered,self.analyses,self.studies)
         self.assertFalse(result["source_lineage_and_draft_structure_pass"])
-        self.assertIn("MUTABLE_LATEST_RELEASE_LINK_NOT_PINN",result["drafts"][0]["structural_blockers"])
+        self.assertIn("MUTABLE_LATEST_RELEASE_LINK_NOT_PINNED",result["drafts"][0]["structural_blockers"])
 
     def test_future_date_rejected_as_source(self):
         altered=copy.deepcopy(self.ledger)
