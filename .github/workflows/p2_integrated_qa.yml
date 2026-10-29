@@ -307,7 +307,7 @@ jobs:
           out=pathlib.Path('qa_outputs/p2_integrated/R2_DIRECT_PRIMARY_RECHECK_AI_ONLY.json')
           out.parent.mkdir(parents=True,exist_ok=True)
           out.write_text(json.dumps(r,ensure_ascii=False,indent=2),encoding='utf-8')
-          print('R2_D03_T02_DIRECT_PRIMARY_REVIEW_D04_INDEX_ONLY_T03_CONDITIONAL_G2_HOLD')
+          print('R2_D03_T02_ORIGINAL_PRIMARY_D04_ISSUER_AUTHORED_DISTRIBUTION_T03_CONDITIONAL_G2_HOLD')
           PY
       - name: Upload one consolidated P2 QA bundle (including blockers)
         if: always()
