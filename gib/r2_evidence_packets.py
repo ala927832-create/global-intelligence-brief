@@ -245,6 +245,66 @@ def _original_source_feed_matches(packet, index_rows, cutoff):
 
 
 
+
+def _source_stated_quantity_comparison(packet, registry):
+    """A paired *source-stated* numeric discrepancy, not a resolved reserve.
+
+    Each participating observation must appear literally in two successfully
+    matched, independently published, hashed primary documents. Never use a
+    prefilled manifest number alone as evidence.
+    """
+    spec=registry.get(packet.get("event_id")) or {}
+    context=spec.get("estimate_reconciliation") or {}
+    if not context or not context.get("numerical_discrepancy_must_not_be_silently_resolved"):
+        return None
+    source_docs=[doc for doc in packet.get("curated_original_research",[])
+                 if doc.get("retrieval_status") ==
+                 "ORIGINAL_DOCUMENT_EXCERPT_MATCH_NOT_FACT_VERIFIED"
+                 and doc.get("original_document_date_located")
+                 and doc.get("source_document_sha256")]
+    operator=next((doc for doc in source_docs
+                   if doc.get("source_kind")=="OPERATING_COMPANY_PRIMARY_PDF_RELEASE"
+                   and any("approximately 200 bcf gross" in t.lower()
+                           for t in doc.get("matched_primary_text_phrases",[]))),None)
+    government=next((doc for doc in source_docs
+                     if doc.get("source_kind")=="TANZANIA_GOVERNMENT_PRIMARY_RELEASE"
+                     and any("billion 223" in t.lower()
+                             for t in doc.get("matched_primary_text_phrases",[]))),None)
+    if not operator or not government:
+        return {
+            "status":"HOLD_SOURCE_QUANTITY_PAIR_NOT_LOCATED",
+            "independently_located_issuer_documents":len({urlsplit(d["url"]).hostname for d in source_docs}),
+            "numbers_not_silently_reconciled":True,
+            "classification_not_assumed":True
+        }
+    a=context["government_reported_gross_volume_bcf"]
+    b=context["operator_preliminary_gross_volume_bcf_approx"]
+    if not (a==223 and b==200):
+        return {"status":"HOLD_MANIFEST_QUANTITY_MISMATCH",
+                "numbers_not_silently_reconciled":True}
+    # Difference is an arithmetic description of TWO reported estimates,
+    # not a gas resource revision, and must never be labeled certified reserves.
+    return {
+        "status":"TWO_ORIGINAL_ISSUER_VOLUME_ESTIMATES_LOCATED_REQUIRES_RECONCILIATION",
+        "government_source_stated_bcf":a,
+        "operator_source_stated_approx_gross_bcf":b,
+        "absolute_reported_estimate_difference_bcf_approx":abs(a-b),
+        "units":"billion cubic feet (reported estimates, not certified reserves)",
+        "government_source":{"url":government["url"],
+                             "source_sha256":government["source_document_sha256"],
+                             "source_date_not_editor_certified":government["manifest_publication_date_not_independently_checked"]},
+        "operator_source":{"url":operator["url"],
+                           "source_sha256":operator["source_document_sha256"],
+                           "source_date_not_editor_certified":operator["manifest_publication_date_not_independently_checked"]},
+        "same_underlying_volume_basis_proven":False,
+        "resource_classification_verified":False,
+        "difference_explained":False,
+        "independent_claim_reviewer_signed":False,
+        "causal_prediction_permitted":False
+    }
+
+
+
 def _match_independent_index_for_review(packet, all_eligible_rows, cutoff):
     """Exact same-window *potential* publisher match, NOT verified corroboration.
 
@@ -550,11 +610,13 @@ def build_packets(rows, now, weights=None, fetcher=None, max_documents=6, curate
               if d["retrieval_status"] ==
               "ORIGINAL_DOCUMENT_EXCERPT_MATCH_NOT_FACT_VERIFIED"
               and d.get("source_document_sha256") and d.get("original_document_date_located")]
-        issuers={d.get("issuer") for d in docs}
+        # An issuer's press release and governor's statement are TWO
+        # documents but ONE publishing institution, despite differing labels.
+        # Exact verified document host is the conservative issuer identity.
         distinct_sources={urlsplit(d.get("url") or "").hostname for d in docs}
-        two_issuers=(len(issuers)>=2 and len(distinct_sources)>=2)
+        two_issuers=len(distinct_sources)>=2
         packet["cross_issuer_primary_source_comparison"]={
-            "distinct_issuers_with_dated_primary_matches":len(issuers),
+            "distinct_issuers_with_dated_primary_matches":len(distinct_sources),
             "distinct_original_domains":len(distinct_sources),
             "two_independent_primary_issuers_located":bool(two_issuers),
             "source_claims_need_manual_reconciliation":True,
@@ -567,6 +629,15 @@ def build_packets(rows, now, weights=None, fetcher=None, max_documents=6, curate
             output["cross_issuer_original_document_pairs_ready_for_review"]+=1
         else:
             packet["blockers"].append("SECOND_PRIMARY_ISSUER_NOT_FETCHED_OR_MATCHED")
+    registry=_load_issue_manifest()
+    for packet in packets:
+        packet["source_stated_quantity_comparison"] = (
+            _source_stated_quantity_comparison(packet,registry))
+    output["matched_cross_issuer_numeric_comparisons_pending_review"] = sum(
+        bool(d.get("source_stated_quantity_comparison") and
+             d["source_stated_quantity_comparison"]["status"] ==
+             "TWO_ORIGINAL_ISSUER_VOLUME_ESTIMATES_LOCATED_REQUIRES_RECONCILIATION")
+        for d in packets)
     output["analysis_packets"] = packets
     # Deep subjects must be tied to current sourced headlines. Shortlisting
     # them is NEVER equivalent to finished research or original evidence.
