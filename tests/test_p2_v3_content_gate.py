@@ -70,7 +70,11 @@ class V3ContentGateTests(unittest.TestCase):
         self.assertEqual(out["gate"],"HOLD_SELECTED_STORY_VOLUME")
         self.assertIn("MAIN_NEWS_COUNT_OUTSIDE_10_12",out["blockers"])
         self.assertIn("SUPPLEMENT_NEWS_COUNT_OUTSIDE_10_12",out["blockers"])
-        i["articles"]=[{"event_id":str(n),"editorial_tier":"main" if n<12 else "supplement"} for n in range(24)]
+        i["articles"]=[{"event_id":str(n),"editorial_tier":"main" if n<12 else "supplement",
+                        "topic":["macro","central_banks","geopolitics","asia","technology"][n%5],
+                        "headline_summary":"Real publisher excerpt provides substantive reported facts " * 2,
+                        "sources":[{"url":f"https://publisher{n%5}.example/world/story-{n}"}]}
+                       for n in range(24)]
         ok=selected_story_gate(i)
         self.assertEqual(ok["gate"],"PASS_EDITORIAL_VOLUME_ONLY_NOT_EVIDENCE_VERIFIED")
         self.assertFalse(ok["publication_approved"])
@@ -155,6 +159,26 @@ class V3ContentGateTests(unittest.TestCase):
             self.assertFalse(result["actual_cutoff_capture_verified"])
             self.assertFalse(list(root.rglob("*.html")))
             self.assertFalse(list(root.rglob("*.epub")))
+
+    def test_selected_count_alone_is_not_enough_if_outlets_or_subjects_cluster(self):
+        issue={"edition":"morning","articles":[{
+            "event_id":str(n),"editorial_tier":"main" if n<12 else "supplement",
+            "topic":"macro","headline_summary":"Reported publisher source facts " * 3,
+            "sources":[{"url":f"https://single-publisher.example/news/{n}"}]
+        } for n in range(24)]}
+        res=selected_story_gate(issue)
+        self.assertEqual(res["gate"],"HOLD_SELECTED_STORY_VOLUME")
+        self.assertIn("SELECTED_PUBLISHER_DIVERSITY_BELOW_4",res["blockers"])
+        self.assertIn("SELECTED_TOPIC_DIVERSITY_BELOW_4",res["blockers"])
+
+    def test_source_excerpt_is_required_for_each_selected_event(self):
+        rows=[{"event_id":str(n),"editorial_tier":"main" if n<12 else "supplement",
+                "topic":["macro","central_banks","geopolitics","asia"][n%4],
+                "sources":[{"url":f"https://publisher{n%4}.example/item-{n}"}],
+                "headline_summary":"Reporter attributed original facts " * 3} for n in range(24)]
+        rows[0]["headline_summary"]="Short"
+        res=selected_story_gate({"edition":"morning","articles":rows})
+        self.assertIn("SELECTED_EVENT_INSUFFICIENT_SOURCE_EXCERPT",res["blockers"])
 
     def test_underfilled_live_batch_writes_diagnostic_and_never_calls_publishing(self):
         with tempfile.TemporaryDirectory() as folder:

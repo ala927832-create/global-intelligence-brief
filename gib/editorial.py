@@ -200,6 +200,44 @@ def diversified(items,top_n=12,max_per_section=4):
         if len(out)>=top_n: break
     return out
 
+
+def diversified_v3(items, top_n=24, max_per_section=8):
+    """Evidence-neutral source-index coverage selection for V3 R1.
+
+    Keep the highest-ranking items while reserving enough slots for distinct
+    reporting themes and publisher domains when qualifying candidates exist.
+    This does NOT certify an outlet's headline position, truth or article text.
+    """
+    by_section={}
+    by_domain={}
+    for item in items:
+        by_section.setdefault(item.get("section","unexpected"),item)
+        domain=urlsplit(item.get("url","")).hostname
+        if domain: by_domain.setdefault(domain,item)
+    reserved=[]
+    def add(item):
+        key=canon_url(item.get("url",""))
+        if key and all(canon_url(x.get("url",""))!=key for x in reserved):
+            reserved.append(item)
+    for item in list(by_section.values())[:4]:
+        add(item)
+    for item in list(by_domain.values())[:4]:
+        add(item)
+    counts={}
+    for item in reserved:
+        section=item.get("section","unexpected")
+        counts[section]=counts.get(section,0)+1
+    for item in items:
+        if len(reserved)>=top_n: break
+        section=item.get("section","unexpected")
+        if counts.get(section,0)>=max_per_section: continue
+        old=len(reserved);add(item)
+        if len(reserved)>old: counts[section]=counts.get(section,0)+1
+    # Restore ranked order so low-scoring coverage representatives do not
+    # automatically become top headlines; editorial signoff remains separate.
+    by_url={canon_url(x.get("url","")):i for i,x in enumerate(items)}
+    return sorted(reserved,key=lambda a:by_url.get(canon_url(a.get("url","")),10**9))[:top_n]
+
 def next_seen(old,items,now,limit=500):
     existing={x['key']:x for x in old if x.get('key')}
     for x in items:

@@ -162,10 +162,36 @@ def selected_story_gate(issue,contract=None):
         blockers.append("SUPPLEMENT_NEWS_COUNT_OUTSIDE_10_12")
     if len(mains)+len(shorts)!=len(articles):
         blockers.append("UNTIERED_NEWS_EVENTS")
+    # G1 must assess THE SELECTED stories, not merely a diverse raw source pool.
+    # Only primary original URLs count for publisher-domain diversity; a
+    # syndicated "related URL" in a single story cannot create a new event.
+    selected_domains=set()
+    selected_topics=set()
+    selected_primary_urls=[]
+    for a in articles:
+        if a.get("topic"): selected_topics.add(a["topic"])
+        sources=a.get("sources") or []
+        primary=sources[0].get("url","") if sources else ""
+        domain=urlsplit(primary).hostname
+        if domain and urlsplit(primary).scheme=="https":
+            selected_domains.add(domain)
+            selected_primary_urls.append(primary)
+        else: blockers.append("SELECTED_EVENT_MISSING_PRIMARY_HTTPS_SOURCE")
+        if len(str(a.get("headline_summary") or "").strip())<50:
+            blockers.append("SELECTED_EVENT_INSUFFICIENT_SOURCE_EXCERPT")
+    if len(selected_domains)<contract["editorial_acceptance"]["source_intake_hard_gate"]["min_distinct_original_publisher_domains"]:
+        blockers.append("SELECTED_PUBLISHER_DIVERSITY_BELOW_4")
+    if len(selected_topics)<contract["editorial_acceptance"]["source_intake_hard_gate"]["min_editorial_topic_groups"]:
+        blockers.append("SELECTED_TOPIC_DIVERSITY_BELOW_4")
+    if len(selected_primary_urls)!=len(set(selected_primary_urls)):
+        blockers.append("DUPLICATE_SELECTED_PRIMARY_SOURCE_URL")
+    blockers=list(dict.fromkeys(blockers))
     return {
         "gate":"HOLD_SELECTED_STORY_VOLUME" if blockers else "PASS_EDITORIAL_VOLUME_ONLY_NOT_EVIDENCE_VERIFIED",
         "blockers":blockers,"unique_events":len(set(ids)),
         "main_news":len(mains),"supplementary_news":len(shorts),
+        "selected_primary_publisher_domains":len(selected_domains),
+        "selected_editorial_topics":len(selected_topics),
         "gemini_allowed":False if blockers else None,
         "reader_preview_allowed":False if blockers else None,
         "publication_approved":False
