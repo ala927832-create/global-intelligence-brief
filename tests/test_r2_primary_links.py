@@ -141,6 +141,46 @@ class CuratedOriginalEvidenceTests(unittest.TestCase):
         self.assertTrue(session.k["verify"])
         self.assertFalse(session.k["allow_redirects"])
 
+    def test_one_longer_bounded_https_request_never_retries_or_downgrades(self):
+        import requests
+        class SingleCallSession:
+            def __init__(self):self.calls=0
+            def get(self,url,**kwargs):
+                self.calls+=1
+                self.options=kwargs
+                raise requests.exceptions.ConnectTimeout("simulated publisher timeout")
+        s=SingleCallSession()
+        with self.assertRaises(requests.exceptions.ConnectTimeout):
+            fetch_curated_primary_page(
+                "https://www.nim.org/en/press/article/konsumklima-konjunkturerwartungen-steigen-kauflaune-zieht-nicht-mit-1",
+                session=s)
+        self.assertEqual(s.calls,1)
+        self.assertEqual(s.options["timeout"],(12,22))
+        self.assertTrue(s.options["verify"])
+        self.assertFalse(s.options["allow_redirects"])
+
+    def test_single_source_timeout_is_explicit_hold_not_claim_mismatch(self):
+        import requests
+        now=NOW
+        docs=_load_issue_manifest()
+        packets=self.samples()
+        allowed=next(x["url"] for x in docs["269bcc066124cf2b"]["primary_documents"])
+        def single_fail(url):
+            if url==allowed:raise requests.exceptions.ConnectTimeout("NIM temporarily unavailable")
+            spec=next(p for item in docs.values() for p in item["primary_documents"]
+                      if p["url"]==url)
+            return {"text":spec["publication_date"]+" "+" ".join(spec["required_phrases"]),
+                    "sha256":"f"*64,"retrieved_at":now.isoformat()}
+        audits=_attach_curated_original_research(packets,now,single_fail,6)
+        failed=[x for p in packets for x in p["curated_original_research"]
+                if x["url"]==allowed]
+        self.assertEqual(len(failed),1)
+        self.assertEqual(failed[0]["retrieval_status"],
+                         "SOURCE_TEMPORARY_NETWORK_TIMEOUT_HOLD")
+        self.assertEqual(failed[0]["error_type"],"ConnectTimeout")
+        self.assertFalse(failed[0]["claim_fact_checked"])
+        self.assertEqual(len(audits),6)
+
     def test_tanzania_two_independent_original_issuers_keep_volume_difference_unresolved(self):
         registry=_load_issue_manifest()
         tz=next(x for x in registry.values() if x["event_id"]=="4ada865e9de2e48a")
