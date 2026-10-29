@@ -180,6 +180,14 @@ class V3ContentGateTests(unittest.TestCase):
         res=selected_story_gate({"edition":"morning","articles":rows})
         self.assertIn("SELECTED_EVENT_INSUFFICIENT_SOURCE_EXCERPT",res["blockers"])
 
+    def test_legacy_live_epub_auto_render_cannot_bypass_first_quality_gate(self):
+        yml=Path(".github/workflows/live_morning_smoke_qa.yml").read_text(encoding="utf-8")
+        triggers=yml.split("on:",1)[1].split("permissions:",1)[0]
+        self.assertNotIn("push:",triggers)
+        self.assertIn("workflow_dispatch:",triggers)
+        self.assertIn("if: ${{ false }}",yml)
+        self.assertIn("p2_integrated_qa.yml",yml)
+
     def test_underfilled_live_batch_writes_diagnostic_and_never_calls_publishing(self):
         with tempfile.TemporaryDirectory() as folder:
             out=Path(folder)

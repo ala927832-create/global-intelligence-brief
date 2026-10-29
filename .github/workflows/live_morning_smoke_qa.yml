@@ -1,22 +1,17 @@
+# GIB V3 owner approval 2026-10-29: retirement of this legacy auto-render path.
+# This job bypasses G0/G1 (and G2) and used to produce underfilled EPUBs on
+# every source/editorial code push. Forbidden during source-only R1.
+# Keep source/selection diagnostics in p2_integrated_qa.yml and the SIX previously
+# approved read-only snapshots; restore rendering only with owner-approved R2.
 name: GIB one-time live morning source + EPUB QA (no publication)
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/live_morning_smoke_qa.yml'
-      - 'tests/test_editorial_rebuild.py'
-      - 'gib/collect.py'
-      - 'gib/newsroom_v16.py'
-      - 'config/sources.json'
-      - 'gib/research_dossier.py'
-      - 'gib/evidence_review.py'
-      - 'run_newsroom_v16.py'
-      - 'gib/editorial.py'
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   live-morning:
+    # R1 HARD HOLD: even a manual trigger may not render unaccepted EPUBs.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 35
     env:
