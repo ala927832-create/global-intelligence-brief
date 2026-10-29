@@ -4,6 +4,7 @@ Tests use the REAL 24-feed roster with synthetically constructed RSS entries.
 Synthetic entries are not proof that an article actually appeared in the feed.
 """
 import datetime as dt
+import hashlib
 import json
 import unittest
 from pathlib import Path
@@ -112,7 +113,7 @@ class OwnerSubscribedNewsSeparateFromAiResearchTests(unittest.TestCase):
             "Energy oil refinery supply","Technology semiconductor innovation",
             "United Nations ceasefire diplomatic agreement"
         ]
-        rows=[subscribed(i,f"{topics[i%5]}: independently titled event number {i} in region {i}") for i in range(24)]
+        rows=[subscribed(i,f"{topics[i%5]}: independently titled event {hashlib.sha256(str(i).encode()).hexdigest()}") for i in range(24)]
         source=source_input_gate(rows,CUTOFF,observed_at=CUTOFF+dt.timedelta(minutes=5))
         self.assertEqual(source["gate"],"PASS_SOURCE_CANDIDATES_ONLY_NOT_FACT_VERIFIED",source)
         self.assertEqual(source["source_attributed_subscribed_news_events"],24)
