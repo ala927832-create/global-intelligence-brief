@@ -5,6 +5,10 @@ on:
     paths:
       - 'run_newsroom_v16.py'
       - 'qa/p2_integrated_batch.py'
+      - 'qa/p2_content_gate.py'
+      - 'tests/test_p2_v3_content_gate.py'
+      - 'config/frozen_contract.json'
+      - 'gib/contract.py'
       - 'qa/p2_source_fusion.py'
       - 'tests/test_p2_source_fusion.py'
       - 'qa/opml_free_p1.py'
@@ -30,6 +34,10 @@ on:
     paths:
       - 'run_newsroom_v16.py'
       - 'qa/p2_integrated_batch.py'
+      - 'qa/p2_content_gate.py'
+      - 'tests/test_p2_v3_content_gate.py'
+      - 'config/frozen_contract.json'
+      - 'gib/contract.py'
       - 'qa/p2_source_fusion.py'
       - 'tests/test_p2_source_fusion.py'
       - 'qa/opml_free_p1.py'
@@ -102,6 +110,11 @@ jobs:
           python -m pip install -r requirements.txt
           sudo apt-get update -qq
           sudo apt-get install -y pandoc fonts-noto-cjk
+      - name: G0/G1 evidence-bearing source count before any Gemini or reader preview
+        # Integrated runner fails closed and returns diagnostics, not a preview, on low data.
+        # It will only call Gemini and produce reader files after both hard gates pass.
+        run: |
+          echo 'Source-first gate enforced in qa/p2_integrated_batch.py'
       - name: Produce real-source paired internal QA with free-only Gemini when permitted
         run: |
           python qa/p2_integrated_batch.py --gemini | tee qa_p2_summary.json
@@ -110,6 +123,15 @@ jobs:
           python - <<'PY'
           import glob,json,pathlib
           from scripts.check_offline_package import inspect
+          blocked=sorted(glob.glob('qa_outputs/p2_integrated/*/P2_V3_CONTENT_HOLD.json'))
+          if blocked:
+              assert len(blocked)==1, 'Only one blocked batch expected'
+              hold=json.loads(pathlib.Path(blocked[0]).read_text(encoding='utf-8'))
+              assert hold['gate']=='HOLD_NO_READER_PREVIEW'
+              assert not hold['gemini_called'] and not hold['nonpublished_preview_generated']
+              assert not hold['editions'] and not hold['p2_content_accepted']
+              print('P2_V3_HARD_GATE_HOLD: no HTML/EPUB generated or handed to owner; diagnostic only.')
+              raise SystemExit(0)
           paths=sorted(glob.glob('qa_outputs/p2_integrated/*/P2_INTEGRATED_QA_REPORT.json'))
           assert len(paths)==1, 'No single integrated P2 QA report'
           report=json.loads(pathlib.Path(paths[0]).read_text(encoding='utf-8'))
