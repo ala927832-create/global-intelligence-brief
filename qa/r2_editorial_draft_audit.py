@@ -61,9 +61,27 @@ def inspect(ledger, analyses, studies):
             if repeated>0.18:
                 findings.append("REPEATED_TEXT_INSTEAD_OF_DISTINCT_ANALYSIS")
             if dossier:
-                domains={urlsplit(s["url"]).hostname for s in dossier["sources"]
-                         if urlsplit(s["url"]).scheme=="https"}
-                independent_origin={s["issuer"] for s in dossier["sources"]}
+                domains={urlsplit(src["url"]).hostname for src in dossier["sources"]
+                         if urlsplit(src["url"]).scheme=="https"}
+                independent_origin={src["issuer"] for src in dossier["sources"]}
+                issue_date=dt.date.fromisoformat(ledger["issue_date"])
+                source_ids=[src["id"] for src in dossier["sources"]]
+                if len(source_ids)!=len(set(source_ids)):
+                    findings.append("DUPLICATE_ORIGINAL_SOURCE_ID")
+                for src in dossier["sources"]:
+                    url=src["url"]
+                    parsed=urlsplit(url)
+                    if parsed.scheme!="https" or parsed.username or parsed.password:
+                        findings.append("UNSAFE_OR_NON_HTTPS_ORIGINAL_SOURCE")
+                    if "bls.gov/news.release/cpi.nr0.htm" in url.lower():
+                        findings.append("MUTABLE_LATEST_RELEASE_LINK_NOT_PINNED")
+                    when=src.get("publication_date")
+                    if when:
+                        try:
+                            if dt.date.fromisoformat(when)>issue_date:
+                                findings.append("SOURCE_PUBLISHED_AFTER_ISSUE_CUTOFF_DAY")
+                        except ValueError:
+                            findings.append("INVALID_SOURCE_PUBLICATION_DATE")
                 if len(domains)<2 or len(independent_origin)<2:
                     findings.append("LESS_THAN_TWO_DISTINCT_SOURCE_ORIGINS")
                 for cl in dossier["claims"]:
