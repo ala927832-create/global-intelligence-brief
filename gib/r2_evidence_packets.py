@@ -117,6 +117,9 @@ def _attach_curated_original_research(packets, now, fetcher, budget):
                 "retrieved_at_utc": None,
                 "matched_primary_text_phrases": [],
                 "unmatched_primary_text_phrases": [],
+                "original_document_date_located": False,
+                "contrasting_position_located": False,
+                "observation_located_not_causality_proven": False,
                 "human_reviewed": False, "claim_fact_checked": False
             }
             packet["curated_original_research"].append(row)
@@ -144,12 +147,32 @@ def _attach_curated_original_research(packets, now, fetcher, budget):
                 if not original or len(page["sha256"]) < 32:
                     raise ValueError("R2_EMPTY_OR_UNHASHED_DOCUMENT")
                 lower = original.casefold()
+                d = source_date
+                possible_dates = [
+                    d.isoformat(),
+                    f"{d.strftime('%B')} {d.day}, {d.year}",
+                    f"{d.day} {d.strftime('%B')} {d.year}",
+                    f"{d.strftime('%b')} {d.day}, {d.year}"
+                ]
+                row["original_document_date_located"] = any(
+                    date.casefold() in lower for date in possible_dates)
                 for phrase in spec["required_phrases"]:
                     fragment = normalize_text(phrase)
                     if len(fragment) >= 12 and fragment.casefold() in lower:
                         row["matched_primary_text_phrases"].append(fragment)
                     else:
                         row["unmatched_primary_text_phrases"].append(fragment)
+                # The presence of an alternate stance or observation in
+                # a *single original issuer* is not an independently confirmed
+                # opposing explanation or causal mechanism.
+                opposite = normalize_text(
+                    manifest.get("contrasting_original_source_phrase"))
+                measured = normalize_text(
+                    manifest.get("original_observation_phrase"))
+                row["contrasting_position_located"] = bool(
+                    opposite and opposite.casefold() in lower)
+                row["observation_located_not_causality_proven"] = bool(
+                    measured and measured.casefold() in lower)
                 row["source_document_sha256"] = page["sha256"]
                 row["retrieved_at_utc"] = page["retrieved_at"]
                 row["retrieval_status"] = (
@@ -364,14 +387,55 @@ def build_packets(rows, now, weights=None, fetcher=None, max_documents=6, curate
             row["retrieval_status"] == "ORIGINAL_DOCUMENT_EXCERPT_MATCH_NOT_FACT_VERIFIED"
             for row in d.get("curated_original_research", []))
         for d in packets)
+    # Evidence gaps are updated only when a real original document and
+    # appropriate source-specific text were actually located in the batch.
+    for packet in packets:
+        located = [d for d in packet.get("curated_original_research", [])
+                   if d["retrieval_status"] ==
+                   "ORIGINAL_DOCUMENT_EXCERPT_MATCH_NOT_FACT_VERIFIED"]
+        if located:
+            packet["blockers"] = [b for b in packet["blockers"]
+                                  if b != "MATCHED_PRIMARY_DOCUMENT_EXCERPT_NOT_LOCATED"]
+            packet["primary_document_links_grounded"] = len(located)
+            packet["primary_document_dates_located"] = sum(
+                d["original_document_date_located"] for d in located)
+            if not any(d["original_document_date_located"] for d in located):
+                packet["blockers"].append("PRIMARY_DOCUMENT_PUBLICATION_DATE_NOT_LOCATED")
+            if packet.get("source_domains"):
+                packet["blockers"] = [b for b in packet["blockers"]
+                    if b != "SECOND_PUBLISHER_SOURCE_NOT_LOCATED"]
+                packet["blockers"].append(
+                    "SECOND_PUBLISHER_INDEPENDENT_CLAIM_COMPARISON_PENDING")
+        contrasting = [d for d in located if d["contrasting_position_located"]]
+        observations = [d for d in located
+                        if d["observation_located_not_causality_proven"]]
+        packet["contrasting_position_source_documents"] = [
+            {"url":d["url"],"source_document_sha256":d["source_document_sha256"],
+             "status":"SOURCE_POSITION_LOCATED_NOT_INDEPENDENTLY_VERIFIED"}
+            for d in contrasting]
+        packet["observational_data_source_documents"] = [
+            {"url":d["url"],"source_document_sha256":d["source_document_sha256"],
+             "status":"SOURCE_OBSERVATION_NOT_CAUSAL_PROOF"}
+            for d in observations]
+        if contrasting:
+            packet["blockers"] = [b for b in packet["blockers"]
+                if b != "COUNTEREVIDENCE_WITH_SOURCE_LOCATION_NOT_VERIFIED"]
+            packet["blockers"].append(
+                "COUNTERPOSITION_LOCATED_BUT_INDEPENDENT_VALIDATION_PENDING")
+    output["focus_with_located_contrasting_positions"] = sum(
+        bool(d["contrasting_position_source_documents"]) for d in packets)
+    output["focus_with_located_observations_not_causal_proofs"] = sum(
+        bool(d["observational_data_source_documents"]) for d in packets)
     output["analysis_packets"] = packets
     # Deep subjects must be tied to current sourced headlines. Shortlisting
     # them is NEVER equivalent to finished research or original evidence.
+    manifest = _load_issue_manifest()
     deep = sorted(packets, key=lambda d: (
+        -manifest.get(d["event_id"],{}).get("deep_research_candidate_priority",0)
+         if d.get("primary_document_links_grounded",0) else 0,
         -sum(item["retrieval_status"] ==
              "ORIGINAL_DOCUMENT_EXCERPT_MATCH_NOT_FACT_VERIFIED"
              for item in d.get("curated_original_research", [])),
-        -len(d["primary_official_context_not_fact_verified"]),
         -len(d["source_domains"]), d["event_id"]))
     output["current_deep_research_shortlist"] = [{
         "event_id": d["event_id"],
@@ -384,6 +448,7 @@ def build_packets(rows, now, weights=None, fetcher=None, max_documents=6, curate
             row["retrieval_status"] ==
             "ORIGINAL_DOCUMENT_EXCERPT_MATCH_NOT_FACT_VERIFIED"
             for row in d.get("curated_original_research", [])),
+        "selection_rationale":manifest.get(d["event_id"],{}).get("priority_rationale"),
         "research_documented": False,
         "historical_comparator_verified": False,
         "counterevidence_verified": False,
