@@ -27,7 +27,11 @@
       "priority_rationale": "Formal Fed decision, dissent, path of policy and market expectations",
       "contrasting_original_source_phrase": "Voting against the monetary policy action were Lisa D. Cook and Beth M. Hammack",
       "original_observation_phrase": "Inflation remains elevated",
-      "independent_counterargument_not_yet_verified": true
+      "independent_counterargument_not_yet_verified": true,
+      "independent_original_news_index_titles": [
+        "Fed leaves interest rates unchanged despite inflation in the US"
+      ],
+      "independent_comparison_needed": "Match Al Jazeera report of 3.75–4 percent against Fed's official 3¾–4 percent target range; validate units, effective date and no newswire duplication before any independent fact corroboration"
     },
     {
       "event_id": "269bcc066124cf2b",
@@ -52,7 +56,9 @@
       "priority_rationale": "Divergence between improving Germany economic expectations and depressed household spending intentions",
       "contrasting_original_source_phrase": "economic expectations are rising for the sixth consecutive month",
       "original_observation_phrase": "declines slightly by 0.2 points to -30.8 points",
-      "independent_counterargument_not_yet_verified": true
+      "independent_counterargument_not_yet_verified": true,
+      "independent_original_news_index_titles": [],
+      "independent_comparison_needed": "Search additional independent primary sources / reporters published in the same cutoff window; a separate publisher URL alone is not proof of an independently sourced claim"
     },
     {
       "event_id": "5dc602fc74652df4",
@@ -87,7 +93,9 @@
       "priority_rationale": "Canada rate increase with explicitly debated hold-vs-hike alternatives and numeric monetary outlook",
       "contrasting_original_source_phrase": "The main argument for holding was that the rise in inflation",
       "original_observation_phrase": "increased its target for the overnight rate by 25 basis points to 2.5%",
-      "independent_counterargument_not_yet_verified": true
+      "independent_counterargument_not_yet_verified": true,
+      "independent_original_news_index_titles": [],
+      "independent_comparison_needed": "Search additional independent primary sources / reporters published in the same cutoff window; a separate publisher URL alone is not proof of an independently sourced claim"
     },
     {
       "event_id": "4ada865e9de2e48a",
@@ -113,7 +121,9 @@
       "priority_rationale": "Apparent discrepancy between government and operator gas-volume estimates, classification and production potential",
       "contrasting_original_source_phrase": "approximately 200 bcf gross",
       "original_observation_phrase": "120 bcf on an M&P working interest basis",
-      "independent_counterargument_not_yet_verified": true
+      "independent_counterargument_not_yet_verified": true,
+      "independent_original_news_index_titles": [],
+      "independent_comparison_needed": "Search additional independent primary sources / reporters published in the same cutoff window; a separate publisher URL alone is not proof of an independently sourced claim"
     }
   ],
   "controls": {
