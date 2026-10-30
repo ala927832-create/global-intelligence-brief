@@ -14,8 +14,15 @@ CASES={
  "As Missile Stockpiles Dwindle":("ONE_US_JAPAN_FACILITY_EVENT","https://apnews.com/article/3351555ce9c46b41a3e31d91b81894eb","CORROBORATED"),
  "Ukraine Pauses Strikes":("DISTINCT_ATTRIBUTED_UKRAINE_REPORT","https://www.wsj.com/world/ukraine-pauses-strikes-on-russian-refineries-after-pressure-from-u-s-a9e512f8","UNDERLYING_ORDER_NOT_INDEPENDENTLY_VERIFIED"),
 }
+# Official / independent confirmations verified on 2026-10-30, not RSS-only.
+EXTRA={
+ "Fed更有空間升息":("US_WEEKLY_JOBLESS_CLAIMS","https://apnews.com/article/929f6739871efc054ae72afca2b68c3a","CORROBORATED"),
+ "Canada's new national security strategy":("CANADA_NEW_NATIONAL_SECURITY_STRATEGY","https://www.pm.gc.ca/en/news/news-releases/2026/10/29/prime-minister-carney-launches-plan-stronger-canada-strengthen","OFFICIAL_SOURCE"),
+ "聯合國大會通過決議":("UN_CUBA_EMBARGO_RESOLUTION","https://www.eeas.europa.eu/delegations/un-new-york/eu-explanation-vote-un-general-assembly-draft-resolution-a81l5-embargo-imposed-united-states-america_en","OFFICIAL_SOURCE"),
+ "US sanctions Rwanda":("RWANDA_SANCTIONS_PUBLISHER_REPORT","https://www.forth.news/lists/ustreas/CgUoPzPV6eyQAkvsSxoY7","OFFICIAL_RELEASE_REPRODUCED")
+}
 def evidence_for(title):
- for k,v in CASES.items():
+ for k,v in {**CASES,**EXTRA}.items():
   if k.casefold() in title.casefold():
    return {"decision":v[0],"evidence_url":v[1],"evidence_limit":v[2]}
  return None
@@ -28,7 +35,9 @@ def independent_24_review(selected):
   rows.append({"position":a["position"],"title":a["title"],
    "source_urls":a["urls"],"tier":a["tier"],"topic":a["topic"],
    "evidence":ev,"scope":scope,
+   "source_attribution_available":bool(a["urls"]),
+   "remaining_evidence_task":None if ev else "FETCH_PUBLISHER_FULL_TEXT_OR_PRIMARY_DOCUMENT_AND_VERIFY_MATERIAL_FACT",
    "independently_validated":bool(ev and ev["evidence_limit"] in
-       ("CORROBORATED","DISTINCT_CLAIM","OFFICIAL_SUCCESSION_SUPPORT","CORE_EVENT_CORROBORATED_ONLY")),
+       ("CORROBORATED","DISTINCT_CLAIM","OFFICIAL_SUCCESSION_SUPPORT","CORE_EVENT_CORROBORATED_ONLY","OFFICIAL_SOURCE","OFFICIAL_RELEASE_REPRODUCED")),
    "editorial_note":"Requires full article claim/novelty comparison" if not ev else ev["decision"]})
  return rows
