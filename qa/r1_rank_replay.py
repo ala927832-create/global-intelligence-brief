@@ -6,6 +6,7 @@ from qa.p2_content_gate import eligible_source_rows, selected_story_gate
 from gib.newsroom_v16 import canonical_issue
 from gib.editorial import cluster, rank, editorial_event_family, canon_url
 from qa.r1_e1_e2_audit import audit as e1_e2_audit
+from gib.subscription_news_policy import is_subscribed_news
 from urllib.parse import urlsplit
 import re
 
@@ -157,6 +158,17 @@ def run():
         item={"snapshot_index":i,"original_sha256":hashlib.sha256(raw).hexdigest(),
               "source_rows":len(d["rows"]),"candidate_rows":len(eligible),
               "gate":gate,"selected":selected,"curated_changes":changes,"curated_validation":corrected_gate,"candidate_decisions":decision_rows,"high_rank_comparisons":compare,"high_rank_unselected":[x for x in decision_rows if not x["selected_position"] and x["rank_score"] >= min(a["rank_score"] for a in selected)]}
+        eligible_subscribed_urls={canon_url(c["url"]) for c in eligible if is_subscribed_news(c)}
+        item["approved_source_urls"]=list(eligible_subscribed_urls)
+        item["source_news_eligible"]=all(
+            canon_url(u) in eligible_subscribed_urls for a in selected for u in a["urls"])
+        item["today_special_watch"]={
+            "story_position":1,
+            "title_original":selected[0]["title"],
+            "source_urls":selected[0]["urls"],
+            "reason":"Highest ranked reportable publisher story; relevance is editorial selection, not independently certified truth",
+            "interpretation_separate":True,
+            "fact_verification_status":"PUBLISHER_ATTRIBUTED"}
         item["editorial_gates"]=e1_e2_audit(item)
         assert len(item["editorial_gates"]["R1_24_INDEPENDENT"]["slots"])==24
         assert item["editorial_gates"]["R1_E1"]["material_omissions"]+item["editorial_gates"]["R1_E1"]["ordinary_omissions"]==len(item["high_rank_comparisons"])
