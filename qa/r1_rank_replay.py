@@ -7,6 +7,7 @@ from gib.newsroom_v16 import canonical_issue
 from gib.editorial import cluster, rank, editorial_event_family, canon_url
 from qa.r1_e1_e2_audit import audit as e1_e2_audit
 from qa.r1_editorial_quality import review as editorial_quality_review
+from qa.r1_reading_preview import render as render_reading_preview
 from gib.subscription_news_policy import is_subscribed_news
 from urllib.parse import urlsplit
 import re
@@ -172,6 +173,8 @@ def run():
             "fact_verification_status":"PUBLISHER_ATTRIBUTED"}
         item["editorial_gates"]=e1_e2_audit(item)
         item["four_quality_gates"]=editorial_quality_review(item)
+        item["reading_preview"]=render_reading_preview(item,eligible,output/f"reading_{i:02d}.html")
+        assert item["reading_preview"]["article_count"]==24
         assert len(item["editorial_gates"]["R1_24_INDEPENDENT"]["slots"])==24
         assert item["editorial_gates"]["R1_REVISED_POLICY"]["pass"], "APPROVED_SOURCE_OR_SPECIAL_WATCH_GATE_FAILED"
         assert item["editorial_gates"]["R1_E1"]["material_omissions"]+item["editorial_gates"]["R1_E1"]["ordinary_omissions"]==len(item["high_rank_comparisons"])
