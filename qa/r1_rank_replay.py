@@ -113,7 +113,14 @@ def run():
         for c in flagged:
             related=[a for a in selected if any(canon_url(u)==canon_url(v)
                       for u in c["related_selected_urls"] for v in a["urls"])]
-            opponent=(related or lowest)[0]
+            # Compare on the same editorial topic first, not an unrelated
+            # low-score Cuba sanctions article for financial-news omissions.
+            same_topic=[a for a in selected if a.get("topic")==next(
+                (d.get("topic") for d in selected if d["title"]==c["title"]),None)]
+            market_related=[a for a in selected if
+                any(x in a["title"].casefold() for x in
+                    ("fed","聯準會","利率","美股","黃金","通膨","市場","股債","科技"))]
+            opponent=(related or market_related or lowest)[-1]
             compare.append({
                "omitted_title":c["title"],"omitted_url":c["source_url"],
                "omitted_score":c["rank_score"],"editorial_type":c["editorial_type"],
