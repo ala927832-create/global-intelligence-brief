@@ -20,10 +20,16 @@ def render(issue, eligible, output):
     'a{color:#234f83;overflow-wrap:anywhere}h3{font-size:1.17rem;line-height:1.5}',
     '</style></head><body><h1>Global Intelligence Brief｜編輯 QA 閱讀預覽</h1>',
     '<p>本頁是原始訂閱來源的標題與節錄，不是 AI 已核對的獨立事實，也不是正式刊物。</p>']
-    first=items[0]
+    relevance={"geopolitics":4,"central_banks":4,"energy":4,"macro":3,"technology":3,"asia":2,"corporates":2,"unexpected":1}
+    first=max(items,key=lambda a:(relevance.get(a.get("topic"),1),a.get("rank_score",0),-a["position"]))
+    watch_domain={"geopolitics":"地緣政治、能源安全與國際貿易","central_banks":"貨幣政策、利率與匯率","energy":"能源供應、運輸與生產成本","macro":"總體經濟、利率與市場預期","technology":"科技產業、資本支出與供應鏈"}.get(first.get("topic"),"國際政策與產業")
+    watch_why="具有跨領域影響的政策或供應變動，應優先追蹤；這是編輯關注理由，不代表推測的後果已發生。"
+    watch_next="觀察原報導後續更新、相關機構公告與市場反應；保留未確定事項的條件語氣。"
     lines+=['<section class="watch"><div class="label">當日特別注意｜編輯候選</div>',
       '<h3>'+escape(first["title"])+'</h3>',
-      '<p>目前依既有選題排序提出，影響程度尚須編輯審查。</p></section>']
+      '<p><strong>選題理由：</strong>'+escape(watch_why)+'</p>',
+      '<p><strong>可能影響領域：</strong>'+escape(watch_domain)+'</p>',
+      '<p><strong>後續觀察：</strong>'+escape(watch_next)+'</p></section>']
     with_excerpt=0
     for i,a in enumerate(items):
         if i==0 or i==12:
@@ -48,4 +54,4 @@ def render(issue, eligible, output):
     return {"html_path":str(output),"article_count":len(items),
       "publisher_excerpt_count":with_excerpt,"headline_only_count":len(items)-with_excerpt,
       "ai_paraphrase_generated":False,"counter_views_isolated":True,
-      "special_watch_present":True}
+      "special_watch_present":True,"watch_position":first["position"],"watch_why":watch_why,"watch_domain":watch_domain,"watch_next":watch_next}
