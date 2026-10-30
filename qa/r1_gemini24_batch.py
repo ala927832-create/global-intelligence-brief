@@ -10,13 +10,28 @@ from gib.gemini_editor_v16 import _call, unsupported_numeric_evidence
 from gib.editorial import canon_url
 
 def model_call(prompt,model):
+    is_review="你是獨立新聞校對編輯" in prompt
+    if is_review:
+       item={"type":"OBJECT","properties":{"index":{"type":"INTEGER"},
+         "fidelity_score":{"type":"INTEGER"},"pass":{"type":"BOOLEAN"},
+         "issues":{"type":"ARRAY","items":{"type":"STRING"}}},
+         "required":["index","fidelity_score","pass","issues"]}
+       key="reviews"
+    else:
+       item={"type":"OBJECT","properties":{"index":{"type":"INTEGER"},
+         "brief":{"type":"STRING"},"basis":{"type":"STRING"}},
+         "required":["index","brief","basis"]}
+       key="briefs"
+    schema={"type":"OBJECT","properties":{key:{"type":"ARRAY","items":item}},
+            "required":[key]}
     r=requests.post(
       "https://generativelanguage.googleapis.com/v1beta/models/"+model+":generateContent",
       headers={"x-goog-api-key":os.environ["GEMINI_API_KEY"],
                "Content-Type":"application/json"},
       json={"contents":[{"parts":[{"text":prompt}]}],
             "generationConfig":{"responseMimeType":"application/json",
-                                "temperature":0.05,"maxOutputTokens":16384}},
+                                "temperature":0.05,"maxOutputTokens":16384,
+                                "responseSchema":schema}},
       timeout=(10,90))
     r.raise_for_status()
     data=r.json()
@@ -30,7 +45,7 @@ def model_call(prompt,model):
     try:
        return json.loads(response_text)
     except json.JSONDecodeError:
-       raise ValueError("INVALID_JSON_FINISH_"+str(candidate.get("finishReason","UNKNOWN")))
+       raise ValueError("INVALID_JSON_FINISH_"+str(candidate.get("finishReason","UNKNOWN"))+"_LEN_"+str(len(response_text)))
 
 REPO="ala927832-create/global-intelligence-brief"
 SOURCE_ARTIFACT=12944730644
