@@ -174,6 +174,11 @@ def rank(items,weights):
         analysis_roundup = bool(re.search(
             r'^(?:what|why|how)\\b|what it means|what .* reveal|as it happened|live:|live\\b|(?:傳聲筒|解讀|怎麼看)',t,re.I))
         direct_event_boost=min(direct_event,2)*5-(3 if analysis_roundup else 0)
+        breaking=bool(re.search(
+            r'\\b(?:pauses? strikes|airports? hit|oil facilities attacked|drone attack|killed in attack|missile strikes?|military escalation|cuts? oil supply|refineries? attacked|diplomatic talks resume)\\b|暫停空襲|攻擊機場|煉油設施遇襲|無人機攻擊|恢復談判',t,re.I))
+        commentary_title=bool(re.search(
+            r'^\\s*(?:opinion|commentary|op-ed|analysis|explained)\\s*[:|]|(?:what .* reveals?|why .* matters|the case for|lessons from|how .* might|評論|社論|觀點|〈分析〉)',t,re.I))
+        placement_adjustment=(8 if breaking else 0) - (6 if commentary_title else 0)
         # Owner's Inoreader original publisher roster is the default
         # newspaper reporting desk. Subscription is an editorial preference,
         # not independent proof that a publisher claim is true.
@@ -193,7 +198,7 @@ def rank(items,weights):
             +min(global_signals,3)*2.5
             +(3 if subscribed else 0)
             -narrow_signals*5
-            -speculative*3+impact_adjustment+direct_event_boost,2)
+            -speculative*3+impact_adjustment+direct_event_boost+placement_adjustment,2)
     return sorted(items,key=lambda a:(-a['score'],a.get('published_at') or ''))
 
 def sig(title):
