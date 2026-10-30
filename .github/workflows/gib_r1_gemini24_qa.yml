@@ -1,0 +1,37 @@
+name: GIB R1 Gemini 24 briefs integrated QA (no publishing)
+on:
+  push:
+    branches: [qa/quality-gates-20261030]
+    paths:
+      - qa/r1_gemini24_batch.py
+      - .github/workflows/gib_r1_gemini24_qa.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  gemini-24:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install 'requests>=2.32,<3'
+      - name: Check Python syntax
+        run: python -m py_compile qa/r1_gemini24_batch.py
+      - name: Summarize original publisher RSS with Gemini and audit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: gemini-3.5-flash-lite
+          PYTHONPATH: ${{ github.workspace }}
+        run: python -m qa.r1_gemini24_batch
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r1-gemini24-reader-and-review
+          path: qa_out/r1_gemini_24/
+          retention-days: 14
+          if-no-files-found: warn
