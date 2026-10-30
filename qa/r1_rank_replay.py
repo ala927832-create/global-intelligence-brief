@@ -93,7 +93,8 @@ def run():
     # Algorithmic gate != expert score; no auto-pass.\n    unresolved=sum(len(a["high_rank_comparisons"]) for a in audits)
     report={"schema":"R1_SIX_SNAPSHOT_RANKING_REPLAY_V1","snapshots":audits,
       "expert_score":None,"editorial_signoff":False,"r1_approved":False,"decision_audit":"AUTOMATED_CANDIDATE_CLASSIFICATION_REQUIRES_INDEPENDENT_EDITORIAL_REVIEW",
-      "publication":"OFF","unresolved_case_comparisons":unresolved,\n      "quality_90_verdict":"HOLD_UNVERIFIED_DISTINCT_FACTS"}
+      "publication":"OFF","unresolved_case_comparisons":unresolved,
+      "quality_90_verdict":"HOLD_UNVERIFIED_DISTINCT_FACTS"}
     (output/"full_replay.json").write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n")
     if len(audits)!=6 or any(x["gate"].get("blockers") for x in audits):
         raise SystemExit("R1_REPLAY_STRUCTURAL_FAIL")
