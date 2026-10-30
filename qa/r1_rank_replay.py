@@ -60,16 +60,40 @@ def run():
                "rank_score":cand.get("score"),"selected_position":matched,
                "decision_reason":reason,"related_selected_urls":selected_families.get(fam,[]) if fam else [],
                "manual_distinct_fact_verified":False})
+        # Adversarial comparator: every high-ranked omission receives an explicit
+        # comparison with an actual selected story, never a fabricated editorial verdict.
+        threshold=min(a["rank_score"] for a in selected)
+        flagged=[c for c in decision_rows if c["selected_position"] is None
+                 and c["rank_score"]>=threshold]
+        lowest=sorted(selected,key=lambda a:(a["rank_score"],-a["position"]))
+        compare=[]
+        for c in flagged:
+            related=[a for a in selected if any(canon_url(u)==canon_url(v)
+                      for u in c["related_selected_urls"] for v in a["urls"])]
+            opponent=(related or lowest)[0]
+            compare.append({
+               "omitted_title":c["title"],"omitted_url":c["source_url"],
+               "omitted_score":c["rank_score"],"editorial_type":c["editorial_type"],
+               "candidate_family":c["event_family"],
+               "selected_comparator_rank":opponent["position"],
+               "selected_comparator_title":opponent["title"],
+               "selected_comparator_score":opponent["rank_score"],
+               "score_difference":round(c["rank_score"]-opponent["rank_score"],2),
+               "comparison_kind":"SAME_EVENT_FAMILY_POSSIBLE" if related else "LOWEST_SELECTED_SCORE",
+               "different_material_new_fact":"UNVERIFIED",
+               "editorial_disposition":"HOLD_FOR_INDEPENDENT_CASE_REVIEW",
+               "evidence_scope":"PUBLISHER_RSS_HEADLINES_ONLY"
+            })
         item={"snapshot_index":i,"original_sha256":hashlib.sha256(raw).hexdigest(),
               "source_rows":len(d["rows"]),"candidate_rows":len(eligible),
-              "gate":gate,"selected":selected,"candidate_decisions":decision_rows,"high_rank_unselected":[x for x in decision_rows if not x["selected_position"] and x["rank_score"] >= min(a["rank_score"] for a in selected)]}
+              "gate":gate,"selected":selected,"candidate_decisions":decision_rows,"high_rank_comparisons":compare,"high_rank_unselected":[x for x in decision_rows if not x["selected_position"] and x["rank_score"] >= min(a["rank_score"] for a in selected)]}
         audits.append(item)
         (output/f"review_{i:02d}.json").write_text(json.dumps(item,ensure_ascii=False,indent=2)+"\n")
         print("R1_REPLAY",i,gate["gate"],"selected",len(selected),flush=True)
-    # Algorithmic gate != expert score; no auto-pass.
+    # Algorithmic gate != expert score; no auto-pass.\n    unresolved=sum(len(a["high_rank_comparisons"]) for a in audits)
     report={"schema":"R1_SIX_SNAPSHOT_RANKING_REPLAY_V1","snapshots":audits,
       "expert_score":None,"editorial_signoff":False,"r1_approved":False,"decision_audit":"AUTOMATED_CANDIDATE_CLASSIFICATION_REQUIRES_INDEPENDENT_EDITORIAL_REVIEW",
-      "publication":"OFF"}
+      "publication":"OFF","unresolved_case_comparisons":unresolved,\n      "quality_90_verdict":"HOLD_UNVERIFIED_DISTINCT_FACTS"}
     (output/"full_replay.json").write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n")
     if len(audits)!=6 or any(x["gate"].get("blockers") for x in audits):
         raise SystemExit("R1_REPLAY_STRUCTURAL_FAIL")
