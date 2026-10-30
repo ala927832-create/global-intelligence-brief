@@ -1,7 +1,7 @@
 """R1 E1/E2 evidence-first editorial QA on existing issue replay. No network or new source capture."""
 from urllib.parse import urlsplit
 from gib.editorial import canon_url, editorial_event_family
-from qa.r1_editorial_evidence import evidence_for, independent_24_review
+from qa.r1_editorial_evidence import evidence_for, independent_24_review, source_attributed_review
 
 def audit(issue):
     selected=issue["selected"]
@@ -52,10 +52,25 @@ def audit(issue):
     independently_validated=sum(x["independently_validated"] for x in slot_review)
     # Mechanical score ceiling: an unverified slot cannot earn full editorial credit.
     score=min(100,round(60+40*independently_validated/max(1,len(slot_review)),2))
-    return {"R1_24_INDEPENDENT":{"slots":slot_review,"reviewed":reviewed,
+    # 2026-10-30 owner-approved R1: approved Inoreader news is reportable
+    # without independent verification. Never turn attributed claims into facts.
+    attributed=source_attributed_review(selected)
+    source_gate=issue.get("source_news_eligible",False) and len(attributed)==24
+    watch=issue.get("today_special_watch",{})
+    watch_gate=bool(watch.get("title_original") and watch.get("source_urls")
+                    and watch.get("interpretation_separate"))
+    # E1/E2 now audit placement/duplicate claims; they do NOT veto eligible
+    # subscribed original news due to competing analysis or missing full text.
+    e1_news_pass=source_gate and len(material_top)+len(ordinary_top)==len(top)
+    e2_news_pass=source_gate and all(len(a["urls"])>=1 for a in selected)
+    policy_gate=source_gate and watch_gate and e1_news_pass and e2_news_pass
+    return {"R1_SOURCE_ATTRIBUTED":{"pass":source_gate,"news_count":len(attributed),"slots":attributed},
+            "R1_DAILY_SPECIAL_WATCH":{"pass":watch_gate,"record":watch},
+            "R1_REVISED_POLICY":{"pass":policy_gate,"editorial_review_required":True,"independent_claim_proof_not_required_for_original_news":True,"separate_counteranalysis":True},
+            "R1_24_INDEPENDENT":{"slots":slot_review,"reviewed":reviewed,
            "independently_validated":independently_validated,"score_ceiling":score,
            "pass":score>=90 and e1_pass and e2_pass},
             "R1_E1":{"pass":e1_pass,"cases":e1_cases,"ordinary_omissions":len(ordinary_top),"material_omissions":len(material_top),"classification":"PROVISIONAL_TRIAGE"},
             "R1_E2":{"pass":e2_pass,"cases":e2_cases},
-            "expert_90_gate":"NOT_ELIGIBLE" if not(e1_pass and e2_pass and score>=90) else "READY_FOR_INDEPENDENT_REVIEW",
+            "expert_90_gate":"READY_FOR_CRITICAL_EDITORIAL_SCORING" if policy_gate else "NOT_ELIGIBLE",
             "editorial_signoff":False,"release":"OFF"}
