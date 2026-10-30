@@ -218,6 +218,21 @@ def diversified(items,top_n=12,max_per_section=4):
     return out
 
 
+def editorial_event_family(item):
+    """Conservative event-level family key for placement caps, not news rejection."""
+    title=str(item.get("title","")).casefold()
+    patterns=(
+        ("israel_election", r"israel.{0,35}elect|israeli.{0,35}elect|以色列.{0,12}選舉|以色列大選"),
+        ("japan_us_missiles", r"(?:japan|japanese).{0,65}missile|(?:missile).{0,65}(?:japan|japanese)"),
+        ("ecb_policy", r"(?:european central bank|europe.s central bank|ecb|歐洲央行).{0,90}(?:lagarde|rate|interest|利率|拉加德)"),
+        ("iran_hormuz_conflict", r"(?:iran.{0,65}(?:war|conflict|strike)|hormuz|美伊.{0,10}衝突|荷姆茲)"),
+    )
+    for name, pattern in patterns:
+        if re.search(pattern,title,re.I):
+            return name
+    return None
+
+
 def diversified_v3(items, top_n=24, max_per_section=8):
     """Evidence-neutral source-index coverage selection for V3 R1.
 
@@ -260,10 +275,23 @@ def diversified_v3(items, top_n=24, max_per_section=8):
         for item in items:
             if len(reserved)>=top_n:break
             add(item)
-    # Restore ranked order so low-scoring coverage representatives do not
-    # automatically become top headlines; editorial signoff remains separate.
-    by_url={canon_url(x.get("url","")):i for i,x in enumerate(items)}
-    return sorted(reserved,key=lambda a:by_url.get(canon_url(a.get("url","")),10**9))[:top_n]
+    # A real event may have multiple legitimate subscribed reports, but repeated
+    # headlines should not consume an unlimited share of the top 24.
+    # Keep at most two per tightly defined family, fill from existing real items.
+    ordered=sorted(reserved,key=lambda a:items.index(a))
+    final=[]
+    family_counts={}
+    for item in ordered + [x for x in items if x not in ordered]:
+        family=editorial_event_family(item)
+        if family and family_counts.get(family,0)>=2:
+            continue
+        key=canon_url(item.get("url",""))
+        if key and any(canon_url(x.get("url",""))==key for x in final):
+            continue
+        final.append(item)
+        if family: family_counts[family]=family_counts.get(family,0)+1
+        if len(final)>=top_n: break
+    return final
 
 def next_seen(old,items,now,limit=500):
     existing={x['key']:x for x in old if x.get('key')}
