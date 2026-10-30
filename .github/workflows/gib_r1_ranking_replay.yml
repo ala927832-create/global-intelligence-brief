@@ -5,6 +5,7 @@ on:
       - qa/quality-gates-20261030
     paths:
       - .github/workflows/gib_r1_ranking_replay.yml
+      - gib/editorial.py
 permissions:
   contents: read
   actions: read
