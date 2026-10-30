@@ -310,6 +310,28 @@ def diversified_v3(items, top_n=24, max_per_section=8):
         final.append(item)
         if family: family_counts[family]=family_counts.get(family,0)+1
         if len(final)>=top_n: break
+    # Repair materially lower-ranked reserved placements when an omitted candidate
+    # can replace them without losing the mandated 4 domains / 4 topic groups.
+    # Keep subscription eligibility and the real-event family cap unchanged.
+    from collections import Counter
+    for challenger in items:
+        if challenger in final:
+            continue
+        fam=editorial_event_family(challenger)
+        if fam and sum(editorial_event_family(x)==fam for x in final)>=2:
+            continue
+        for incumbent in sorted(final,key=lambda x:x.get('score',0)):
+            if challenger.get('score',0)<=incumbent.get('score',0):
+                break
+            trial=[x for x in final if x is not incumbent]+[challenger]
+            sections={x.get('section','unexpected') for x in trial}
+            domains={urlsplit(x.get('url','')).hostname for x in trial}
+            families=Counter(filter(None,(editorial_event_family(x) for x in trial)))
+            if (len(sections)>=4 and len(domains)>=4 and max(
+                Counter(x.get('section','unexpected') for x in trial).values())<=8
+                and all(v<=2 for v in families.values())):
+                final=trial
+                break
     return sorted(final,key=lambda a:(-a.get('score',0),a.get('published_at') or ''))
 
 def next_seen(old,items,now,limit=500):
