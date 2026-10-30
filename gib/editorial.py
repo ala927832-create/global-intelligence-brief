@@ -150,6 +150,16 @@ def rank(items,weights):
         speculative=sum(bool(x in t) for x in
             ('opinion:', 'op-ed', 'commentary:', 'rumor:', 'unconfirmed:',
              'price prediction'))
+        # Editorial placement (not news eligibility): cross-border consequences
+        # outrank entertainment, sports or incidental coverage. Keep all genuine
+        # subscribed stories reportable; never use this to reject sources.
+        high_impact = sum(bool(re.search(pattern, t, re.I)) for pattern in (
+            r'\\b(?:strait of hormuz|tanker|oil facilit|missile|airstrike|sanction|ceasefire|central bank|bank of japan|federal reserve|election results?|parliament|military|refiner|energy supply|inflation|tariffs?|war|conflict|data center|capital expenditure)\\b',
+            r'荷姆茲|油輪|日銀|聯準會|升息|降息|戰爭|選舉|制裁|通膨|軍事|資本支出|能源供應|衝突'))
+        incidental = bool(re.search(
+            r'\\b(?:star trek|actor|film adaptation|celebrity|athlete|football|soccer|game|reality tv|halloween|horoscope|catwalk|tv show|race results?)\\b', t, re.I))
+        # These are transparent soft rank adjustments, not fabricated facts.
+        impact_adjustment = min(high_impact, 2) * 4 - (7 if incidental else 0)
         # Owner's Inoreader original publisher roster is the default
         # newspaper reporting desk. Subscription is an editorial preference,
         # not independent proof that a publisher claim is true.
@@ -169,7 +179,7 @@ def rank(items,weights):
             +min(global_signals,3)*2.5
             +(3 if subscribed else 0)
             -narrow_signals*5
-            -speculative*3,2)
+            -speculative*3+impact_adjustment,2)
     return sorted(items,key=lambda a:(-a['score'],a.get('published_at') or ''))
 
 def sig(title):
