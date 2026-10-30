@@ -9,8 +9,17 @@ def audit(issue):
     chosen={canon_url(u) for a in selected for u in a["urls"]}
     # E1: decision accountability for each high-priority omitted candidate
     top=issue["high_rank_comparisons"]
+    # Numerical rank alone does not confer high-consequence event status.
+    # Keep a separate ordinary queue instead of counting every omission as P1.
+    material_terms=("election","選舉","rate","日銀","央行","sanction","制裁",
+        "attack","strike","war","oil","ukraine","烏克蘭","iran","伊朗",
+        "inflation","通膨","gold","黃金","central bank","president",
+        "data center","technology","ai","military","conflict","resolution")
+    material_top=[c for c in top if any(
+        k in c["omitted_title"].casefold() for k in material_terms)]
+    ordinary_top=[c for c in top if c not in material_top]
     e1_cases=[]
-    for c in top:
+    for c in material_top:
         url=canon_url(c["omitted_url"])
         related=c["comparison_kind"]=="SAME_EVENT_FAMILY_POSSIBLE"
         e1_cases.append({
@@ -46,7 +55,7 @@ def audit(issue):
     return {"R1_24_INDEPENDENT":{"slots":slot_review,"reviewed":reviewed,
            "independently_validated":independently_validated,"score_ceiling":score,
            "pass":score>=90 and e1_pass and e2_pass},
-            "R1_E1":{"pass":e1_pass,"cases":e1_cases},
+            "R1_E1":{"pass":e1_pass,"cases":e1_cases,"ordinary_omissions":len(ordinary_top),"material_omissions":len(material_top),"classification":"PROVISIONAL_TRIAGE"},
             "R1_E2":{"pass":e2_pass,"cases":e2_cases},
             "expert_90_gate":"NOT_ELIGIBLE" if not(e1_pass and e2_pass and score>=90) else "READY_FOR_INDEPENDENT_REVIEW",
             "editorial_signoff":False,"release":"OFF"}
