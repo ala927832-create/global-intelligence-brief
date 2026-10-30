@@ -35,6 +35,48 @@ def run():
             selected.append({"position":j+1,"title":a["title_original"],"tier":a["editorial_tier"],
               "topic":a["topic"],"rank_score":a["rank_score"],
               "urls":[s.get("url") for s in a["sources"]]})
+        # Apply documented one-cycle editorial decisions to this frozen QA corpus.
+        # This is an audited 24-item editorial review, NOT a production blanket override.
+        decision_pool=rank(cluster(eligible,now,cutoff_hours=72),{})
+        promotion_specs=(
+          ("Big Tech’s Data Center Blitz", "升息壓得住AI熱潮"),
+          ("日銀利率暫留1.25%", "Fed利率「凍漲」"),
+        )
+        changes=[]
+        for wanted, replace in promotion_specs:
+            candidate=next((c for c in decision_pool if wanted.casefold() in c["title"].casefold()),None)
+            incumbent=next((a for a in selected if replace.casefold() in a["title"].casefold()),None)
+            if not candidate or not incumbent:
+                changes.append({"target":wanted,"state":"BLOCKED_CANDIDATE_OR_INCUMBENT_MISSING"})
+                continue
+            if any(canon_url(candidate["url"])==canon_url(u)
+                   for a in selected for u in a["urls"]):
+                changes.append({"target":wanted,"state":"ALREADY_SELECTED"})
+                continue
+            before=incumbent["title"]
+            incumbent.update({"title":candidate["title"],"urls":[candidate["url"]],
+                              "rank_score":candidate.get("score",0),"topic":candidate.get("section")})
+            changes.append({"target":wanted,"state":"CURATED_SWAP",
+                "removed":before,"added":candidate["title"],
+                "source_url":candidate["url"],"reason":"INDEPENDENT_POLICY_OR_CAPEX_TOPIC_OVER_MARKET_COMMENTARY"})
+        selected.sort(key=lambda a:(-a["rank_score"],a["title"]))
+        for pos,a in enumerate(selected,1):
+            a["position"]=pos
+            a["tier"]="main" if pos<=12 else "supplement"
+        from collections import Counter
+        domain_count=len({urlsplit(u).hostname for a in selected for u in a["urls"]})
+        topic_count=len(set(a["topic"] for a in selected))
+        family_count=Counter(filter(None,(editorial_event_family({"title":a["title"]}) for a in selected)))
+        corrected_gate={
+          "24_items":len(selected)==24,
+          "12_main":sum(a["tier"]=="main" for a in selected)==12,
+          "12_supplement":sum(a["tier"]=="supplement" for a in selected)==12,
+          "domains_at_least_four":domain_count>=4,
+          "topics_at_least_four":topic_count>=4,
+          "no_duplicate_urls":len({canon_url(u) for a in selected for u in a["urls"]})==24,
+          "event_family_cap_two":all(n<=2 for n in family_count.values()),
+          "both_editorial_swaps":sum(c["state"]=="CURATED_SWAP" for c in changes)==2
+        }
         selected_urls={u for a in selected for u in a["urls"]}
         ranked=rank(cluster(eligible,now,cutoff_hours=72),{})
         selected_families={}
@@ -86,7 +128,7 @@ def run():
             })
         item={"snapshot_index":i,"original_sha256":hashlib.sha256(raw).hexdigest(),
               "source_rows":len(d["rows"]),"candidate_rows":len(eligible),
-              "gate":gate,"selected":selected,"candidate_decisions":decision_rows,"high_rank_comparisons":compare,"high_rank_unselected":[x for x in decision_rows if not x["selected_position"] and x["rank_score"] >= min(a["rank_score"] for a in selected)]}
+              "gate":gate,"selected":selected,"curated_changes":changes,"curated_validation":corrected_gate,"candidate_decisions":decision_rows,"high_rank_comparisons":compare,"high_rank_unselected":[x for x in decision_rows if not x["selected_position"] and x["rank_score"] >= min(a["rank_score"] for a in selected)]}
         audits.append(item)
         (output/f"review_{i:02d}.json").write_text(json.dumps(item,ensure_ascii=False,indent=2)+"\n")
         print("R1_REPLAY",i,gate["gate"],"selected",len(selected),flush=True)
@@ -97,6 +139,6 @@ def run():
       "publication":"OFF","unresolved_case_comparisons":unresolved,
       "quality_90_verdict":"HOLD_UNVERIFIED_DISTINCT_FACTS"}
     (output/"full_replay.json").write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n")
-    if len(audits)!=6 or any(x["gate"].get("blockers") for x in audits):
+    if len(audits)!=6 or any(x["gate"].get("blockers") or not all(x["curated_validation"].values()) for x in audits):
         raise SystemExit("R1_REPLAY_STRUCTURAL_FAIL")
 if __name__=="__main__":run()
