@@ -157,7 +157,7 @@ def rank(items,weights):
             r'\b(?:strait of hormuz|tanker|oil facilit|missile|airstrike|sanction|ceasefire|central bank|bank of japan|federal reserve|election results?|parliament|military|refiner|energy supply|inflation|tariffs?|war|conflict|data center|capital expenditure)\b',
             r'荷姆茲|油輪|日銀|聯準會|升息|降息|戰爭|選舉|制裁|通膨|軍事|資本支出|能源供應|衝突'))
         incidental = bool(re.search(
-            r'\b(?:star trek|actor|film adaptation|celebrity|athlete|football|soccer|game|reality tv|halloween|horoscope|catwalk|tv show|race results?)\b', t, re.I))
+            r'\b(?:star trek|seinfeld|sitcom|actor|film adaptation|celebrity|athlete|football|soccer|game|reality tv|halloween|horoscope|catwalk|tv show|race results?)\b', t, re.I))
         # These are transparent soft rank adjustments, not fabricated facts.
         impact_adjustment = min(high_impact, 2) * 4 - (7 if incidental else 0)
         # Source-attributed high-consequence event cues influence placement only.
@@ -305,7 +305,7 @@ def diversified_v3(items, top_n=24, max_per_section=8):
         final.append(item)
         if family: family_counts[family]=family_counts.get(family,0)+1
         if len(final)>=top_n: break
-    return final
+    return sorted(final,key=lambda a:(-a.get('score',0),a.get('published_at') or ''))
 
 def next_seen(old,items,now,limit=500):
     existing={x['key']:x for x in old if x.get('key')}
