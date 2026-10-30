@@ -109,6 +109,9 @@ def main():
   (ROOT/"reader.html").write_text("\\n".join(page))
  except Exception as e:
   report["gemini_status"]="ERROR_"+type(e).__name__
+  if isinstance(e,requests.HTTPError):
+   response=getattr(e,"response",None)
+   report["safe_http_status"]=getattr(response,"status_code",None)
   report["error_stage"]="GEMINI_OR_AUDIT"
  finally:
   (ROOT/"report.json").write_text(json.dumps(report,ensure_ascii=False,indent=2))
