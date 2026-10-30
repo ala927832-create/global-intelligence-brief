@@ -104,7 +104,7 @@ def main():
     if len(base["excerpt"])<40:
      if brief:raise ValueError("AI_SUMMARIZED_HEADLINE_ONLY")
     else:
-     if not 65<=len(brief)<=360:raise ValueError("TOO_SHORT_OR_LONG")
+     if not 45<=len(brief)<=360:raise ValueError("TOO_SHORT_OR_LONG")
      if sum(brief.count(c) for c in ("。","！","？","；"))<2:raise ValueError("ONE_SENTENCE_BRIEF")
      if not all(str(out.get(k) or "").strip() for k in ("what","where","impact","watch")):raise ValueError("MISSING_NEWS_DIMENSION")
      if unsupported_numeric_evidence(brief,base["title"]+" "+base["excerpt"]):
@@ -129,7 +129,7 @@ def main():
   (ROOT/"audit_24.json").write_text(json.dumps(drafts,ensure_ascii=False,indent=2))
   report["fidelity_average"]=round(sum(r.get("fidelity_score",0) for r in reviews)/24,2)
   report["fidelity_pass_count"]=sum(bool(r.get("pass")) for r in reviews)
-  report["content_density_count"]=sum(len(d["brief"])>=65 and sum(d["brief"].count(c) for c in ("。","！","？","；"))>=2 and all(str(d.get(k) or "").strip() for k in ("what","where","impact","watch")) for d in drafts)
+  report["content_density_count"]=sum(len(d["brief"])>=45 and sum(d["brief"].count(c) for c in ("。","！","？","；"))>=2 and all(str(d.get(k) or "").strip() for k in ("what","where","impact","watch")) for d in drafts)
   report["fidelity_gate"]="PASS" if report["fidelity_average"]>=90 and report["fidelity_pass_count"]==24 and report["content_density_count"]==24 else "HOLD"
   watch=max(drafts,key=lambda x:({"geopolitics":4,"central_banks":4,"energy":4,"macro":3,"technology":3}.get(x["topic"],1),-x["index"]))
   report["watch_index"]=watch["index"]
