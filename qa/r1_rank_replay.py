@@ -171,6 +171,7 @@ def run():
             "fact_verification_status":"PUBLISHER_ATTRIBUTED"}
         item["editorial_gates"]=e1_e2_audit(item)
         assert len(item["editorial_gates"]["R1_24_INDEPENDENT"]["slots"])==24
+        assert item["editorial_gates"]["R1_REVISED_POLICY"]["pass"], "APPROVED_SOURCE_OR_SPECIAL_WATCH_GATE_FAILED"
         assert item["editorial_gates"]["R1_E1"]["material_omissions"]+item["editorial_gates"]["R1_E1"]["ordinary_omissions"]==len(item["high_rank_comparisons"])
         assert all(slot["source_attribution_available"] for slot in item["editorial_gates"]["R1_24_INDEPENDENT"]["slots"])
         audits.append(item)
