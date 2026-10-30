@@ -142,9 +142,9 @@ def main():
    '<title>GIB Gemini 24 QA</title><style>'+style+'</style><h1>Global Intelligence Brief｜24則速讀 QA</h1>',
    '<p>新聞速讀依據訂閱來源標題與節錄生成；新聞來源主張不等於獨立事實認證。本頁僅為 QA 草稿，未發刊。</p>',
    '<section class="watch"><strong>當日特別注意｜編輯候選</strong><h3>'+html.escape(watch["title"])+'</h3>',
-   '<p>選題理由：該報導涉及可能跨市場的重大政策或供應風險，值得監測；此理由是獨立分析，不是原新聞主張。</p>',
-   '<p>可能影響：政策、供應鏈與市場預期（潛在機制，未視為已發生的後果）。</p>',
-   '<p>接下來觀察：事件後續、主管機關更新與市場變化。 </p></section>']
+   '<p>選題理由：選定新聞報導的具體事件為："+html.escape(str(watch.get("what") or watch["title"]))+"</p>',
+   '<p>影響領域與限制："+html.escape(str(watch.get("impact") or "原文未交代"))+"</p>',
+   '<p>後續觀察："+html.escape(str(watch.get("watch") or "原文未交代"))+"</p></section>']
   for d in drafts:
    if d["index"] in (1,13):page.append("<h2>"+("主要新聞｜12則" if d["index"]==1 else "補充新聞｜12則")+"</h2>")
    page.extend(["<article><small>"+str(d["index"])+" · "+html.escape(d["publisher"])+"</small>",
