@@ -158,6 +158,7 @@ def run():
               "source_rows":len(d["rows"]),"candidate_rows":len(eligible),
               "gate":gate,"selected":selected,"curated_changes":changes,"curated_validation":corrected_gate,"candidate_decisions":decision_rows,"high_rank_comparisons":compare,"high_rank_unselected":[x for x in decision_rows if not x["selected_position"] and x["rank_score"] >= min(a["rank_score"] for a in selected)]}
         item["editorial_gates"]=e1_e2_audit(item)
+        assert len(item["editorial_gates"]["R1_24_INDEPENDENT"]["slots"])==24
         audits.append(item)
         (output/f"review_{i:02d}.json").write_text(json.dumps(item,ensure_ascii=False,indent=2)+"\n")
         print("R1_REPLAY",i,gate["gate"],"selected",len(selected),flush=True)
