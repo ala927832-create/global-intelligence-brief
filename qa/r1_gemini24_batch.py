@@ -97,6 +97,10 @@ def main():
          "原始來源資訊："+json.dumps(group,ensure_ascii=False))
    raw=model_call(task,os.getenv("GEMINI_MODEL","gemini-2.5-flash-lite"))
    entries=raw.get("briefs",[])
+   if len(entries)==len(group) and any(unsupported_numeric_evidence(str(out.get("brief","")),base["title"]+" "+base["excerpt"]) for base,out in zip(group,entries)):
+    retry_instruction="原始版本含來源不支持的數字。請重新生成所有六則；不得新增原文未包含的任何數值或因果判斷。"
+    raw=model_call(task+retry_instruction,os.getenv("GEMINI_MODEL","gemini-3.5-flash-lite"))
+    entries=raw.get("briefs",[])
    if len(entries)!=len(group):raise ValueError("GEMINI_BATCH_COUNT_MISMATCH")
    for base,out in zip(group,entries):
     if out.get("index")!=base["index"]:raise ValueError("INDEX_MISMATCH")
