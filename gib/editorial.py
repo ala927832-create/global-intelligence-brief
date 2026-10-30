@@ -160,6 +160,20 @@ def rank(items,weights):
             r'\b(?:star trek|actor|film adaptation|celebrity|athlete|football|soccer|game|reality tv|halloween|horoscope|catwalk|tv show|race results?)\b', t, re.I))
         # These are transparent soft rank adjustments, not fabricated facts.
         impact_adjustment = min(high_impact, 2) * 4 - (7 if incidental else 0)
+        # Source-attributed high-consequence event cues influence placement only.
+        # Narrow opinion/round-up titles should not outrank concrete developments
+        # simply by containing a generic policy word.
+        direct_event = sum(bool(re.search(p,t,re.I)) for p in (
+            r'(?:tankers?|ships?).{0,45}(?:struck|hit|sunk|mines?)|(?:struck|hit).{0,45}(?:tankers?|ships?)',
+            r'(?:strait of hormuz|hormuz|荷姆茲).{0,75}(?:mines?|struck|blocked|shipping|油輪|水雷|封鎖)',
+            r'(?:iran|伊朗|美伊).{0,65}(?:attack|strike|conflict|war|military|衝突|戰爭|空襲)',
+            r'(?:sanctions?|制裁).{0,75}(?:government|ministry|國防|國家)',
+            r'(?:central bank|fed|ecb|央行|聯準會|歐洲央行).{0,75}(?:holds?|raises?|cuts?|利率|升息|降息)',
+            r'(?:election|選舉|大選).{0,65}(?:results?|wins?|vote|勝選|結果)',
+        ))
+        analysis_roundup = bool(re.search(
+            r'^(?:what|why|how)\\b|what it means|what .* reveal|as it happened|live:|live\\b|(?:傳聲筒|解讀|怎麼看)',t,re.I))
+        direct_event_boost=min(direct_event,2)*5-(3 if analysis_roundup else 0)
         # Owner's Inoreader original publisher roster is the default
         # newspaper reporting desk. Subscription is an editorial preference,
         # not independent proof that a publisher claim is true.
@@ -179,7 +193,7 @@ def rank(items,weights):
             +min(global_signals,3)*2.5
             +(3 if subscribed else 0)
             -narrow_signals*5
-            -speculative*3+impact_adjustment,2)
+            -speculative*3+impact_adjustment+direct_event_boost,2)
     return sorted(items,key=lambda a:(-a['score'],a.get('published_at') or ''))
 
 def sig(title):
