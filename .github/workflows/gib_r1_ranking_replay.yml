@@ -6,6 +6,7 @@ on:
     paths:
       - .github/workflows/gib_r1_ranking_replay.yml
       - gib/editorial.py
+      - qa/r1_rank_replay.py
 permissions:
   contents: read
   actions: read
