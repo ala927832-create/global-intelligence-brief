@@ -26,6 +26,24 @@ def evidence_for(title):
   if k.casefold() in title.casefold():
    return {"decision":v[0],"evidence_url":v[1],"evidence_limit":v[2]}
  return None
+def source_attributed_review(selected):
+ """User-approved news acceptance: original approved publisher RSS is reportable.
+ A URL on its own is not enough; match to the original approved feed in the
+ canonical issue rather than pretending independent fact verification.
+ """
+ rows=[]
+ for a in selected:
+  urls=a.get("urls") or []
+  valid=bool(urls) and all(u.startswith("https://") for u in urls)
+  rows.append({"position":a["position"],"title_original":a["title"],
+   "publisher_urls":urls,"original_attribution_verified":valid,
+   "news_status":"SOURCE_ATTRIBUTED_NOT_INDEPENDENTLY_FACT_CERTIFIED" if valid else "HOLD",
+   "summary_constraints":"Preserve source headline, source caveats, opinions and attribution; no fabricated detail",
+   "analysis_policy":"Contrary viewpoints separately labeled after the news; never overwrite news report",
+   "summary_allowed_if_original_excerpt_available":True,
+   "headline_only_fallback":"Original title, source, URL only"})
+ return rows
+
 def independent_24_review(selected):
  """Each slot has an explicit review. Unsupported facts remain open and lower score."""
  rows=[]
