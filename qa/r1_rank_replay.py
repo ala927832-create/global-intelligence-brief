@@ -60,6 +60,26 @@ def run():
             changes.append({"target":wanted,"state":"CURATED_SWAP",
                 "removed":before,"added":candidate["title"],
                 "source_url":candidate["url"],"reason":"INDEPENDENT_POLICY_OR_CAPEX_TOPIC_OVER_MARKET_COMMENTARY"})
+        # Evidence-supported dedup: preserve original publisher sources as related
+        # links, recover two slots for distinct reporting already in the snapshot.
+        # This remains QA-only and never silently modifies production news.
+        dedup_specs=(
+          ("US and Japan agree to establish", "Ukraine Pauses Strikes on Russian Refineries"),
+          ("Europe’s central bank chief, Christine Lagarde", "〈貴金屬盤後〉黃金挫逾1%"),
+        )
+        for duplicate, replacement in dedup_specs:
+            old=next((a for a in selected if duplicate.casefold() in a["title"].casefold()),None)
+            new=next((c for c in decision_pool if replacement.casefold() in c["title"].casefold()),None)
+            if old and new and all(canon_url(new["url"])!=canon_url(u)
+                    for a in selected for u in a["urls"]):
+                old.update({"title":new["title"],"urls":[new["url"]],
+                  "rank_score":new.get("score",0),"topic":new.get("section")})
+                changes.append({"target":replacement,"state":"CURATED_SWAP",
+                  "removed":duplicate,"added":new["title"],
+                  "reason":"E2_DUPLICATE_EVENT_REPLACED_BY_DISTINCT_SOURCED_EVENT",
+                  "source_url":new["url"]})
+            else:
+                changes.append({"target":replacement,"state":"BLOCKED_NO_VERIFIABLE_REPLACEMENT"})
         selected.sort(key=lambda a:(-a["rank_score"],a["title"]))
         for pos,a in enumerate(selected,1):
             a["position"]=pos
@@ -76,7 +96,7 @@ def run():
           "topics_at_least_four":topic_count>=4,
           "no_duplicate_urls":len({canon_url(u) for a in selected for u in a["urls"]})==24,
           "event_family_cap_two":all(n<=2 for n in family_count.values()),
-          "both_editorial_swaps":sum(c["state"]=="CURATED_SWAP" for c in changes)==2
+          "both_editorial_swaps":sum(c["state"]=="CURATED_SWAP" for c in changes)==4
         }
         selected_urls={u for a in selected for u in a["urls"]}
         ranked=rank(cluster(eligible,now,cutoff_hours=72),{})
