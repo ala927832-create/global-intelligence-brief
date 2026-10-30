@@ -9,6 +9,29 @@ from datetime import datetime
 from gib.gemini_editor_v16 import _call, unsupported_numeric_evidence
 from gib.editorial import canon_url
 
+def model_call(prompt,model):
+    r=requests.post(
+      "https://generativelanguage.googleapis.com/v1beta/models/"+model+":generateContent",
+      headers={"x-goog-api-key":os.environ["GEMINI_API_KEY"],
+               "Content-Type":"application/json"},
+      json={"contents":[{"parts":[{"text":prompt}]}],
+            "generationConfig":{"responseMimeType":"application/json",
+                                "temperature":0.05,"maxOutputTokens":16384}},
+      timeout=(10,90))
+    r.raise_for_status()
+    data=r.json()
+    candidates=data.get("candidates") or []
+    if not candidates:raise ValueError("NO_CANDIDATE")
+    candidate=candidates[0]
+    response_text="".join(p.get("text","") for p in
+       candidate.get("content",{}).get("parts",[]) if isinstance(p,dict))
+    if not response_text.strip():
+       raise ValueError("EMPTY_GENERATED_TEXT_"+str(candidate.get("finishReason","UNKNOWN")))
+    try:
+       return json.loads(response_text)
+    except json.JSONDecodeError:
+       raise ValueError("INVALID_JSON_FINISH_"+str(candidate.get("finishReason","UNKNOWN")))
+
 REPO="ala927832-create/global-intelligence-brief"
 SOURCE_ARTIFACT=12944730644
 REPLAY_ARTIFACT=12953500095
@@ -56,7 +79,7 @@ def main():
          "不要生成分析、相反看法或投資建議。"
          "只輸出JSON物件，欄位 briefs 陣列，每筆包含 index 數字、brief 字串、basis 字串。"
          "原始來源資訊："+json.dumps(group,ensure_ascii=False))
-   raw=_call(task,os.getenv("GEMINI_MODEL","gemini-2.5-flash-lite"))
+   raw=model_call(task,os.getenv("GEMINI_MODEL","gemini-2.5-flash-lite"))
    entries=raw.get("briefs",[])
    if len(entries)!=len(group):raise ValueError("GEMINI_BATCH_COUNT_MISMATCH")
    for base,out in zip(group,entries):
@@ -72,7 +95,7 @@ def main():
   report["gemini_status"]="GENERATED_24"
   (ROOT/"drafts.json").write_text(json.dumps(drafts,ensure_ascii=False,indent=2))
   # Independent second pass sees sources and drafts; expressly request failure findings
-  critique=_call("你是獨立新聞校對編輯，逐篇比對以下24則原始摘要和AI速讀，僅針對忠實度作嚴格審查。"
+  critique=model_call("你是獨立新聞校對編輯，逐篇比對以下24則原始摘要和AI速讀，僅針對忠實度作嚴格審查。"
      "新聞來自核准來源，不要求額外查證；不得以不同意媒體主張為理由扣分。"
      "每則檢查是否新增無來源的事實、改變主張歸屬、將可能改成確定、抹去相反觀點或誇大重要性。"
      "輸出JSON物件，欄位 reviews 陣列，每筆包含 index 數字、fidelity_score 整數、pass 布林、issues 字串陣列。"
