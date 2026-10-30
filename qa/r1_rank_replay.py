@@ -175,6 +175,7 @@ def run():
         item["four_quality_gates"]=editorial_quality_review(item)
         item["reading_preview"]=render_reading_preview(item,eligible,output/f"reading_{i:02d}.html")
         assert item["reading_preview"]["article_count"]==24
+        assert item["reading_preview"]["watch_why"] and item["reading_preview"]["watch_domain"] and item["reading_preview"]["watch_next"]
         assert len(item["editorial_gates"]["R1_24_INDEPENDENT"]["slots"])==24
         assert item["editorial_gates"]["R1_REVISED_POLICY"]["pass"], "APPROVED_SOURCE_OR_SPECIAL_WATCH_GATE_FAILED"
         assert item["editorial_gates"]["R1_E1"]["material_omissions"]+item["editorial_gates"]["R1_E1"]["ordinary_omissions"]==len(item["high_rank_comparisons"])
