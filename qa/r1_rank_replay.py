@@ -91,6 +91,7 @@ def run():
         (output/f"review_{i:02d}.json").write_text(json.dumps(item,ensure_ascii=False,indent=2)+"\n")
         print("R1_REPLAY",i,gate["gate"],"selected",len(selected),flush=True)
     # Algorithmic gate != expert score; no auto-pass.\n    unresolved=sum(len(a["high_rank_comparisons"]) for a in audits)
+    unresolved=sum(len(a['high_rank_comparisons']) for a in audits)
     report={"schema":"R1_SIX_SNAPSHOT_RANKING_REPLAY_V1","snapshots":audits,
       "expert_score":None,"editorial_signoff":False,"r1_approved":False,"decision_audit":"AUTOMATED_CANDIDATE_CLASSIFICATION_REQUIRES_INDEPENDENT_EDITORIAL_REVIEW",
       "publication":"OFF","unresolved_case_comparisons":unresolved,
