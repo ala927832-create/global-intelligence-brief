@@ -5,6 +5,7 @@ from pathlib import Path
 from qa.p2_content_gate import eligible_source_rows, selected_story_gate
 from gib.newsroom_v16 import canonical_issue
 from gib.editorial import cluster, rank, editorial_event_family, canon_url
+from qa.r1_e1_e2_audit import audit as e1_e2_audit
 from urllib.parse import urlsplit
 import re
 
@@ -129,6 +130,7 @@ def run():
         item={"snapshot_index":i,"original_sha256":hashlib.sha256(raw).hexdigest(),
               "source_rows":len(d["rows"]),"candidate_rows":len(eligible),
               "gate":gate,"selected":selected,"curated_changes":changes,"curated_validation":corrected_gate,"candidate_decisions":decision_rows,"high_rank_comparisons":compare,"high_rank_unselected":[x for x in decision_rows if not x["selected_position"] and x["rank_score"] >= min(a["rank_score"] for a in selected)]}
+        item["editorial_gates"]=e1_e2_audit(item)
         audits.append(item)
         (output/f"review_{i:02d}.json").write_text(json.dumps(item,ensure_ascii=False,indent=2)+"\n")
         print("R1_REPLAY",i,gate["gate"],"selected",len(selected),flush=True)
@@ -137,7 +139,8 @@ def run():
     report={"schema":"R1_SIX_SNAPSHOT_RANKING_REPLAY_V1","snapshots":audits,
       "expert_score":None,"editorial_signoff":False,"r1_approved":False,"decision_audit":"AUTOMATED_CANDIDATE_CLASSIFICATION_REQUIRES_INDEPENDENT_EDITORIAL_REVIEW",
       "publication":"OFF","unresolved_case_comparisons":unresolved,
-      "quality_90_verdict":"HOLD_UNVERIFIED_DISTINCT_FACTS"}
+      "quality_90_verdict":"HOLD_UNVERIFIED_DISTINCT_FACTS",
+      "e1_e2_all_pass":all(x["editorial_gates"]["R1_E1"]["pass"] and x["editorial_gates"]["R1_E2"]["pass"] for x in audits)}
     (output/"full_replay.json").write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n")
     if len(audits)!=6 or any(x["gate"].get("blockers") or not all(x["curated_validation"].values()) for x in audits):
         raise SystemExit("R1_REPLAY_STRUCTURAL_FAIL")
