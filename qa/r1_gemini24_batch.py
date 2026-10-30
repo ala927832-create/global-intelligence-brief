@@ -54,7 +54,7 @@ def main():
          "僅來源標題沒有摘錄時，brief 留空並標記 HEADLINE_ONLY。"
          "禁止模仿或複製來源長段文字；請用自己的繁體中文濃縮，每則40-100字。"
          "不要生成分析、相反看法或投資建議。"
-         "只輸出JSON: {\\\"briefs\\\":[{\\\"index\\\":數字,\\\"brief\\\":\\\"...\\\",\\\"basis\\\":\\\"SOURCE_EXCERPT 或 HEADLINE_ONLY\\\"}]}。"
+         "只輸出JSON物件，欄位 briefs 陣列，每筆包含 index 數字、brief 字串、basis 字串。"
          "原始來源資訊："+json.dumps(group,ensure_ascii=False))
    raw=_call(task,os.getenv("GEMINI_MODEL","gemini-2.5-flash-lite"))
    entries=raw.get("briefs",[])
@@ -75,7 +75,7 @@ def main():
   critique=_call("你是獨立新聞校對編輯，逐篇比對以下24則原始摘要和AI速讀，僅針對忠實度作嚴格審查。"
      "新聞來自核准來源，不要求額外查證；不得以不同意媒體主張為理由扣分。"
      "每則檢查是否新增無來源的事實、改變主張歸屬、將可能改成確定、抹去相反觀點或誇大重要性。"
-     "輸出JSON {\\\"reviews\\\":[{\\\"index\\\":數字,\\\"fidelity_score\\\":0到100整數,\\\"pass\\\":布林,\\\"issues\\\":[\\\"...\\\"]}]}。"
+     "輸出JSON物件，欄位 reviews 陣列，每筆包含 index 數字、fidelity_score 整數、pass 布林、issues 字串陣列。"
      "必須24筆，分數非自動通過："+json.dumps(drafts,ensure_ascii=False),
      os.getenv("GEMINI_MODEL","gemini-2.5-flash-lite"))
   reviews=critique.get("reviews",[])
