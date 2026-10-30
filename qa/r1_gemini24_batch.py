@@ -71,6 +71,7 @@ def main():
   drafts=[]
   for start in range(0,24,6):
    group=payload[start:start+6]
+   report['last_batch_start']=start
    task=("你是繁體中文國際新聞編輯。僅依新聞出版者提供的原始標題和摘要做簡明新聞速讀。"
          "不要改變原作者立場，不得加入來源未寫出的事實、數字、引述或推論；"
          "若標題以聲稱、預期、可能、批評、指控等敘述，必須保留歸屬和不確定性。"
@@ -95,6 +96,7 @@ def main():
   report["gemini_status"]="GENERATED_24"
   (ROOT/"drafts.json").write_text(json.dumps(drafts,ensure_ascii=False,indent=2))
   # Independent second pass sees sources and drafts; expressly request failure findings
+  report['last_batch_start']='critique'
   critique=model_call("你是獨立新聞校對編輯，逐篇比對以下24則原始摘要和AI速讀，僅針對忠實度作嚴格審查。"
      "新聞來自核准來源，不要求額外查證；不得以不同意媒體主張為理由扣分。"
      "每則檢查是否新增無來源的事實、改變主張歸屬、將可能改成確定、抹去相反觀點或誇大重要性。"
@@ -132,6 +134,7 @@ def main():
   (ROOT/"reader.html").write_text("\\n".join(page))
  except Exception as e:
   report["gemini_status"]="ERROR_"+type(e).__name__
+  if isinstance(e,ValueError):report["safe_validation_issue"]=str(e)[:100]
   if isinstance(e,requests.HTTPError):
    response=getattr(e,"response",None)
    report["safe_http_status"]=getattr(response,"status_code",None)
