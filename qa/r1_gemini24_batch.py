@@ -91,7 +91,7 @@ def main():
          "不要改變原作者立場，不得加入來源未寫出的事實、數字、引述或推論；"
          "若標題以聲稱、預期、可能、批評、指控等敘述，必須保留歸屬和不確定性。"
          "僅來源標題沒有摘錄時，brief 留空並標記 HEADLINE_ONLY。"
-         "禁止模仿或複製來源長段文字；請用自己的繁體中文濃縮，每則用2到4句，充分交代發生什麼、地點或範圍、來源所述影響與後續注意，建議120到220中文字。資料沒提到就說未交代，絕不能猜測。"
+         "禁止模仿或複製來源長段文字；請用自己的繁體中文濃縮，每則用2到4句，充分交代發生什麼、地點或範圍、來源所述影響與後續注意，建議80到150中文字，原文只有短節錄時可縮短但必須至少兩個完整句子，不得以填充無用詞取代資訊。資料沒提到就說未交代，絕不能猜測。"
          "不要生成分析、相反看法或投資建議。"
          "只輸出JSON物件，欄位 briefs 陣列，每筆包含 index 數字、brief 字串、basis 字串、what、where、impact、watch 四個字串。"
          "原始來源資訊："+json.dumps(group,ensure_ascii=False))
@@ -104,7 +104,9 @@ def main():
     if len(base["excerpt"])<40:
      if brief:raise ValueError("AI_SUMMARIZED_HEADLINE_ONLY")
     else:
-     if not 110<=len(brief)<=440:raise ValueError("TOO_SHORT_OR_LONG")
+     if not 65<=len(brief)<=360:raise ValueError("TOO_SHORT_OR_LONG")
+     if sum(brief.count(c) for c in ("。","！","？","；"))<2:raise ValueError("ONE_SENTENCE_BRIEF")
+     if not all(str(out.get(k) or "").strip() for k in ("what","where","impact","watch")):raise ValueError("MISSING_NEWS_DIMENSION")
      if unsupported_numeric_evidence(brief,base["title"]+" "+base["excerpt"]):
       raise ValueError("AI_ADDED_UNSUPPORTED_NUMERIC_FACT")
     drafts.append(dict(base,brief=brief,basis=out.get("basis"),what=out.get("what"),where=out.get("where"),impact=out.get("impact"),watch=out.get("watch")))
@@ -127,7 +129,7 @@ def main():
   (ROOT/"audit_24.json").write_text(json.dumps(drafts,ensure_ascii=False,indent=2))
   report["fidelity_average"]=round(sum(r.get("fidelity_score",0) for r in reviews)/24,2)
   report["fidelity_pass_count"]=sum(bool(r.get("pass")) for r in reviews)
-  report["content_density_count"]=sum(len(d["brief"])>=110 and all(str(d.get(k) or "").strip() for k in ("what","where","impact","watch")) for d in drafts)
+  report["content_density_count"]=sum(len(d["brief"])>=65 and sum(d["brief"].count(c) for c in ("。","！","？","；"))>=2 and all(str(d.get(k) or "").strip() for k in ("what","where","impact","watch")) for d in drafts)
   report["fidelity_gate"]="PASS" if report["fidelity_average"]>=90 and report["fidelity_pass_count"]==24 and report["content_density_count"]==24 else "HOLD"
   watch=max(drafts,key=lambda x:({"geopolitics":4,"central_banks":4,"energy":4,"macro":3,"technology":3}.get(x["topic"],1),-x["index"]))
   report["watch_index"]=watch["index"]
