@@ -1,5 +1,5 @@
 name: GIB P1 licensed editorial photos QA (no publishing)
-# One controlled source-alternative P1 test, auto-push limited to this workflow file.
+# One controlled caption correction + source-alternative QA run; no production publishing.
 on:
   workflow_dispatch:
   push:
