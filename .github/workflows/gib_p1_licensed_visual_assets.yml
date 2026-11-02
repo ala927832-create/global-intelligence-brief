@@ -1,10 +1,7 @@
 name: GIB P1 licensed editorial photos QA (no publishing)
-# One controlled caption correction + source-alternative QA run; no production publishing.
+# Rights-aware manual QA only; no scheduled or push retries.
 on:
   workflow_dispatch:
-  push:
-    branches: [qa/quality-gates-20261030]
-    paths: [.github/workflows/gib_p1_licensed_visual_assets.yml]
 permissions:
   contents: read
 jobs:
