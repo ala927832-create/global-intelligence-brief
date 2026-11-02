@@ -22,7 +22,8 @@ def main():
   assert photo["date"]<"2026-10-30", "Cannot imply future photo was historic"
   assert urlparse(photo["download_url"]).hostname in ("d1ldvf68ux039x.cloudfront.net","images.unsplash.com")
   assert urlparse(photo["source_page"]).hostname in ("www.dvidshub.net","unsplash.com")
-  assert "資料照片" in photo["caption_zh"] or "示意" in photo["caption_zh"]
+  assert any(x in photo["caption_zh"] for x in ("資料照片","背景照片","歷史"))
+  assert "非" in photo["caption_zh"]
   response=requests.get(photo["download_url"],timeout=(12,60),
      headers={"User-Agent":"GIB-QA-PhotoRights/1.0 (offline editorial validation)"})
   response.raise_for_status()
