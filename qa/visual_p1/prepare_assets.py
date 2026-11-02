@@ -18,14 +18,15 @@ def main():
  items=[]
  for photo in manifest["images"]:
   assert photo["rights_status"]=="SOURCE_LICENSE_VERIFIED"
-  assert photo["license"] in ("PD-US-Gov","CC-BY-SA-4.0","CC-BY-2.0")
+  assert photo["license"] in ("US-GOV-PUBLIC-DOMAIN","UNSPLASH")
   assert photo["date"]<"2026-10-30", "Cannot imply future photo was historic"
-  assert urlparse(photo["download_url"]).hostname in ("upload.wikimedia.org","thumb.wikimedia.org")
-  assert urlparse(photo["source_page"]).hostname=="commons.wikimedia.org"
+  assert urlparse(photo["download_url"]).hostname in ("d1ldvf68ux039x.cloudfront.net","images.unsplash.com")
+  assert urlparse(photo["source_page"]).hostname in ("www.dvidshub.net","unsplash.com")
   assert "資料照片" in photo["caption_zh"] or "示意" in photo["caption_zh"]
   response=requests.get(photo["download_url"],timeout=(12,60),
      headers={"User-Agent":"GIB-QA-PhotoRights/1.0 (offline editorial validation)"})
   response.raise_for_status()
+  assert urlparse(response.url).hostname in ("d1ldvf68ux039x.cloudfront.net","images.unsplash.com")
   assert len(response.content)>10000 and len(response.content)<16_000_000
   assert response.headers.get("content-type","").lower().startswith("image/")
   im=Image.open(io.BytesIO(response.content)); im.load()
@@ -45,7 +46,10 @@ def main():
     "optimized_bytes":output.stat().st_size,"locally_acquired":True,
     "derivative_note":"Reduced resolution / recompressed; no fabricated objects or altered events"})
  manifest["image_processing"]=items
- manifest["p1_acquisition_pass"]=len(items)==3
+ manifest["all_background_photos_verified"]=len(items)==3
+ manifest["cover_photo_pass"]=manifest.get("cover_image_status")=="PASS_EVENT_SPECIFIC_LICENSED_PHOTO"
+ manifest["p1_acquisition_pass"]=len(items)==3 and manifest["cover_photo_pass"]
+ manifest["p1_overall"]="PASS" if manifest["p1_acquisition_pass"] else "HOLD"
  (ROOT/"provenance.json").write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding="utf-8")
  page=['<!DOCTYPE html><html lang="zh-Hant"><meta charset="UTF-8">',
  '<meta name="viewport" content="width=device-width,initial-scale=1">',
@@ -65,5 +69,7 @@ def main():
  page.append('</ul></html>')
  (ROOT/"P1_photo_license_preview.html").write_text("\n".join(page),encoding="utf-8")
  print(json.dumps({"image_count":len(items),"chart_specs":4,
-   "status":"PASS_P1_PHOTO_ACQUISITION_QA_ONLY","publication":"OFF"},ensure_ascii=False))
+   "status":manifest["p1_overall"],"cover_photo_pass":manifest["cover_photo_pass"],"publication":"OFF"},ensure_ascii=False))
+ if not manifest["p1_acquisition_pass"]:
+  raise SystemExit("P1_HOLD_EVENT_SPECIFIC_LICENSED_COVER_REQUIRED_NO_P2")
 if __name__=="__main__": main()
