@@ -1,0 +1,25 @@
+name: GIB P2 official EIA oil price source QA (visual only)
+on:
+  push:
+    branches: [qa/quality-gates-20261030]
+    paths: [.github/workflows/gib_p2_eia_data_qa.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  official-eia:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install 'requests>=2.32,<3' 'pandas>=2.2,<3' 'xlrd>=2.0,<3'
+      - run: python -m qa.visual_p2.check_eia_official
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p2-eia-official-price-source-audit
+          path: qa_out/visual_p2/
+          retention-days: 14
