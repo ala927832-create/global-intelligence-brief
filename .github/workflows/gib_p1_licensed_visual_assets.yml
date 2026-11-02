@@ -1,7 +1,10 @@
 name: GIB P1 licensed editorial photos QA (no publishing)
-# Rights-aware manual QA only; no scheduled or push retries.
+# One controlled NASA cover proof run on QA branch. No production schedule.
 on:
   workflow_dispatch:
+  push:
+    branches: [qa/quality-gates-20261030]
+    paths: [.github/workflows/gib_p1_licensed_visual_assets.yml]
 permissions:
   contents: read
 jobs:
