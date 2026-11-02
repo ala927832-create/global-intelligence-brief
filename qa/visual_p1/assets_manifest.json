@@ -1,0 +1,121 @@
+{
+  "schema": "GIB-P1-LICENSED-ASSET-MANIFEST-V1",
+  "review_date": "2026-11-02",
+  "contract": "2026-10-29-owner-approved-v3",
+  "branch": "qa/quality-gates-20261030",
+  "license_note": "Publisher RSS approval does NOT grant photo rights; publisher photos require separate license.",
+  "images": [
+    {
+      "id": "energy-tanker",
+      "role": "cover_candidate",
+      "file": "energy_tanker_2009.jpg",
+      "source_page": "https://commons.wikimedia.org/wiki/File:Al_Basrah_Oil_Terminal_essential_to_Iraq%27s_economy_DVIDS202701.jpg",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/2/24/Al_Basrah_Oil_Terminal_essential_to_Iraq%27s_economy_DVIDS202701.jpg",
+      "creator": "Darryl Montgomery / U.S. Army",
+      "license": "PD-US-Gov",
+      "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "date": "2009-08-27",
+      "actual_place": "Al Basrah Oil Terminal, Persian Gulf, Iraq",
+      "caption_zh": "2009 年波斯灣伊拉克巴斯拉石油碼頭的油輪裝載情形。資料照片，非 2026 年荷姆茲海峽事件現場。",
+      "editorial_role": "ENERGY_LOGISTICS_ARCHIVE_NOT_EVENT_PHOTO",
+      "rights_status": "SOURCE_LICENSE_VERIFIED"
+    },
+    {
+      "id": "ecb-building",
+      "role": "special_topic",
+      "file": "ecb_building_2026.jpg",
+      "source_page": "https://commons.wikimedia.org/wiki/File:Frankfurt_am_Main,_Seat_of_the_European_Central_Bank_(Skytower_(ECB)).jpg",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/b/bc/Frankfurt_am_Main%2C_Seat_of_the_European_Central_Bank_%28Skytower_%28ECB%29%29.jpg",
+      "creator": "Dr. Thomas Liptak",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "date": "2026-09-06",
+      "actual_place": "Frankfurt am Main, Germany",
+      "caption_zh": "2026 年 9 月拍攝的歐洲中央銀行法蘭克福總部。資料照片，並非本次央行政策會議現場。",
+      "editorial_role": "ECB_ARCHIVE_CONTEXT",
+      "rights_status": "SOURCE_LICENSE_VERIFIED"
+    },
+    {
+      "id": "datacenter-racks",
+      "role": "special_topic",
+      "file": "datacenter_racks_2015.jpg",
+      "source_page": "https://commons.wikimedia.org/wiki/File:Datacenter_Server_Racks_(22370909788).jpg",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/b/b3/Datacenter_Server_Racks_%2822370909788%29.jpg",
+      "creator": "Carl Lender",
+      "license": "CC-BY-2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "date": "2015-11-04",
+      "actual_place": "Facility not established from photo metadata",
+      "caption_zh": "2015 年拍攝的資料中心機櫃，用於示意運算基礎設施；不代表特定科技公司的新建機房。",
+      "editorial_role": "AI_INFRASTRUCTURE_ARCHIVE_NOT_AMAZON_FACILITY",
+      "rights_status": "SOURCE_LICENSE_VERIFIED"
+    }
+  ],
+  "charts": [
+    {
+      "id": "A",
+      "name": "荷姆茲海峽地理與油運重要性",
+      "phase": "P2",
+      "plot": "overview_locator_and_historical_flow_bar",
+      "data_sources": [
+        "https://www.eia.gov/international/analysis/special-topics/World_Oil_Transit_Chokepoints"
+      ],
+      "metrics": [
+        "historical_seaborne_oil_volume_mbd",
+        "reference_period"
+      ],
+      "caveat": "只用區域示意與歷史合計，不畫當日船舶位置或武裝衝突行動路線；來源期間不可偽裝當日"
+    },
+    {
+      "id": "B",
+      "name": "Brent vs WTI 油價變化",
+      "phase": "P2",
+      "plot": "two_aligned_daily_line_plots",
+      "data_sources": [
+        "https://www.eia.gov/dnav/pet/pet_pri_spt_s1_d.htm"
+      ],
+      "metrics": [
+        "brent_spot_usd_per_bbl",
+        "wti_cushing_spot_usd_per_bbl",
+        "observation_date"
+      ],
+      "caveat": "日期範圍一致；資料截止與刊物截稿一致；相關不等於因果"
+    },
+    {
+      "id": "C",
+      "name": "Fed / ECB / BOJ 政策利率比較",
+      "phase": "P2",
+      "plot": "three_small_multiples",
+      "data_sources": [
+        "https://www.federalreserve.gov/monetarypolicy/openmarket.htm",
+        "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/key_ecb_interest_rates/html/index.en.html",
+        "https://www.boj.or.jp/en/mopo/outlook/index.htm"
+      ],
+      "metrics": [
+        "fed_target_range_upper_lower",
+        "ecb_deposit_facility",
+        "boj_policy_rate_explicit"
+      ],
+      "caveat": "不得以日本基本貼現率冒充政策利率；分別說明三個定義，不能隨意壓為單一數列"
+    },
+    {
+      "id": "D",
+      "name": "AI 資本支出：科技企業比較",
+      "phase": "P2",
+      "plot": "capex_by_company_with_fiscal_period",
+      "data_sources": [
+        "https://ir.aboutamazon.com/news-release/news-release-details/2026/Amazon-com-Announces-Third-Quarter-Results/default.aspx",
+        "https://www.sec.gov/Archives/edgar/data/1018724/000101872426000038/amzn-20260930xex991.htm"
+      ],
+      "metrics": [
+        "cash_capex_actual_by_reporting_period",
+        "capex_forecast_separately",
+        "free_cash_flow"
+      ],
+      "caveat": "先以 Amazon 為可核實樣本；跨公司比較須取得其餘公司同口徑財報；不可虛構 Meta/Alphabet/Microsoft 數值"
+    }
+  ],
+  "release": "OFF",
+  "style_contract": "UNCHANGED",
+  "p1_goal": "Acquire real sourced archive images; retain explicit historical captions and licensing."
+}
