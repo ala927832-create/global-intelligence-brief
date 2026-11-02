@@ -7,22 +7,24 @@
   "images": [
     {
       "id": "energy-tanker",
-      "role": "cover_candidate",
-      "file": "energy_tanker_2009.jpg",
-      "source_page": "https://commons.wikimedia.org/wiki/File:Al_Basrah_Oil_Terminal_essential_to_Iraq%27s_economy_DVIDS202701.jpg",
-      "download_url": "https://upload.wikimedia.org/wikipedia/commons/2/24/Al_Basrah_Oil_Terminal_essential_to_Iraq%27s_economy_DVIDS202701.jpg",
-      "creator": "Darryl Montgomery / U.S. Army",
-      "license": "PD-US-Gov",
-      "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
-      "date": "2009-08-27",
-      "actual_place": "Al Basrah Oil Terminal, Persian Gulf, Iraq",
-      "caption_zh": "2009 年波斯灣伊拉克巴斯拉石油碼頭的油輪裝載情形。資料照片，非 2026 年荷姆茲海峽事件現場。",
+      "role": "energy_topic_archive_only",
+      "file": "energy_tanker_2019.jpg",
+      "source_page": "https://commons.wikimedia.org/wiki/File:Oil_Tanker_ship.jpg",
+      "download_url": "https://upload.wikimedia.org/wikipedia/commons/c/ce/Oil_Tanker_ship.jpg",
+      "creator": "Shipspotter Stahl",
+      "license": "CC-BY-SA-4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "date": "2019-11-29",
+      "actual_place": "Unknown; do not label Strait of Hormuz",
+      "caption_zh": "2019 年拍攝的油輪資料照片，拍攝地點未證實；非 2026 年荷姆茲海峽事件現場。",
       "editorial_role": "ENERGY_LOGISTICS_ARCHIVE_NOT_EVENT_PHOTO",
-      "rights_status": "SOURCE_LICENSE_VERIFIED"
+      "rights_status": "SOURCE_LICENSE_VERIFIED",
+      "pixel_size": "1080x810",
+      "limitations": "Not acceptable as 3:4 incident cover; available only as supporting archive photo unless new cover-specific approval."
     },
     {
       "id": "ecb-building",
-      "role": "special_topic",
+      "role": "ecb_topic_archive_only",
       "file": "ecb_building_2026.jpg",
       "source_page": "https://commons.wikimedia.org/wiki/File:Frankfurt_am_Main,_Seat_of_the_European_Central_Bank_(Skytower_(ECB)).jpg",
       "download_url": "https://upload.wikimedia.org/wikipedia/commons/b/bc/Frankfurt_am_Main%2C_Seat_of_the_European_Central_Bank_%28Skytower_%28ECB%29%29.jpg",
@@ -37,7 +39,7 @@
     },
     {
       "id": "datacenter-racks",
-      "role": "special_topic",
+      "role": "ai_capex_topic_archive_only",
       "file": "datacenter_racks_2015.jpg",
       "source_page": "https://commons.wikimedia.org/wiki/File:Datacenter_Server_Racks_(22370909788).jpg",
       "download_url": "https://upload.wikimedia.org/wikipedia/commons/b/b3/Datacenter_Server_Racks_%2822370909788%29.jpg",
@@ -89,7 +91,7 @@
       "data_sources": [
         "https://www.federalreserve.gov/monetarypolicy/openmarket.htm",
         "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/key_ecb_interest_rates/html/index.en.html",
-        "https://www.boj.or.jp/en/mopo/outlook/index.htm"
+        "https://www.boj.or.jp/en/mopo/mpmdeci/state_2026/"
       ],
       "metrics": [
         "fed_target_range_upper_lower",
@@ -117,5 +119,9 @@
   ],
   "release": "OFF",
   "style_contract": "UNCHANGED",
-  "p1_goal": "Acquire real sourced archive images; retain explicit historical captions and licensing."
+  "p1_goal": "Acquire real sourced archive images; retain explicit historical captions and licensing.",
+  "cover_image_status": "HOLD_NEEDS_EVENT_RELEVANT_LICENSED_PHOTO",
+  "photo_asset_acquisition_status": "HOLD_HTTP_429_FROM_WIKIMEDIA_ON_GITHUB_ACTIONS",
+  "non_licensed_media_prohibited": true,
+  "contract_unchanged": true
 }
