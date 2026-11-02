@@ -1,7 +1,10 @@
 name: GIB P1 licensed editorial photos QA (no publishing)
-# Manual QA only. Disabled push-triggered downloads after Commons returned 429.
+# One controlled source-alternative P1 test, auto-push limited to this workflow file.
 on:
   workflow_dispatch:
+  push:
+    branches: [qa/quality-gates-20261030]
+    paths: [.github/workflows/gib_p1_licensed_visual_assets.yml]
 permissions:
   contents: read
 jobs:
