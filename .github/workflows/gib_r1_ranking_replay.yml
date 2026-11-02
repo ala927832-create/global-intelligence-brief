@@ -1,0 +1,37 @@
+name: GIB R1 six-snapshot ranking replay QA (no publishing)
+on:
+  push:
+    branches:
+      - qa/quality-gates-20261030
+    paths:
+      - .github/workflows/gib_r1_ranking_replay.yml
+      - gib/editorial.py
+      - qa/r1_rank_replay.py
+permissions:
+  contents: read
+  actions: read
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install 'requests>=2.32,<3'
+      - run: python -m py_compile qa/r1_rank_replay.py gib/editorial.py
+      - name: Replay six immutable source snapshots through revised selector
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHONPATH: ${{ github.workspace }}
+        run: python -m qa.r1_rank_replay
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r1-ranking-replay-six-snapshots
+          path: qa_out/r1_replay/
+          retention-days: 14
+          if-no-files-found: warn
+
+# Replay after event-family dedup update.

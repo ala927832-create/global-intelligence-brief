@@ -150,6 +150,35 @@ def rank(items,weights):
         speculative=sum(bool(x in t) for x in
             ('opinion:', 'op-ed', 'commentary:', 'rumor:', 'unconfirmed:',
              'price prediction'))
+        # Editorial placement (not news eligibility): cross-border consequences
+        # outrank entertainment, sports or incidental coverage. Keep all genuine
+        # subscribed stories reportable; never use this to reject sources.
+        high_impact = sum(bool(re.search(pattern, t, re.I)) for pattern in (
+            r'\b(?:strait of hormuz|tanker|oil facilit|missile|airstrike|sanction|ceasefire|central bank|bank of japan|federal reserve|election results?|parliament|military|refiner|energy supply|inflation|tariffs?|war|conflict|data center|capital expenditure)\b',
+            r'荷姆茲|油輪|日銀|聯準會|升息|降息|戰爭|選舉|制裁|通膨|軍事|資本支出|能源供應|衝突'))
+        incidental = bool(re.search(
+            r'\b(?:star trek|seinfeld|sitcom|actor|film adaptation|celebrity|athlete|football|soccer|game|reality tv|halloween|horoscope|catwalk|tv show|race results?)\b', t, re.I))
+        # These are transparent soft rank adjustments, not fabricated facts.
+        impact_adjustment = min(high_impact, 2) * 4 - (7 if incidental else 0)
+        # Source-attributed high-consequence event cues influence placement only.
+        # Narrow opinion/round-up titles should not outrank concrete developments
+        # simply by containing a generic policy word.
+        direct_event = sum(bool(re.search(p,t,re.I)) for p in (
+            r'(?:tankers?|ships?).{0,45}(?:struck|hit|sunk|mines?)|(?:struck|hit).{0,45}(?:tankers?|ships?)',
+            r'(?:strait of hormuz|hormuz|荷姆茲).{0,75}(?:mines?|struck|blocked|shipping|油輪|水雷|封鎖)',
+            r'(?:iran|伊朗|美伊).{0,65}(?:attack|strike|conflict|war|military|衝突|戰爭|空襲)',
+            r'(?:sanctions?|制裁).{0,75}(?:government|ministry|國防|國家)',
+            r'(?:central bank|fed|ecb|央行|聯準會|歐洲央行).{0,75}(?:holds?|raises?|cuts?|利率|升息|降息)',
+            r'(?:election|選舉|大選).{0,65}(?:results?|wins?|vote|勝選|結果)',
+        ))
+        analysis_roundup = bool(re.search(
+            r'^(?:what|why|how)\\b|what it means|what .* reveal|as it happened|live:|live\\b|(?:傳聲筒|解讀|怎麼看)',t,re.I))
+        direct_event_boost=min(direct_event,2)*5-(3 if analysis_roundup else 0)
+        breaking=bool(re.search(
+            r'\\b(?:pauses? strikes|airports? hit|oil facilities attacked|drone attack|killed in attack|missile strikes?|military escalation|cuts? oil supply|refineries? attacked|diplomatic talks resume)\\b|暫停空襲|攻擊機場|煉油設施遇襲|無人機攻擊|恢復談判',t,re.I))
+        commentary_title=bool(re.search(
+            r'^\\s*(?:opinion|commentary|op-ed|analysis|explained)\\s*[:|]|(?:what .* reveals?|why .* matters|the case for|lessons from|how .* might|評論|社論|觀點|〈分析〉)',t,re.I))
+        placement_adjustment=(8 if breaking else 0) - (6 if commentary_title else 0)
         # Owner's Inoreader original publisher roster is the default
         # newspaper reporting desk. Subscription is an editorial preference,
         # not independent proof that a publisher claim is true.
@@ -169,7 +198,7 @@ def rank(items,weights):
             +min(global_signals,3)*2.5
             +(3 if subscribed else 0)
             -narrow_signals*5
-            -speculative*3,2)
+            -speculative*3+impact_adjustment+direct_event_boost+placement_adjustment,2)
     return sorted(items,key=lambda a:(-a['score'],a.get('published_at') or ''))
 
 def sig(title):
@@ -206,6 +235,21 @@ def diversified(items,top_n=12,max_per_section=4):
         out.append(a);counts[section]=counts.get(section,0)+1
         if len(out)>=top_n: break
     return out
+
+
+def editorial_event_family(item):
+    """Conservative event-level family key for placement caps, not news rejection."""
+    title=str(item.get("title","")).casefold()
+    patterns=(
+        ("israel_election", r"israel.{0,35}elect|israeli.{0,35}elect|以色列.{0,12}選舉|以色列大選"),
+        ("japan_us_missiles", r"(?:japan|japanese).{0,65}missile|(?:missile).{0,65}(?:japan|japanese)"),
+        ("ecb_policy", r"(?:european central bank|europe.s central bank|ecb|歐洲央行).{0,90}(?:lagarde|rate|interest|利率|拉加德)"),
+        ("iran_hormuz_conflict", r"(?:iran.{0,65}(?:war|conflict|strike)|hormuz|美伊.{0,10}衝突|荷姆茲)"),
+    )
+    for name, pattern in patterns:
+        if re.search(pattern,title,re.I):
+            return name
+    return None
 
 
 def diversified_v3(items, top_n=24, max_per_section=8):
@@ -250,10 +294,45 @@ def diversified_v3(items, top_n=24, max_per_section=8):
         for item in items:
             if len(reserved)>=top_n:break
             add(item)
-    # Restore ranked order so low-scoring coverage representatives do not
-    # automatically become top headlines; editorial signoff remains separate.
-    by_url={canon_url(x.get("url","")):i for i,x in enumerate(items)}
-    return sorted(reserved,key=lambda a:by_url.get(canon_url(a.get("url","")),10**9))[:top_n]
+    # A real event may have multiple legitimate subscribed reports, but repeated
+    # headlines should not consume an unlimited share of the top 24.
+    # Keep at most two per tightly defined family, fill from existing real items.
+    ordered=sorted(reserved,key=lambda a:items.index(a))
+    final=[]
+    family_counts={}
+    for item in ordered + [x for x in items if x not in ordered]:
+        family=editorial_event_family(item)
+        if family and family_counts.get(family,0)>=2:
+            continue
+        key=canon_url(item.get("url",""))
+        if key and any(canon_url(x.get("url",""))==key for x in final):
+            continue
+        final.append(item)
+        if family: family_counts[family]=family_counts.get(family,0)+1
+        if len(final)>=top_n: break
+    # Repair materially lower-ranked reserved placements when an omitted candidate
+    # can replace them without losing the mandated 4 domains / 4 topic groups.
+    # Keep subscription eligibility and the real-event family cap unchanged.
+    from collections import Counter
+    for challenger in items:
+        if challenger in final:
+            continue
+        fam=editorial_event_family(challenger)
+        if fam and sum(editorial_event_family(x)==fam for x in final)>=2:
+            continue
+        for incumbent in sorted(final,key=lambda x:x.get('score',0)):
+            if challenger.get('score',0)<=incumbent.get('score',0):
+                break
+            trial=[x for x in final if x is not incumbent]+[challenger]
+            sections={x.get('section','unexpected') for x in trial}
+            domains={urlsplit(x.get('url','')).hostname for x in trial}
+            families=Counter(filter(None,(editorial_event_family(x) for x in trial)))
+            if (len(sections)>=4 and len(domains)>=4 and max(
+                Counter(x.get('section','unexpected') for x in trial).values())<=8
+                and all(v<=2 for v in families.values())):
+                final=trial
+                break
+    return sorted(final,key=lambda a:(-a.get('score',0),a.get('published_at') or ''))
 
 def next_seen(old,items,now,limit=500):
     existing={x['key']:x for x in old if x.get('key')}

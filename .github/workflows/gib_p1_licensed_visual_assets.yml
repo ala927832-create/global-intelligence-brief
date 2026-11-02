@@ -1,0 +1,31 @@
+name: GIB P1 licensed editorial photos QA (no publishing)
+# One controlled NASA cover proof run on QA branch. No production schedule.
+on:
+  workflow_dispatch:
+  push:
+    branches: [qa/quality-gates-20261030]
+    paths: [.github/workflows/gib_p1_licensed_visual_assets.yml]
+permissions:
+  contents: read
+jobs:
+  p1-photo-rights:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install image validation
+        run: python -m pip install 'requests>=2.32,<3' 'Pillow>=11,<13'
+      - name: Validate file syntax
+        run: python -m py_compile qa/visual_p1/prepare_assets.py
+      - name: Acquire only rights-reviewed documentary photos and test BOOX sizes
+        run: python -m qa.visual_p1.prepare_assets
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gib-p1-licensed-photos-boox-qa
+          path: qa_out/p1_visual/
+          retention-days: 21
+          if-no-files-found: warn

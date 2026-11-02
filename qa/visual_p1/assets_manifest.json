@@ -1,0 +1,151 @@
+{
+  "schema": "GIB-P1-LICENSED-ASSET-MANIFEST-V1",
+  "review_date": "2026-11-02",
+  "contract": "2026-10-29-owner-approved-v3",
+  "branch": "qa/quality-gates-20261030",
+  "license_note": "Publisher RSS approval does NOT grant photo rights; publisher photos require separate license.",
+  "images": [
+    {
+      "id": "hormuz-geo-cover",
+      "role": "main_news_geography_photo_archive_explicit",
+      "file": "hormuz_2021_nasa.jpg",
+      "source_page": "https://images.nasa.gov/details/iss064e046338",
+      "download_url": "https://images-assets.nasa.gov/image/iss064e046338/iss064e046338~orig.jpg",
+      "creator": "NASA Johnson Space Center / ISS Expedition 64",
+      "license": "NASA-EDITORIAL-USE",
+      "license_url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+      "date": "2021-03-24",
+      "actual_place": "Strait of Hormuz, Oman / United Arab Emirates / Iran",
+      "caption_zh": "NASA 太空人於 2021 年 3 月 24 日拍攝的荷姆茲海峽地理實景；歷史背景照片，非 2026 年 10 月 30 日油輪事件現場。來源：NASA／ISS Expedition 64。",
+      "editorial_role": "EVENT_GEOGRAPHY_CONTEXT_NOT_2026_INCIDENT_EVIDENCE",
+      "rights_status": "SOURCE_LICENSE_VERIFIED",
+      "limitations": "May only be used with prominent date and NOT-INCIDENT caption; no NASA endorsement; editorial/informational only."
+    },
+    {
+      "id": "energy-tanker",
+      "role": "energy_topic_archive_only",
+      "file": "energy_tanker_2009.jpg",
+      "source_page": "https://www.dvidshub.net/image/202701/al-basrah-oil-terminal-essential-iraqs-economy",
+      "download_url": "https://d1ldvf68ux039x.cloudfront.net/thumbs/photos/0909/202701/1000w_q95.jpg",
+      "creator": "Spc. Darryl Montgomery / U.S. Army",
+      "license": "US-GOV-PUBLIC-DOMAIN",
+      "license_url": "https://www.dvidshub.net/about/copyright",
+      "date": "2009-09-10",
+      "actual_place": "Al Basrah Oil Terminal, Persian Gulf, Iraq",
+      "caption_zh": "2009 年拍攝的伊拉克巴斯拉石油碼頭油輪。歷史資料照片，非 2026 年荷姆茲海峽新聞現場。",
+      "editorial_role": "ENERGY_LOGISTICS_ARCHIVE_NOT_EVENT_PHOTO",
+      "rights_status": "SOURCE_LICENSE_VERIFIED",
+      "pixel_size": "1000x670",
+      "limitations": "Not an event photo; not approved as 2026 main-news cover."
+    },
+    {
+      "id": "ecb-building",
+      "role": "ecb_topic_archive_only",
+      "file": "ecb_building_2021.jpg",
+      "source_page": "https://unsplash.com/photos/bare-tree-near-glass-building-during-daytime-j7IcauMOU6Y",
+      "download_url": "https://images.unsplash.com/photo-1610272946242-959051a9e546?auto=format&fit=crop&fm=jpg&ixid=NHwxMjA3fDA%3D&ixlib=rb-4.1.0&q=60&w=3000",
+      "creator": "Markus Spiske / Unsplash",
+      "license": "UNSPLASH",
+      "license_url": "https://unsplash.com/license",
+      "date": "2021-01-10",
+      "actual_place": "European Central Bank headquarters, Frankfurt, Germany",
+      "caption_zh": "歐洲央行法蘭克福總部建築背景照片，2021 年發表；非本次利率會議現場。",
+      "editorial_role": "ECB_ARCHIVE_CONTEXT",
+      "rights_status": "SOURCE_LICENSE_VERIFIED",
+      "limitations": "Free photo, not Unsplash+; no event or meeting implication."
+    },
+    {
+      "id": "datacenter-racks",
+      "role": "ai_capex_topic_archive_only",
+      "file": "datacenter_racks_2023.jpg",
+      "source_page": "https://unsplash.com/photos/a-rack-of-servers-in-a-server-room-2JJ3wBHu4_0",
+      "download_url": "https://images.unsplash.com/photo-1695668548342-c0c1ad479aee?auto=format&fit=crop&fm=jpg&ixid=NHwxMjA3fDA%3D&ixlib=rb-4.1.0&q=60&w=3000",
+      "creator": "Kevin Ache / Unsplash",
+      "license": "UNSPLASH",
+      "license_url": "https://unsplash.com/license",
+      "date": "2023-09-25",
+      "actual_place": "Server room, specific location not verified",
+      "caption_zh": "2023 年發表的伺服器機櫃資料照片；非特定企業的新建 AI 資料中心。",
+      "editorial_role": "AI_INFRASTRUCTURE_ARCHIVE",
+      "rights_status": "SOURCE_LICENSE_VERIFIED",
+      "limitations": "Generic server-room photo, not evidence of any company capital expenditure."
+    }
+  ],
+  "charts": [
+    {
+      "id": "A",
+      "name": "荷姆茲海峽地理與油運重要性",
+      "phase": "P2",
+      "plot": "overview_locator_and_historical_flow_bar",
+      "data_sources": [
+        "https://www.eia.gov/international/analysis/special-topics/World_Oil_Transit_Chokepoints"
+      ],
+      "metrics": [
+        "historical_seaborne_oil_volume_mbd",
+        "reference_period"
+      ],
+      "caveat": "只用區域示意與歷史合計，不畫當日船舶位置或武裝衝突行動路線；來源期間不可偽裝當日"
+    },
+    {
+      "id": "B",
+      "name": "Brent vs WTI 油價變化",
+      "phase": "P2",
+      "plot": "two_aligned_daily_line_plots",
+      "data_sources": [
+        "https://www.eia.gov/dnav/pet/pet_pri_spt_s1_d.htm"
+      ],
+      "metrics": [
+        "brent_spot_usd_per_bbl",
+        "wti_cushing_spot_usd_per_bbl",
+        "observation_date"
+      ],
+      "caveat": "日期範圍一致；資料截止與刊物截稿一致；相關不等於因果"
+    },
+    {
+      "id": "C",
+      "name": "Fed / ECB / BOJ 政策利率比較",
+      "phase": "P2",
+      "plot": "three_small_multiples",
+      "data_sources": [
+        "https://www.federalreserve.gov/monetarypolicy/openmarket.htm",
+        "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/key_ecb_interest_rates/html/index.en.html",
+        "https://www.boj.or.jp/en/mopo/mpmdeci/state_2026/"
+      ],
+      "metrics": [
+        "fed_target_range_upper_lower",
+        "ecb_deposit_facility",
+        "boj_policy_rate_explicit"
+      ],
+      "caveat": "不得以日本基本貼現率冒充政策利率；分別說明三個定義，不能隨意壓為單一數列"
+    },
+    {
+      "id": "D",
+      "name": "AI 資本支出：科技企業比較",
+      "phase": "P2",
+      "plot": "capex_by_company_with_fiscal_period",
+      "data_sources": [
+        "https://ir.aboutamazon.com/news-release/news-release-details/2026/Amazon-com-Announces-Third-Quarter-Results/default.aspx",
+        "https://www.sec.gov/Archives/edgar/data/1018724/000101872426000038/amzn-20260930xex991.htm"
+      ],
+      "metrics": [
+        "cash_capex_actual_by_reporting_period",
+        "capex_forecast_separately",
+        "free_cash_flow"
+      ],
+      "caveat": "先以 Amazon 為可核實樣本；跨公司比較須取得其餘公司同口徑財報；不可虛構 Meta/Alphabet/Microsoft 數值"
+    }
+  ],
+  "release": "OFF",
+  "style_contract": "UNCHANGED",
+  "p1_goal": "Acquire real sourced archive images; retain explicit historical captions and licensing.",
+  "cover_image_status": "CANDIDATE_NASA_GEOGRAPHIC_RELEVANCE_PENDING_BYTES_AND_ISSUE_RENDER",
+  "photo_asset_acquisition_status": "NASA_VERIFICATION_PENDING",
+  "non_licensed_media_prohibited": true,
+  "contract_unchanged": true,
+  "rights_route": "DVIDS_PUBLIC_DOMAIN_AND_UNSPLASH_FREE_NONPLUS",
+  "previous_blocker": "WIKIMEDIA_UPLOAD_429",
+  "chart_gate": "P2_FORBIDDEN_UNTIL_P1_PASSES",
+  "event_photo_policy": "FROZEN_NEWSROOM_PHOTO_WITH_ACCURATE_HISTORIC_CONTEXT_CAPTION_NO_FALSE_SAME_DAY_CLAIM",
+  "p1_gate": "HOLD_UNTIL_ASSETS_AND_OFFLINE_READER_VERIFIED",
+  "p2_locked": true
+}

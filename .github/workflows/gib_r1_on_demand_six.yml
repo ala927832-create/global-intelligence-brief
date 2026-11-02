@@ -1,0 +1,39 @@
+name: GIB R1 on-demand 6-source-pull CONTENT QA (private artifacts only)
+on:
+  push:
+    branches:
+      - qa/quality-gates-20261030
+    paths:
+      - .github/workflows/gib_r1_on_demand_six.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: gib-r1-on-demand-one-batch
+  cancel-in-progress: false
+jobs:
+  six_real_pulls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install existing public RSS dependencies
+        run: python -m pip install 'requests>=2.32,<3'
+      - name: Syntax verification before network fetch
+        run: python -m py_compile qa/r1_on_demand_six.py
+      - name: Six separate live OPML fetch operations, content QA only
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: python -m qa.r1_on_demand_six --pause 5
+      - name: Persist six separate bounded evidence snapshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gib-r1-six-on-demand-evidence
+          path: qa_out/r1_on_demand/
+          retention-days: 14
+          if-no-files-found: warn
+# Never publish, never dispatch Gemini, no paid APIs or LINE.
