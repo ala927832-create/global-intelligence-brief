@@ -6,6 +6,22 @@
   "license_note": "Publisher RSS approval does NOT grant photo rights; publisher photos require separate license.",
   "images": [
     {
+      "id": "hormuz-geo-cover",
+      "role": "main_news_geography_photo_archive_explicit",
+      "file": "hormuz_2021_nasa.jpg",
+      "source_page": "https://images.nasa.gov/details/iss064e046338",
+      "download_url": "https://images-assets.nasa.gov/image/iss064e046338/iss064e046338~orig.jpg",
+      "creator": "NASA Johnson Space Center / ISS Expedition 64",
+      "license": "NASA-EDITORIAL-USE",
+      "license_url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+      "date": "2021-03-24",
+      "actual_place": "Strait of Hormuz, Oman / United Arab Emirates / Iran",
+      "caption_zh": "NASA 太空人於 2021 年 3 月 24 日拍攝的荷姆茲海峽地理實景；歷史背景照片，非 2026 年 10 月 30 日油輪事件現場。來源：NASA／ISS Expedition 64。",
+      "editorial_role": "EVENT_GEOGRAPHY_CONTEXT_NOT_2026_INCIDENT_EVIDENCE",
+      "rights_status": "SOURCE_LICENSE_VERIFIED",
+      "limitations": "May only be used with prominent date and NOT-INCIDENT caption; no NASA endorsement; editorial/informational only."
+    },
+    {
       "id": "energy-tanker",
       "role": "energy_topic_archive_only",
       "file": "energy_tanker_2009.jpg",
@@ -122,11 +138,14 @@
   "release": "OFF",
   "style_contract": "UNCHANGED",
   "p1_goal": "Acquire real sourced archive images; retain explicit historical captions and licensing.",
-  "cover_image_status": "HOLD_NEEDS_EVENT_RELEVANT_LICENSED_PHOTO",
-  "photo_asset_acquisition_status": "PENDING_ALTERNATE_DIRECT_PUBLISHER_CDN",
+  "cover_image_status": "CANDIDATE_NASA_GEOGRAPHIC_RELEVANCE_PENDING_BYTES_AND_ISSUE_RENDER",
+  "photo_asset_acquisition_status": "NASA_VERIFICATION_PENDING",
   "non_licensed_media_prohibited": true,
   "contract_unchanged": true,
   "rights_route": "DVIDS_PUBLIC_DOMAIN_AND_UNSPLASH_FREE_NONPLUS",
   "previous_blocker": "WIKIMEDIA_UPLOAD_429",
-  "chart_gate": "P2_FORBIDDEN_UNTIL_P1_PASSES"
+  "chart_gate": "P2_FORBIDDEN_UNTIL_P1_PASSES",
+  "event_photo_policy": "FROZEN_NEWSROOM_PHOTO_WITH_ACCURATE_HISTORIC_CONTEXT_CAPTION_NO_FALSE_SAME_DAY_CLAIM",
+  "p1_gate": "HOLD_UNTIL_ASSETS_AND_OFFLINE_READER_VERIFIED",
+  "p2_locked": true
 }
