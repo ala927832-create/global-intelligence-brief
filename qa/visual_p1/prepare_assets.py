@@ -12,22 +12,22 @@ MANIFEST=Path("qa/visual_p1/assets_manifest.json")
 def main():
  manifest=json.loads(MANIFEST.read_text())
  assert manifest["release"]=="OFF"
- assert len(manifest["images"])==3 and len(manifest["charts"])==4
+ assert len(manifest["images"])==4 and len(manifest["charts"])==4
  ROOT.mkdir(parents=True,exist_ok=True)
  assets=ROOT/"images";assets.mkdir(exist_ok=True)
  items=[]
  for photo in manifest["images"]:
   assert photo["rights_status"]=="SOURCE_LICENSE_VERIFIED"
-  assert photo["license"] in ("US-GOV-PUBLIC-DOMAIN","UNSPLASH")
+  assert photo["license"] in ("US-GOV-PUBLIC-DOMAIN","UNSPLASH","NASA-EDITORIAL-USE")
   assert photo["date"]<"2026-10-30", "Cannot imply future photo was historic"
-  assert urlparse(photo["download_url"]).hostname in ("d1ldvf68ux039x.cloudfront.net","images.unsplash.com")
-  assert urlparse(photo["source_page"]).hostname in ("www.dvidshub.net","unsplash.com")
+  assert urlparse(photo["download_url"]).hostname in ("d1ldvf68ux039x.cloudfront.net","images.unsplash.com","images-assets.nasa.gov")
+  assert urlparse(photo["source_page"]).hostname in ("www.dvidshub.net","unsplash.com","images.nasa.gov")
   assert any(x in photo["caption_zh"] for x in ("資料照片","背景照片","歷史"))
   assert "非" in photo["caption_zh"]
   response=requests.get(photo["download_url"],timeout=(12,60),
      headers={"User-Agent":"GIB-QA-PhotoRights/1.0 (offline editorial validation)"})
   response.raise_for_status()
-  assert urlparse(response.url).hostname in ("d1ldvf68ux039x.cloudfront.net","images.unsplash.com")
+  assert urlparse(response.url).hostname in ("d1ldvf68ux039x.cloudfront.net","images.unsplash.com","images-assets.nasa.gov")
   assert len(response.content)>10000 and len(response.content)<16_000_000
   assert response.headers.get("content-type","").lower().startswith("image/")
   im=Image.open(io.BytesIO(response.content)); im.load()
@@ -47,9 +47,9 @@ def main():
     "optimized_bytes":output.stat().st_size,"locally_acquired":True,
     "derivative_note":"Reduced resolution / recompressed; no fabricated objects or altered events"})
  manifest["image_processing"]=items
- manifest["all_background_photos_verified"]=len(items)==3
- manifest["cover_photo_pass"]=manifest.get("cover_image_status")=="PASS_EVENT_SPECIFIC_LICENSED_PHOTO"
- manifest["p1_acquisition_pass"]=len(items)==3 and manifest["cover_photo_pass"]
+ manifest["all_background_photos_verified"]=len(items)==4
+ manifest["cover_photo_pass"]=any(i["id"]=="hormuz-geo-cover" and i["license"]=="NASA-EDITORIAL-USE" and "2021" in i["caption_zh"] and "非 2026" in i["caption_zh"] and i["locally_acquired"] for i in items)
+ manifest["p1_acquisition_pass"]=len(items)==4 and manifest["cover_photo_pass"]
  manifest["p1_overall"]="PASS" if manifest["p1_acquisition_pass"] else "HOLD"
  (ROOT/"provenance.json").write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding="utf-8")
  page=['<!DOCTYPE html><html lang="zh-Hant"><meta charset="UTF-8">',
@@ -72,5 +72,5 @@ def main():
  print(json.dumps({"image_count":len(items),"chart_specs":4,
    "status":manifest["p1_overall"],"cover_photo_pass":manifest["cover_photo_pass"],"publication":"OFF"},ensure_ascii=False))
  if not manifest["p1_acquisition_pass"]:
-  raise SystemExit("P1_HOLD_EVENT_SPECIFIC_LICENSED_COVER_REQUIRED_NO_P2")
+  raise SystemExit("P1_HOLD_REAL_LICENSED_GEO_CONTEXT_COVER_REQUIRED_NO_P2")
 if __name__=="__main__": main()
